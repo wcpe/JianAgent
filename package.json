@@ -1,0 +1,26 @@
+{
+  "name": "jian-agent",
+  "private": true,
+  "scripts": {
+    "build:shared": "pnpm --filter @jian-agent/shared-domain exec tsc -b --force && pnpm --filter @jian-agent/shared-protocol exec tsc -b --force",
+    "prepare:server-runtime": "pnpm run build:shared && pnpm --filter @jian-agent/bot-worker build",
+    "dev:server": "pnpm run prepare:server-runtime && pnpm --filter @jian-agent/server dev",
+    "dev:web": "pnpm --filter @jian-agent/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "bcrypt",
+      "better-sqlite3",
+      "esbuild",
+      "node-pty"
+    ]
+  }
+}

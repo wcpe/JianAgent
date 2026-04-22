@@ -53,3 +53,11 @@ replay_*.log
 /logs/
 /.omx/
 /docs/superpowers/
+node_modules
+/packages/server/dist/
+/data/
+/packages/server/data/
+
+/**/dist/
+**/dist/**
+**/*.tsbuildinfo

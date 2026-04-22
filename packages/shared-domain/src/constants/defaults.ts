@@ -1,0 +1,12 @@
+export const DEFAULTS = {
+  SERVER_ENCODING: 'utf-8',
+  SERVER_AUTO_RESTART: false,
+  SERVER_MAX_RESTARTS: 3,
+  JVM_ARGS: ['-Xmx2G', '-Xms1G'] as readonly string[],
+  SERVER_ARGS: ['nogui'] as readonly string[],
+  MONITOR_INTERVAL_MS: 5000,
+  SNAPSHOT_INTERVAL_MS: 5000,
+  BOT_SPAWN_INTERVAL_MS: 200,
+  BOT_STATE_REPORT_INTERVAL_MS: 3000,
+  BOTS_PER_WORKER: 50,
+} as const;

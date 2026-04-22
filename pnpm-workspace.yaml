@@ -1,0 +1,8 @@
+packages:
+  - "packages/*"
+allowBuilds:
+  '@nestjs/core': false
+  bcrypt: false
+  better-sqlite3: false
+  esbuild: false
+  node-pty: false
