@@ -1,0 +1,45 @@
+/* Theme: Ocean (Deep Ocean & Sky Blue) */
+
+[data-theme="ocean"] {
+  --color-gray-50: 248 250 252;
+  --color-gray-100: 241 245 249;
+  --color-gray-200: 226 232 240;
+  --color-gray-300: 203 213 225;
+  --color-gray-400: 148 163 184;
+  --color-gray-500: 100 116 139;
+  --color-gray-600: 71 85 105;
+  --color-gray-700: 51 65 85;
+  --color-gray-800: 30 41 59;
+  --color-gray-900: 15 23 42;
+  --color-gray-950: 2 6 23;
+  --color-primary-50: 240 249 255;
+  --color-primary-100: 224 242 254;
+  --color-primary-200: 186 230 253;
+  --color-primary-300: 125 211 252;
+  --color-primary-400: 56 189 248;
+  --color-primary-500: 14 165 233;
+  --color-primary-600: 2 132 199;
+  --color-primary-700: 3 105 161;
+  --color-primary-800: 7 89 133;
+  --color-primary-900: 12 74 110;
+  --color-primary-950: 8 47 73;
+
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-surface-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgb(var(--color-gray-200) / 0.5);
+  --glass-shadow: 0 10px 40px rgb(var(--color-primary-900) / 0.08);
+  --glass-ring: rgb(var(--color-primary-500) / 0.4);
+  --terminal-bg: rgb(var(--color-gray-950));
+  --terminal-fg: rgb(var(--color-gray-200));
+}
+
+[data-theme="ocean"].dark,
+[data-theme="ocean"][data-mode="dark"] {
+  --glass-surface: rgba(var(--color-gray-900), 0.7);
+  --glass-surface-strong: rgba(var(--color-gray-900), 0.9);
+  --glass-border: rgb(var(--color-gray-700) / 0.5);
+  --glass-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  --glass-ring: rgb(var(--color-primary-500) / 0.4);
+  --terminal-bg: rgb(var(--color-gray-950));
+  --terminal-fg: rgb(var(--color-gray-300));
+}

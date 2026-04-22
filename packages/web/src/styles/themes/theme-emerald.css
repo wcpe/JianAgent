@@ -1,0 +1,45 @@
+/* Theme: Emerald (Clean Zinc & Emerald) */
+
+[data-theme="emerald"] {
+  --color-gray-50: 250 250 250;
+  --color-gray-100: 244 244 245;
+  --color-gray-200: 228 228 231;
+  --color-gray-300: 212 212 216;
+  --color-gray-400: 161 161 170;
+  --color-gray-500: 113 113 122;
+  --color-gray-600: 82 82 91;
+  --color-gray-700: 63 63 70;
+  --color-gray-800: 39 39 42;
+  --color-gray-900: 24 24 27;
+  --color-gray-950: 9 9 11;
+  --color-primary-50: 236 253 245;
+  --color-primary-100: 209 250 229;
+  --color-primary-200: 167 243 208;
+  --color-primary-300: 110 231 183;
+  --color-primary-400: 52 211 153;
+  --color-primary-500: 16 185 129;
+  --color-primary-600: 5 150 105;
+  --color-primary-700: 4 120 87;
+  --color-primary-800: 6 95 70;
+  --color-primary-900: 6 78 59;
+  --color-primary-950: 2 44 34;
+
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-surface-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgb(var(--color-gray-200) / 0.5);
+  --glass-shadow: 0 10px 40px rgb(var(--color-primary-900) / 0.08);
+  --glass-ring: rgb(var(--color-primary-500) / 0.4);
+  --terminal-bg: rgb(var(--color-gray-950));
+  --terminal-fg: rgb(var(--color-gray-200));
+}
+
+[data-theme="emerald"].dark,
+[data-theme="emerald"][data-mode="dark"] {
+  --glass-surface: rgba(var(--color-gray-900), 0.7);
+  --glass-surface-strong: rgba(var(--color-gray-900), 0.9);
+  --glass-border: rgb(var(--color-gray-700) / 0.5);
+  --glass-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  --glass-ring: rgb(var(--color-primary-500) / 0.4);
+  --terminal-bg: rgb(var(--color-gray-950));
+  --terminal-fg: rgb(var(--color-gray-300));
+}

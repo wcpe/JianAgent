@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="default">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JianAgent - Minecraft 压测平台</title>
+    <!-- Prevent FOUC: Read local storage before paint -->
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('jianagent-theme-mode');
+          var preset = localStorage.getItem('jianagent-theme-preset') || 'default';
+          
+          if (!mode) {
+            var legacy = localStorage.getItem('jianagent-theme');
+            mode = (legacy === 'dark' || legacy === 'light') ? legacy : 'system';
+          }
+          
+          document.documentElement.setAttribute('data-theme', preset);
+          
+          var effective = mode;
+          if (mode === 'system') {
+            effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          if (effective === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

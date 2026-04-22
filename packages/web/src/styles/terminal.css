@@ -1,0 +1,12 @@
+/* xterm.js terminal fixes */
+.xterm {
+  padding: 0 !important;
+}
+.xterm-viewport {
+  overflow-y: auto !important;
+}
+/* Ensure terminal text is always left-aligned */
+.xterm .xterm-screen,
+.xterm .xterm-screen canvas {
+  text-align: left !important;
+}

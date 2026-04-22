@@ -1,0 +1,78 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Fira Sans', sans-serif;
+  @apply text-gray-900 bg-gray-50;
+}
+
+.dark body {
+  @apply text-gray-100 bg-gray-950;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+kbd,
+code,
+pre {
+  font-family: 'Fira Code', monospace;
+}
+
+/* ── Global scrollbar reset ─────────────────────────────── */
+/* Apply slim scrollbar to ALL scrollable containers */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+/* Dark mode scrollbar */
+.dark *::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+/* Firefox global */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+/* Ultra-slim variant (4px, sidebar etc.) */
+.scrollbar-slim::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+.dark .scrollbar-slim::-webkit-scrollbar-thumb {
+  background: rgba(226, 232, 240, 0.3);
+}
+.dark .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+  background: rgba(226, 232, 240, 0.5);
+}

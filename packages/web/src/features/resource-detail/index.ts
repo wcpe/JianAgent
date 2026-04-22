@@ -1,0 +1,15 @@
+export { ResourceDetailPage } from './ResourceDetailPage.js';
+export { ResourceHeader } from './ResourceHeader.js';
+export { ResourceSummaryCards } from './ResourceSummaryCards.js';
+export { JvmDiagnosticsTab } from './JvmDiagnosticsTab.js';
+export { JvmQuickActions } from './JvmQuickActions.js';
+export { MinecraftOpsTab } from './MinecraftOpsTab.js';
+export { MinecraftQuickActions } from './MinecraftQuickActions.js';
+export { ValidationOpsTab } from './ValidationOpsTab.js';
+export { useResourceDetail } from './use-resource-detail.js';
+export { registerResourceTab, getVisibleTabs, buildSlugMap } from './resource-tab-registry.js';
+export type { ResourceTab } from './resource-tab-registry.js';
+export type { UseResourceDetailResult } from './use-resource-detail.js';
+export type { ResourceHeaderProps } from './ResourceHeader.js';
+export type { ResourceSummaryCardsProps } from './ResourceSummaryCards.js';
+export type { ResourceDetailPageProps } from './ResourceDetailPage.js';
