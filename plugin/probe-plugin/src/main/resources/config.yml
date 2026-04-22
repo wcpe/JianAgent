@@ -1,0 +1,7 @@
+bridge:
+  host: localhost
+  port: 3401
+  server-id: default
+
+snapshot:
+  interval-ticks: 100
