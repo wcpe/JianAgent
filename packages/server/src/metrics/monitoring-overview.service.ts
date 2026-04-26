@@ -19,6 +19,9 @@ interface ThresholdSignalInput {
 
 @Injectable()
 export class MonitoringOverviewService {
+  private readonly cache = new Map<string, { data: MonitoringOverviewDto; expiresAt: number }>();
+  private static readonly CACHE_TTL_MS = 3000;
+
   constructor(
     private readonly metricStore: MetricStoreService,
     private readonly jmxMetrics: JmxMetricsService,
@@ -29,6 +32,11 @@ export class MonitoringOverviewService {
   ) {}
 
   async getOverview(serverId: string): Promise<MonitoringOverviewDto> {
+    const cached = this.cache.get(serverId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
     const [latestProbe, latestJmx, alertSummary, activeRules, schedules] = await Promise.all([
       this.metricStore.getLatest(serverId),
       this.jmxMetrics.getLatest(serverId),
@@ -42,7 +50,7 @@ export class MonitoringOverviewService {
     const runtime = this.platformRuntime.getCapabilities();
     const logBackendState = this.resolveLogBackendState(runtime.logBackendMode);
 
-    return {
+    const result: MonitoringOverviewDto = {
       serverId,
       generatedAt: new Date().toISOString(),
       state: this.resolveState(signals),
@@ -57,6 +65,9 @@ export class MonitoringOverviewService {
       activeJmxScheduleCount: serverSchedules.length,
       signals,
     };
+
+    this.cache.set(serverId, { data: result, expiresAt: Date.now() + MonitoringOverviewService.CACHE_TTL_MS });
+    return result;
   }
 
   private buildSignals(

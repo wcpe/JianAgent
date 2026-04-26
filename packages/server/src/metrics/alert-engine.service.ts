@@ -16,6 +16,7 @@ export class AlertEngineService extends EventEmitter implements OnModuleInit {
   private readonly logger = new Logger(AlertEngineService.name);
   private rules: AlertRuleDto[] = [];
   private readonly cooldowns = new Map<string, CooldownEntry>();
+  private static readonly DEFAULT_ALERT_JITTER_MS = 150;
 
   constructor(private readonly alertStore: AlertStoreService) {
     super();
@@ -90,6 +91,8 @@ export class AlertEngineService extends EventEmitter implements OnModuleInit {
     };
 
     const id = await this.alertStore.insertAlert(alertDto);
+    const delay = this.getAlertJitterMs();
+    await this.sleep(delay);
     this.emit('alert.fired', { ...alertDto, id });
   }
 
@@ -141,6 +144,8 @@ export class AlertEngineService extends EventEmitter implements OnModuleInit {
     const id = await this.alertStore.insertAlert(alertDto);
     const fullAlert: AlertDto = { ...alertDto, id };
 
+    const delay = this.getAlertJitterMs();
+    await this.sleep(delay);
     this.emit('alert.fired', fullAlert);
     this.logger.warn(`Alert [${rule.level}] ${rule.name}: ${alertDto.message}`);
   }
@@ -156,5 +161,18 @@ export class AlertEngineService extends EventEmitter implements OnModuleInit {
     };
     this.emit('alert', alert);
     this.logger.warn(`Alert [${level}] ${source}: ${message}`);
+  }
+
+  private getAlertJitterMs(): number {
+    const raw = process.env['ALERT_JITTER_MS'];
+    const configured = Number(raw);
+    if (raw !== undefined && Number.isFinite(configured) && configured > 0) {
+      return Math.floor(Math.random() * configured);
+    }
+    return AlertEngineService.DEFAULT_ALERT_JITTER_MS;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

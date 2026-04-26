@@ -35,7 +35,8 @@ describe('MetricsRealtimeWiring', () => {
     logAggregator = createMockEmitter();
     alertEngine = createMockEmitter();
     jmxMetrics = createJmxEmitter();
-    wiring = new MetricsRealtimeWiring(gateway as any, logAggregator as any, alertEngine as any, jmxMetrics as any);
+    const systemMetrics = createMockEmitter();
+    wiring = new MetricsRealtimeWiring(gateway as any, logAggregator as any, alertEngine as any, jmxMetrics as any, systemMetrics as any);
   });
 
   it('should register listeners on init', () => {

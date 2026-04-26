@@ -4,6 +4,10 @@ import { DRIZZLE_TOKEN } from '../storage/drizzle.provider.js';
 import type { DrizzleDb } from '../storage/drizzle.provider.js';
 import { alertRules, alerts } from '../storage/schema.js';
 import type { AlertDto, AlertRuleDto, CreateAlertRuleDto, UpdateAlertRuleDto, AlertSummaryDto } from '@jian-agent/shared-domain';
+import type { alertRules as alertRulesTable, alerts as alertsTable } from '../storage/schema.js';
+
+type AlertRuleRow = typeof alertRulesTable.$inferSelect;
+type AlertRow = typeof alertsTable.$inferSelect;
 import { randomUUID } from 'node:crypto';
 
 @Injectable()
@@ -65,14 +69,14 @@ export class AlertStoreService {
     return rows.map((r) => this.toRuleDto(r));
   }
 
-  private toRuleDto(row: any): AlertRuleDto {
+  private toRuleDto(row: AlertRuleRow): AlertRuleDto {
     return {
       id: row.id,
       name: row.name,
-      metric: row.metric,
-      operator: row.operator,
+      metric: row.metric as AlertRuleDto['metric'],
+      operator: row.operator as AlertRuleDto['operator'],
       threshold: row.threshold,
-      level: row.level,
+      level: row.level as AlertRuleDto['level'],
       enabled: row.enabled,
       cooldownSeconds: row.cooldownSeconds,
       createdAt: row.createdAt,
@@ -134,11 +138,11 @@ export class AlertStoreService {
     return { totalActive: active.length, criticalCount, warningCount, infoCount };
   }
 
-  private toAlertDto(row: any): AlertDto {
+  private toAlertDto(row: AlertRow): AlertDto {
     return {
       id: row.id,
       timestamp: row.timestamp,
-      level: row.level,
+      level: row.level as AlertDto['level'],
       ruleId: row.ruleId,
       ruleName: row.ruleName,
       message: row.message,

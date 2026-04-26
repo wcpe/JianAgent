@@ -7,13 +7,15 @@ import { LogExporterService } from './log-exporter.service.js';
 import { MetricStoreService } from '../storage/metric-store.service.js';
 import { JmxMetricsService } from './jmx-metrics.service.js';
 import { JmxSchedulerService } from './jmx-scheduler.service.js';
+import { SystemMetricsService } from './system-metrics.service.js';
+import { CorrelatedTimelineService } from './correlated-timeline.service.js';
 import { JwtGuard } from '../auth/jwt.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 import type { LogSearchRequest, CreateAlertRuleDto, UpdateAlertRuleDto } from '@jian-agent/shared-domain';
 
-@Controller('api/metrics')
+@Controller('metrics')
 @UseGuards(JwtGuard, RolesGuard)
 export class MetricsController {
   constructor(
@@ -25,6 +27,8 @@ export class MetricsController {
     private readonly jmxMetrics: JmxMetricsService,
     private readonly jmxScheduler: JmxSchedulerService,
     private readonly monitoringOverview: MonitoringOverviewService,
+    private readonly systemMetricsService: SystemMetricsService,
+    private readonly correlatedTimeline: CorrelatedTimelineService,
   ) {}
 
   // --- Metrics History ---
@@ -217,8 +221,28 @@ export class MetricsController {
 
   @Get('alerts')
   @Roles(RoleLevel.VIEWER)
-  getAlerts(@Query('limit') limit?: string) {
-    return this.alertEngine.getRecentAlerts(limit ? parseInt(limit, 10) : undefined);
+  async getAlerts(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('level') level?: string,
+    @Query('acknowledged') acknowledged?: string,
+  ) {
+    const parsedPage = Math.max(1, parseInt(page ?? '1', 10) || 1);
+    const parsedLimit = Math.min(200, Math.max(1, parseInt(limit ?? '50', 10) || 50));
+    const all = await this.alertEngine.getRecentAlerts(1000);
+    let filtered = all;
+    if (level) {
+      filtered = filtered.filter((a) => a.level === level);
+    }
+    if (acknowledged === 'true') {
+      filtered = filtered.filter((a) => a.acknowledged);
+    } else if (acknowledged === 'false') {
+      filtered = filtered.filter((a) => !a.acknowledged);
+    }
+    const total = filtered.length;
+    const start = (parsedPage - 1) * parsedLimit;
+    const data = filtered.slice(start, start + parsedLimit);
+    return { data, total, page: parsedPage, limit: parsedLimit };
   }
 
   @Get('alerts/summary')
@@ -243,8 +267,17 @@ export class MetricsController {
 
   @Get('alert-rules')
   @Roles(RoleLevel.VIEWER)
-  getAlertRules() {
-    return this.alertStore.listRules();
+  async getAlertRules(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedPage = Math.max(1, parseInt(page ?? '1', 10) || 1);
+    const parsedLimit = Math.min(200, Math.max(1, parseInt(limit ?? '50', 10) || 50));
+    const all = await this.alertStore.listRules();
+    const total = all.length;
+    const start = (parsedPage - 1) * parsedLimit;
+    const data = all.slice(start, start + parsedLimit);
+    return { data, total, page: parsedPage, limit: parsedLimit };
   }
 
   @Post('alert-rules')
@@ -272,5 +305,44 @@ export class MetricsController {
       await this.alertEngine.reloadRules();
       return { deleted: result };
     });
+  }
+
+  // --- System Metrics ---
+
+  @Get('system/latest')
+  @Roles(RoleLevel.VIEWER)
+  getSystemLatest() {
+    return { success: true, data: this.systemMetricsService.getLatest() };
+  }
+
+  @Get('system/history')
+  @Roles(RoleLevel.VIEWER)
+  getSystemHistory(
+    @Query('startTime') startTime?: string,
+    @Query('endTime') endTime?: string,
+    @Query('limit') limitStr?: string,
+  ) {
+    const limit = Math.min(500, parseInt(limitStr ?? '120', 10) || 120);
+    return { success: true, data: this.systemMetricsService.getHistory(startTime, endTime, limit) };
+  }
+
+  @Get('system/summary')
+  @Roles(RoleLevel.VIEWER)
+  getSystemSummary() {
+    const latest = this.systemMetricsService.getLatest();
+    return { success: true, data: latest };
+  }
+
+  // --- Correlated Timeline ---
+
+  @Get('correlated')
+  @Roles(RoleLevel.VIEWER)
+  async getCorrelatedTimeline(
+    @Query('serverId') serverId: string,
+    @Query('startTime') startTime: string,
+    @Query('endTime') endTime: string,
+  ) {
+    const data = await this.correlatedTimeline.getCorrelatedTimeline(serverId, startTime, endTime);
+    return { success: true, data };
   }
 }
