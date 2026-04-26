@@ -121,7 +121,7 @@ export class SessionReportService {
   private parseMetadata(row: MetricRow): Record<string, unknown> {
     try {
       return row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : {};
-    } catch {
+    } catch (_err) {
       return {};
     }
   }

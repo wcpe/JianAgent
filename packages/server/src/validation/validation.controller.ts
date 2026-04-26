@@ -10,7 +10,7 @@ import { ValidationReportService, type VerdictThresholds } from './validation-re
 import { PlatformObservabilityService } from '../platform-observability/platform-observability.service.js';
 import { SessionReportService } from '../metrics/session-report.service.js';
 
-@Controller('api/validation')
+@Controller('validation')
 @UseGuards(JwtGuard, RolesGuard)
 export class ValidationController {
   constructor(

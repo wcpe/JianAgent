@@ -85,7 +85,7 @@ export class LocalServerProvisioningService {
           message: `serverDir ${input.serverDir} is not a directory`,
         });
       }
-    } catch {
+    } catch (_err) {
       blockingIssues.push({
         code: 'SERVER_DIR_NOT_ACCESSIBLE',
         message: `serverDir ${input.serverDir} cannot be accessed for read/write`,
@@ -101,7 +101,7 @@ export class LocalServerProvisioningService {
           message: `jarPath ${input.jarPath} is not a file`,
         });
       }
-    } catch {
+    } catch (_err) {
       blockingIssues.push({
         code: 'JAR_NOT_ACCESSIBLE',
         message: `jarPath ${input.jarPath} cannot be read`,

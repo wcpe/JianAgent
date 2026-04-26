@@ -28,7 +28,7 @@ interface AuthenticatedRequest {
   };
 }
 
-@Controller('api/local-validation')
+@Controller('local-validation')
 @UseGuards(JwtGuard, RolesGuard)
 export class LocalValidationController {
   constructor(

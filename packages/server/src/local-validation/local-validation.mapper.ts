@@ -75,7 +75,7 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 
   try {
     return JSON.parse(raw) as T;
-  } catch {
+  } catch (_err) {
     return fallback;
   }
 }

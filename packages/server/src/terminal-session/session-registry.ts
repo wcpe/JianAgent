@@ -87,8 +87,8 @@ export class SessionRegistry implements OnModuleDestroy {
     for (const session of this.sessions.values()) {
       try {
         session.close();
-      } catch {
-        /* ignore */
+      } catch (err) {
+        this.logger.debug(`Failed to close session during shutdown: ${session.sessionId}`, err);
       }
     }
     this.sessions.clear();

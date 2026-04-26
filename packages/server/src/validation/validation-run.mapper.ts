@@ -22,8 +22,8 @@ export class ValidationRunMapper {
     if (row.metricsJson) {
       try {
         metrics = JSON.parse(row.metricsJson);
-      } catch {
-        this.logger.warn(`Failed to parse metrics JSON for run ${row.id}`);
+      } catch (err) {
+        this.logger.warn(`Failed to parse metrics JSON for run ${row.id}`, err);
       }
     }
 

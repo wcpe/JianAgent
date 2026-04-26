@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { DRIZZLE_TOKEN } from '../storage/drizzle.provider.js';
+import type { DrizzleDb } from '../storage/drizzle.provider.js';
 import { validationPlan } from '../storage/schema.js';
 import type {
   ValidationPlanDto,
@@ -9,11 +10,13 @@ import type {
   UpdateValidationPlanInput,
 } from './validation.types.js';
 
+type ValidationPlanRow = typeof validationPlan.$inferSelect;
+
 @Injectable()
 export class ValidationPlanService {
   private readonly logger = new Logger(ValidationPlanService.name);
 
-  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb) {}
 
   async create(input: CreateValidationPlanInput): Promise<ValidationPlanDto> {
     const id = `vp_${randomUUID().slice(0, 8)}`;
@@ -47,7 +50,7 @@ export class ValidationPlanService {
 
   async findAll(): Promise<ValidationPlanDto[]> {
     const plans = await this.db.select().from(validationPlan);
-    return plans.map((plan: any) => this.toDto(plan));
+    return plans.map((plan) => this.toDto(plan));
   }
 
   async findByServerId(serverId: string): Promise<ValidationPlanDto[]> {
@@ -56,7 +59,7 @@ export class ValidationPlanService {
       .from(validationPlan)
       .where(eq(validationPlan.targetId, serverId));
 
-    return plans.map((plan: any) => this.toDto(plan));
+    return plans.map((plan) => this.toDto(plan));
   }
 
   async update(id: string, input: UpdateValidationPlanInput): Promise<ValidationPlanDto> {
@@ -93,20 +96,20 @@ export class ValidationPlanService {
       .where(eq(validationPlan.id, id));
   }
 
-  private toDto(row: any): ValidationPlanDto {
+  private toDto(row: ValidationPlanRow): ValidationPlanDto {
     let phases: unknown[] = [];
     try {
       phases = JSON.parse(row.phasesJson);
-    } catch {
-      this.logger.warn(`Failed to parse phases JSON for plan ${row.id}`);
+    } catch (err) {
+      this.logger.warn(`Failed to parse phases JSON for plan ${row.id}`, err);
     }
 
     return {
       id: row.id,
       name: row.name,
-      description: row.description ?? '',
+      description: '',
       serverId: row.targetId,
-      type: row.triggerType === 'manual' ? 'custom' : row.triggerType,
+      type: (row.triggerType === 'manual' ? 'custom' : row.triggerType) as 'custom' | 'full' | 'quick',
       config: { phases },
       enabled: true,
       createdAt: row.createdAt,

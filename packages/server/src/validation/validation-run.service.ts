@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, NotFoundException, BadRequestException } fr
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { DRIZZLE_TOKEN } from '../storage/drizzle.provider.js';
+import type { DrizzleDb } from '../storage/drizzle.provider.js';
 import { validationRun } from '../storage/schema.js';
 import { ValidationRunMapper } from './validation-run.mapper.js';
 import type { ValidationRunDto } from './validation.types.js';
@@ -11,7 +12,7 @@ export class ValidationRunService {
   private readonly logger = new Logger(ValidationRunService.name);
 
   constructor(
-    @Inject(DRIZZLE_TOKEN) private readonly db: any,
+    @Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb,
     private readonly mapper: ValidationRunMapper,
   ) {}
 

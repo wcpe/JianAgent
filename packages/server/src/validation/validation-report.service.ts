@@ -204,7 +204,8 @@ export class ValidationReportService {
     let evidence: EvidenceItemDto[] = [];
     try {
       evidence = row.evidenceJson ? JSON.parse(row.evidenceJson) : [];
-    } catch {
+    } catch (err) {
+      this.logger.debug('Failed to parse evidence JSON for verdict', err);
       evidence = [];
     }
 

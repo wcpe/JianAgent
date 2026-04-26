@@ -3,7 +3,7 @@ import { RoleLevel } from '@jian-agent/shared-domain';
 import { Roles } from '../auth/roles.decorator.js';
 import { LogSearchService } from './log-search.service.js';
 
-@Controller('api/logs/search')
+@Controller('logs/search')
 export class LogSearchController {
   constructor(private readonly logSearchService: LogSearchService) {}
 
