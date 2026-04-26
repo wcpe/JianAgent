@@ -70,7 +70,7 @@ export const useQuickTestStore = create<QuickTestState>((set, get) => ({
         count: config.botCount,
         behavior: config.behavior,
       });
-      set({ batchId: result.data.batchId, createdNames: result.data.createdNames });
+      set({ batchId: result.data.batchId, createdNames: Array.isArray(result.data?.createdNames) ? result.data.createdNames : [] });
 
       set({ phase: 'RUNNING', startTime: Date.now() });
 
@@ -124,7 +124,7 @@ export const useQuickTestStore = create<QuickTestState>((set, get) => ({
       if (batchId) {
         await botApi.stopBatch(batchId);
       }
-    } catch { /* best-effort */ }
+    } catch (err: unknown) { console.warn('Quick test cleanup failed:', err); }
     set({ phase: 'IDLE', batchId: null, createdNames: [], startTime: null, errorMessage: null });
   },
 
@@ -136,6 +136,6 @@ export const useQuickTestStore = create<QuickTestState>((set, get) => ({
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
       if (raw) set({ history: JSON.parse(raw) });
-    } catch { /* ignore corrupt data */ }
+    } catch (err: unknown) { console.warn('Failed to load quick test history:', err); }
   },
 }));

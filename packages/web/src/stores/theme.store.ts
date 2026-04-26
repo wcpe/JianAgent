@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { ThemePreset } from '../theme/theme-presets.js';
 import type { ResourceDetailDto } from '@jian-agent/shared-domain';
+import { DEFAULT_NAV_ORDER } from '../components/layout/nav-config.js';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -14,9 +15,11 @@ export interface ResourceSidebarProps {
 const STORAGE_KEYS = {
   mode: 'jianagent-theme-mode',
   preset: 'jianagent-theme-preset',
-  // backward-compat with old key
   legacy: 'jianagent-theme',
   sidebar: 'jianagent-sidebar-collapsed',
+  navGroups: 'jianagent-nav-groups-collapsed',
+  navOrder: 'jianagent-nav-order',
+  navItemOrder: 'jianagent-nav-item-order',
 } as const;
 
 const VALID_MODES = new Set<ThemeMode>(['light', 'dark', 'system']);
@@ -54,6 +57,29 @@ function hydrateSidebarFloating(): boolean {
   return readStored(STORAGE_KEYS.sidebar + '_floating') === 'true';
 }
 
+function hydrateCollapsedGroups(): Record<string, boolean> {
+  const stored = readStored(STORAGE_KEYS.navGroups);
+  if (!stored) return {};
+  try { return JSON.parse(stored); } catch { return {}; }
+}
+
+function hydrateNavOrder(): readonly string[] {
+  const stored = readStored(STORAGE_KEYS.navOrder);
+  if (!stored) return DEFAULT_NAV_ORDER;
+  try {
+    const parsed = JSON.parse(stored) as string[];
+    const defaultSet = new Set(DEFAULT_NAV_ORDER);
+    if (parsed.length !== DEFAULT_NAV_ORDER.length || !parsed.every((id) => defaultSet.has(id))) return DEFAULT_NAV_ORDER;
+    return parsed;
+  } catch { return DEFAULT_NAV_ORDER; }
+}
+
+function hydrateNavItemOrder(): Readonly<Record<string, readonly string[]>> {
+  const stored = readStored(STORAGE_KEYS.navItemOrder);
+  if (!stored) return {};
+  try { return JSON.parse(stored); } catch { return {}; }
+}
+
 // ---------- store ----------
 
 export interface ThemeState {
@@ -65,6 +91,9 @@ export interface ThemeState {
 
   readonly sidebarMode: 'global' | 'resource';
   readonly resourceSidebarProps: ResourceSidebarProps | null;
+  readonly collapsedGroups: Record<string, boolean>;
+  readonly navGroupOrder: readonly string[];
+  readonly navItemOrder: Readonly<Record<string, readonly string[]>>;
 
   /** Cycle light → dark → system → light. */
   cycleMode: () => void;
@@ -75,6 +104,11 @@ export interface ThemeState {
   setSidebarCollapsed: (collapsed: boolean) => void;
   setMobileSidebarOpen: (open: boolean) => void;
   setSidebarMode: (mode: 'global' | 'resource', props?: ResourceSidebarProps | null) => void;
+  toggleNavGroup: (groupId: string) => void;
+  setNavGroupOrder: (order: string[]) => void;
+  setNavItemOrder: (groupId: string, paths: string[]) => void;
+  resetNavGroupOrder: () => void;
+  clearAllCache: () => void;
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
@@ -86,6 +120,9 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
   sidebarMode: 'global',
   resourceSidebarProps: null,
+  collapsedGroups: hydrateCollapsedGroups(),
+  navGroupOrder: hydrateNavOrder(),
+  navItemOrder: hydrateNavItemOrder(),
 
   cycleMode: () =>
     set((state) => {
@@ -128,4 +165,36 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
   setSidebarMode: (mode, props = null) =>
     set({ sidebarMode: mode, resourceSidebarProps: props }),
+
+  toggleNavGroup: (groupId) =>
+    set((state) => {
+      const next = { ...state.collapsedGroups, [groupId]: !state.collapsedGroups[groupId] };
+      localStorage.setItem(STORAGE_KEYS.navGroups, JSON.stringify(next));
+      return { collapsedGroups: next };
+    }),
+
+  setNavGroupOrder: (order) => {
+    localStorage.setItem(STORAGE_KEYS.navOrder, JSON.stringify(order));
+    set({ navGroupOrder: order });
+  },
+
+  setNavItemOrder: (groupId, paths) =>
+    set((state) => {
+      const next = { ...state.navItemOrder, [groupId]: paths };
+      localStorage.setItem(STORAGE_KEYS.navItemOrder, JSON.stringify(next));
+      return { navItemOrder: next };
+    }),
+
+  resetNavGroupOrder: () => {
+    localStorage.removeItem(STORAGE_KEYS.navOrder);
+    localStorage.removeItem(STORAGE_KEYS.navItemOrder);
+    set({ navGroupOrder: DEFAULT_NAV_ORDER, navItemOrder: {} });
+  },
+
+  clearAllCache: () => {
+    for (const key of Object.values(STORAGE_KEYS)) {
+      localStorage.removeItem(key);
+    }
+    localStorage.removeItem(STORAGE_KEYS.sidebar + '_floating');
+  },
 }));

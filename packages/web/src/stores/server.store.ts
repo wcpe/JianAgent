@@ -44,7 +44,8 @@ export const useServerStore = create<ServerStoreState>((set, get) => ({
   fetchServers: async () => {
     set({ loading: true, error: null });
     try {
-      const servers = await serverApi.listServers();
+      const res = await serverApi.listServers();
+      const servers = Array.isArray(res) ? res : (res as any)?.data ?? [];
       set({ servers: [...servers], loading: false });
     } catch (err: any) {
       set({ error: err.message ?? 'Failed to fetch servers', loading: false });

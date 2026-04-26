@@ -3,6 +3,7 @@ import type { WsMessage } from '@jian-agent/shared-protocol';
 export type WsListener = (msg: WsMessage) => void;
 
 class WsClient {
+  private static readonly MAX_PENDING = 1000;
   private ws: WebSocket | null = null;
   private readonly listeners = new Set<WsListener>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -21,7 +22,7 @@ class WsClient {
     this.intentionalClose = false;
     this.connectionFailed = false;
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const query = token ? `?token=${encodeURIComponent(token)}` : '';
     const url = `${protocol}//${location.host}/ws/realtime${query}`;
 
@@ -91,6 +92,9 @@ class WsClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
+      if (this.pendingMessages.length >= WsClient.MAX_PENDING) {
+        this.pendingMessages.shift();
+      }
       this.pendingMessages.push(message);
     }
   }

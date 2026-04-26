@@ -67,4 +67,27 @@ describe('useThemeStore', () => {
     useThemeStore.getState().cycleMode();
     expect(localStorage.setItem).toHaveBeenCalledWith('jianagent-theme-mode', 'light');
   });
+
+  it('toggleNavGroup collapses and expands a group', () => {
+    expect(useThemeStore.getState().collapsedGroups).toEqual({});
+    useThemeStore.getState().toggleNavGroup('resources');
+    expect(useThemeStore.getState().collapsedGroups.resources).toBe(true);
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      'jianagent-nav-groups-collapsed',
+      expect.stringContaining('"resources":true'),
+    );
+    useThemeStore.getState().toggleNavGroup('resources');
+    expect(useThemeStore.getState().collapsedGroups.resources).toBe(false);
+  });
+
+  it('toggleNavGroup handles multiple groups independently', () => {
+    useThemeStore.getState().toggleNavGroup('resources');
+    useThemeStore.getState().toggleNavGroup('admin');
+    const groups = useThemeStore.getState().collapsedGroups;
+    expect(groups.resources).toBe(true);
+    expect(groups.admin).toBe(true);
+    useThemeStore.getState().toggleNavGroup('resources');
+    expect(useThemeStore.getState().collapsedGroups.resources).toBe(false);
+    expect(useThemeStore.getState().collapsedGroups.admin).toBe(true);
+  });
 });

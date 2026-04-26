@@ -59,6 +59,7 @@ export const useDashboardStore = create<DashboardState & DashboardActions>((set)
       const [history, serverStatus, alertSummary] = await Promise.all([
         apiFetch<MetricSnapshotDto[]>('/metrics/history').catch(() => []),
         apiFetch<{ id: string; runtimeStatus: string; pid?: number; uptime?: number }[]>('/servers').then((list) => {
+          if (!Array.isArray(list)) return { state: 'STOPPED', pid: undefined, uptime: undefined };
           const first = list[0];
           return first ? { state: first.runtimeStatus?.toUpperCase() ?? 'STOPPED', pid: first.pid, uptime: first.uptime } : { state: 'STOPPED', pid: undefined, uptime: undefined };
         }).catch(() => ({

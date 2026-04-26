@@ -18,11 +18,11 @@ describe('WsMultiplexer', () => {
     };
 
     const handler = vi.fn();
-    subscribe('log:entry', handler);
+    subscribe('resource:log:entry', handler);
 
     // Simulate message dispatch
-    const msg = { channel: 'log:entry', payload: { entry: {} }, timestamp: 1 };
-    const set = listeners.get('log:entry');
+    const msg = { channel: 'resource:log:entry', payload: { entry: {} }, timestamp: 1 };
+    const set = listeners.get('resource:log:entry');
     if (set) for (const fn of set) fn(msg.payload, msg);
 
     expect(handler).toHaveBeenCalledTimes(1);
@@ -41,7 +41,7 @@ describe('WsMultiplexer', () => {
     };
 
     const handler = vi.fn();
-    subscribe('log:entry', handler);
+    subscribe('resource:log:entry', handler);
 
     // Dispatch to different channel
     const set = listeners.get('alert:fired');
@@ -65,18 +65,18 @@ describe('WsMultiplexer', () => {
 
     const globalHandler = vi.fn();
     const sessionHandler = vi.fn();
-    subscribe('terminal:data', globalHandler);
-    subscribe('terminal:data', sessionHandler, 'sess-1');
+    subscribe('terminal-session:data', globalHandler);
+    subscribe('terminal-session:data', sessionHandler, 'sess-1');
 
     // Simulate message with sessionId
-    const msg = { channel: 'terminal:data', sessionId: 'sess-1', payload: { data: 'hello' } };
+    const msg = { channel: 'terminal-session:data', sessionId: 'sess-1', payload: { data: 'hello' } };
 
     // Exact match
-    const exactSet = listeners.get(makeKey('terminal:data', 'sess-1'));
+    const exactSet = listeners.get(makeKey('terminal-session:data', 'sess-1'));
     if (exactSet) for (const fn of exactSet) fn(msg.payload, msg);
 
     // Channel-only match
-    const channelSet = listeners.get(makeKey('terminal:data'));
+    const channelSet = listeners.get(makeKey('terminal-session:data'));
     if (channelSet) for (const fn of channelSet) fn(msg.payload, msg);
 
     expect(sessionHandler).toHaveBeenCalledTimes(1);

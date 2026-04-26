@@ -58,7 +58,7 @@ export const useReportStore = create<ReportState>((set, get) => ({
       const data = await reportApi.getSessionMetrics(sessionId, metric);
       const key = `${sessionId}:${metric}`;
       set((state) => ({
-        metricSeries: { ...state.metricSeries, [key]: data },
+        metricSeries: { ...state.metricSeries, [key]: Array.isArray(data) ? data : [] },
       }));
     } catch {
       // non-fatal, series stays empty

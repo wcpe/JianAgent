@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Hoisted: runs before any module import so auth.store.ts can access localStorage
+// Hoisted: runs before any module import so auth.store.ts can access sessionStorage
 vi.hoisted(() => {
   const s: Record<string, string> = {};
   (globalThis as any).__authTestStorage = s;
-  globalThis.localStorage = {
+  globalThis.sessionStorage = {
     getItem: vi.fn((k: string) => s[k] ?? null),
     setItem: vi.fn((k: string, v: string) => { s[k] = v; }),
     removeItem: vi.fn((k: string) => { delete s[k]; }),
@@ -42,7 +42,7 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().token).toBe('tok123');
     expect(useAuthStore.getState().user?.username).toBe('admin');
     expect(useAuthStore.getState().loading).toBe(false);
-    expect(localStorage.setItem).toHaveBeenCalledWith('token', 'tok123');
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('token', 'tok123');
   });
 
   it('login sets error on failure', async () => {
@@ -62,7 +62,7 @@ describe('useAuthStore', () => {
 
     expect(useAuthStore.getState().token).toBeNull();
     expect(useAuthStore.getState().user).toBeNull();
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token');
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('token');
   });
 
   it('loadUser fetches and sets user', async () => {
@@ -82,6 +82,6 @@ describe('useAuthStore', () => {
 
     expect(useAuthStore.getState().token).toBeNull();
     expect(useAuthStore.getState().user).toBeNull();
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token');
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('token');
   });
 });

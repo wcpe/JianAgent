@@ -35,7 +35,7 @@ export const useBotStore = create<BotStoreState>((set, get) => ({
     try {
       const { filter } = get();
       const res = await botApi.list(filter);
-      set({ bots: res.data, meta: res.meta, loading: false, error: null });
+      set({ bots: Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []), meta: res.meta, loading: false, error: null });
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : 'Failed to fetch bots', loading: false });
     }

@@ -14,7 +14,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: localStorage.getItem('token'),
+  token: sessionStorage.getItem('token'),
   loading: false,
   error: null,
 
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true, error: null });
     try {
       const result = await authApi.login({ username, password });
-      localStorage.setItem('token', result.token);
+      sessionStorage.setItem('token', result.token);
       set({ token: result.token, user: result.user, loading: false });
     } catch (err: any) {
       set({ loading: false, error: err.message ?? 'Login failed' });
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     set({ token: null, user: null });
   },
 
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = await authApi.getMe();
       set({ user });
     } catch {
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       set({ token: null, user: null });
     }
   },

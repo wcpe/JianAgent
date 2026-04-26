@@ -1,47 +1,67 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/login/LoginPage.js';
 import { AuthGuard } from './components/auth/AuthGuard.js';
 import { AppLayout } from './components/layout/AppLayout.js';
-import { DashboardPage } from './pages/dashboard/DashboardPage.js';
-import { ServerConfigPage } from './pages/server-config/ServerConfigPage.js';
-import { TerminalPage } from './pages/terminals/TerminalPage.js';
-import { NodeLogPage } from './pages/terminals/NodeLogPage.js';
-import { BotWorkspacePage } from './pages/bots/BotWorkspacePage.js';
-import { BotScriptEditorPage } from './pages/bots/BotScriptEditorPage.js';
-import { BotConsolePage } from './pages/bots/BotConsolePage.js';
-import { SessionListPage } from './pages/SessionListPage.js';
-import { SessionCreatePage } from './pages/SessionCreatePage.js';
-import { SessionDetailPage } from './pages/SessionDetailPage.js';
-import { DiagnosticsPage } from './pages/DiagnosticsPage.js';
-import { LogPage } from './pages/LogPage.js';
-import AlertListPage from './features/alerts/AlertListPage.js';
-import AlertRulePage from './features/alerts/AlertRulePage.js';
-import { AuditPage } from './pages/audit/AuditPage.js';
-import { SessionTemplatePage } from './pages/session-template/SessionTemplatePage.js';
-import { SessionComparePage } from './pages/session-compare/SessionComparePage.js';
-import { StartTemplatePage } from './pages/session-template/StartTemplatePage.js';
-import { ServerStartTemplatePage } from './pages/servers/ServerStartTemplatePage.js';
-import WhitelistActionPanel from './pages/plugin/WhitelistActionPanel.js';
-import BotGroupPanel from './pages/bot/BotGroupPanel.js';
-import ReportPage from './pages/reports/ReportPage.js';
-import PhaseReportPage from './pages/reports/PhaseReportPage.js';
-import DataManagePage from './pages/reports/DataManagePage.js';
-import WorkerDashboard from './pages/workers/WorkerDashboard.js';
-import { MonitoringPage } from './pages/monitoring/MonitoringPage.js';
-import { QuickTestPage } from './pages/quick-tests/QuickTestPage.js';
-import { ValidationCenterPage } from './features/validation/ValidationCenterPage.js';
-import { PopulationPage } from './pages/population/PopulationPage.js';
-import { ServerTabPage } from './pages/servers/ServerTabPage.js';
-import NotificationSettingsPage from './pages/notifications/NotificationSettingsPage.js';
-import { JvmObservabilityPage } from './pages/observability/JvmObservabilityPage.js';
-import { RemoteHostDetailPage } from './pages/remote-hosts/RemoteHostDetailPage.js';
-import { LogCenterPage } from './pages/log-center/LogCenterPage.js';
-import { ResourceDetailPage } from './features/resource-detail/ResourceDetailPage.js';
-import { ResourceWorkspacePage } from './features/resource-workspace/ResourceWorkspacePage.js';
-import { JvmDiagnosticsPage } from './pages/jvm-diagnostics/JvmDiagnosticsPage.js';
-import { MinecraftDrillDownPage } from './pages/minecraft/MinecraftDrillDownPage.js';
-import { GovernanceJobPage } from './features/governance/GovernanceJobPage.js';
-import { LocalValidationPage } from './features/local-validation/LocalValidationPage.js';
+
+// ---------------------------------------------------------------------------
+// Lazy-loaded page components (code-split per route)
+// ---------------------------------------------------------------------------
+
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage.js').then(m => ({ default: m.DashboardPage })));
+const ServerConfigPage = lazy(() => import('./pages/server-config/ServerConfigPage.js').then(m => ({ default: m.ServerConfigPage })));
+const TerminalPage = lazy(() => import('./pages/terminals/TerminalPage.js').then(m => ({ default: m.TerminalPage })));
+const NodeLogPage = lazy(() => import('./pages/terminals/NodeLogPage.js').then(m => ({ default: m.NodeLogPage })));
+const BotWorkspacePage = lazy(() => import('./pages/bots/BotWorkspacePage.js').then(m => ({ default: m.BotWorkspacePage })));
+const BotScriptEditorPage = lazy(() => import('./pages/bots/BotScriptEditorPage.js').then(m => ({ default: m.BotScriptEditorPage })));
+const BotConsolePage = lazy(() => import('./pages/bots/BotConsolePage.js').then(m => ({ default: m.BotConsolePage })));
+const SessionListPage = lazy(() => import('./pages/SessionListPage.js').then(m => ({ default: m.SessionListPage })));
+const SessionCreatePage = lazy(() => import('./pages/SessionCreatePage.js').then(m => ({ default: m.SessionCreatePage })));
+const SessionDetailPage = lazy(() => import('./pages/SessionDetailPage.js').then(m => ({ default: m.SessionDetailPage })));
+const DiagnosticsPage = lazy(() => import('./pages/DiagnosticsPage.js').then(m => ({ default: m.DiagnosticsPage })));
+const AlertListPage = lazy(() => import('./features/alerts/AlertListPage.js'));
+const AlertRulePage = lazy(() => import('./features/alerts/AlertRulePage.js'));
+const AuditPage = lazy(() => import('./pages/audit/AuditPage.js').then(m => ({ default: m.AuditPage })));
+const SessionTemplatePage = lazy(() => import('./pages/session-template/SessionTemplatePage.js').then(m => ({ default: m.SessionTemplatePage })));
+const SessionComparePage = lazy(() => import('./pages/session-compare/SessionComparePage.js').then(m => ({ default: m.SessionComparePage })));
+const StartTemplatePage = lazy(() => import('./pages/session-template/StartTemplatePage.js').then(m => ({ default: m.StartTemplatePage })));
+const ServerStartTemplatePage = lazy(() => import('./pages/servers/ServerStartTemplatePage.js').then(m => ({ default: m.ServerStartTemplatePage })));
+const WhitelistActionPanel = lazy(() => import('./pages/plugin/WhitelistActionPanel.js'));
+const BotGroupPanel = lazy(() => import('./pages/bot/BotGroupPanel.js'));
+const ReportPage = lazy(() => import('./pages/reports/ReportPage.js'));
+const PhaseReportPage = lazy(() => import('./pages/reports/PhaseReportPage.js'));
+const DataManagePage = lazy(() => import('./pages/reports/DataManagePage.js'));
+const WorkerDashboard = lazy(() => import('./pages/workers/WorkerDashboard.js'));
+const MonitoringPage = lazy(() => import('./pages/monitoring/MonitoringPage.js').then(m => ({ default: m.MonitoringPage })));
+const QuickTestPage = lazy(() => import('./pages/quick-tests/QuickTestPage.js').then(m => ({ default: m.QuickTestPage })));
+const ValidationCenterPage = lazy(() => import('./features/validation/ValidationCenterPage.js').then(m => ({ default: m.ValidationCenterPage })));
+const PopulationPage = lazy(() => import('./pages/population/PopulationPage.js').then(m => ({ default: m.PopulationPage })));
+const ServerTabPage = lazy(() => import('./pages/servers/ServerTabPage.js').then(m => ({ default: m.ServerTabPage })));
+const NotificationSettingsPage = lazy(() => import('./pages/notifications/NotificationSettingsPage.js'));
+const JvmObservabilityPage = lazy(() => import('./pages/observability/JvmObservabilityPage.js').then(m => ({ default: m.JvmObservabilityPage })));
+const RemoteHostDetailPage = lazy(() => import('./pages/remote-hosts/RemoteHostDetailPage.js').then(m => ({ default: m.RemoteHostDetailPage })));
+const LogCenterPage = lazy(() => import('./pages/log-center/LogCenterPage.js').then(m => ({ default: m.LogCenterPage })));
+const ResourceDetailPage = lazy(() => import('./features/resource-detail/ResourceDetailPage.js').then(m => ({ default: m.ResourceDetailPage })));
+const ResourceWorkspacePage = lazy(() => import('./features/resource-workspace/ResourceWorkspacePage.js').then(m => ({ default: m.ResourceWorkspacePage })));
+const JvmDiagnosticsPage = lazy(() => import('./pages/jvm-diagnostics/JvmDiagnosticsPage.js').then(m => ({ default: m.JvmDiagnosticsPage })));
+const MinecraftDrillDownPage = lazy(() => import('./pages/minecraft/MinecraftDrillDownPage.js').then(m => ({ default: m.MinecraftDrillDownPage })));
+const GovernanceJobPage = lazy(() => import('./features/governance/GovernanceJobPage.js').then(m => ({ default: m.GovernanceJobPage })));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage.js').then(m => ({ default: m.SettingsPage })));
+const LocalValidationPage = lazy(() => import('./features/local-validation/LocalValidationPage.js').then(m => ({ default: m.LocalValidationPage })));
+const PortListPage = lazy(() => import('./pages/port/PortListPage.js'));
+const JvmListPage = lazy(() => import('./pages/jvm/JvmListPage.js'));
+
+// ---------------------------------------------------------------------------
+// Suspense helpers
+// ---------------------------------------------------------------------------
+
+function LoadingFallback() {
+  return <div className="flex items-center justify-center h-full"><span>Loading...</span></div>;
+}
+
+function Lazy({ Component, ...props }: { Component: React.LazyExoticComponent<React.ComponentType<any>>; [key: string]: any }) {
+  return <Suspense fallback={<LoadingFallback />}><Component {...props} /></Suspense>;
+}
 
 export function AppRouter() {
   return (
@@ -49,61 +69,64 @@ export function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<AuthGuard />}>
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<Lazy Component={DashboardPage} />} />
           <Route
             path="/resources"
-            element={<ResourceWorkspacePage />}
+            element={<Lazy Component={ResourceWorkspacePage} />}
           />
           <Route
             path="/servers"
-            element={<ResourceWorkspacePage initialFilters={{ kind: 'SERVER' }} title="服务器工作台" subtitle="兼容旧入口，内部已复用统一资源工作台。" />}
+            element={<Lazy Component={ResourceWorkspacePage} initialFilters={{ kind: 'SERVER' }} title="服务器工作台" subtitle="兼容旧入口，内部已复用统一资源工作台。" />}
           />
-          <Route path="/servers/:id/:tab" element={<ServerTabPage />} />
+          <Route path="/servers/:id/:tab" element={<Lazy Component={ServerTabPage} />} />
           <Route path="/server-config" element={<Navigate to="/servers" replace />} />
-          <Route path="/terminals" element={<TerminalPage />} />
-          <Route path="/node-log" element={<NodeLogPage />} />
-          <Route path="/bots" element={<BotWorkspacePage />} />
-          <Route path="/bots/scripts" element={<BotScriptEditorPage />} />
-          <Route path="/bots/:botName/console" element={<BotConsolePage />} />
-          <Route path="/bot-groups" element={<BotGroupPanel />} />
-          <Route path="/sessions" element={<SessionListPage />} />
-          <Route path="/sessions/new" element={<SessionCreatePage />} />
-          <Route path="/sessions/compare" element={<SessionComparePage />} />
-          <Route path="/sessions/:id" element={<SessionDetailPage />} />
-          <Route path="/session-templates" element={<SessionTemplatePage />} />
-          <Route path="/start-templates" element={<StartTemplatePage />} />
-          <Route path="/server-templates" element={<ServerStartTemplatePage />} />
-          <Route path="/monitoring" element={<MonitoringPage />} />
-          <Route path="/population" element={<PopulationPage />} />
-          <Route path="/diagnostics" element={<DiagnosticsPage />} />
-          <Route path="/logs" element={<LogPage />} />
-          <Route path="/log-center" element={<LogCenterPage />} />
-          <Route path="/alerts" element={<AlertListPage />} />
-          <Route path="/alert-rules" element={<AlertRulePage />} />
-          <Route path="/notifications" element={<NotificationSettingsPage />} />
-          <Route path="/audit" element={<AuditPage />} />
-          <Route path="/plugin-actions" element={<WhitelistActionPanel />} />
-          <Route path="/reports" element={<ReportPage />} />
-          <Route path="/reports/phase/:sessionId" element={<PhaseReportPage />} />
-          <Route path="/reports/data" element={<DataManagePage />} />
-          <Route path="/workers" element={<WorkerDashboard />} />
-          <Route path="/quick-tests" element={<QuickTestPage />} />
-          <Route path="/validation" element={<ValidationCenterPage />} />
-          <Route path="/local-validation" element={<LocalValidationPage />} />
-          <Route path="/jvm-observability" element={<JvmObservabilityPage />} />
+          <Route path="/terminals" element={<Lazy Component={TerminalPage} />} />
+          <Route path="/node-log" element={<Lazy Component={NodeLogPage} />} />
+          <Route path="/bots" element={<Lazy Component={BotWorkspacePage} />} />
+          <Route path="/bots/scripts" element={<Lazy Component={BotScriptEditorPage} />} />
+          <Route path="/bots/:botName/console" element={<Lazy Component={BotConsolePage} />} />
+          <Route path="/bot-groups" element={<Lazy Component={BotGroupPanel} />} />
+          <Route path="/sessions" element={<Lazy Component={SessionListPage} />} />
+          <Route path="/sessions/new" element={<Lazy Component={SessionCreatePage} />} />
+          <Route path="/sessions/compare" element={<Lazy Component={SessionComparePage} />} />
+          <Route path="/sessions/:id" element={<Lazy Component={SessionDetailPage} />} />
+          <Route path="/session-templates" element={<Lazy Component={SessionTemplatePage} />} />
+          <Route path="/start-templates" element={<Lazy Component={StartTemplatePage} />} />
+          <Route path="/server-templates" element={<Lazy Component={ServerStartTemplatePage} />} />
+          <Route path="/monitoring" element={<Lazy Component={MonitoringPage} />} />
+          <Route path="/population" element={<Lazy Component={PopulationPage} />} />
+          <Route path="/diagnostics" element={<Lazy Component={DiagnosticsPage} />} />
+          <Route path="/logs" element={<Navigate to="/log-center" replace />} />
+          <Route path="/log-center" element={<Lazy Component={LogCenterPage} />} />
+          <Route path="/alerts" element={<Lazy Component={AlertListPage} />} />
+          <Route path="/alert-rules" element={<Lazy Component={AlertRulePage} />} />
+          <Route path="/notifications" element={<Lazy Component={NotificationSettingsPage} />} />
+          <Route path="/audit" element={<Lazy Component={AuditPage} />} />
+          <Route path="/plugin-actions" element={<Lazy Component={WhitelistActionPanel} />} />
+          <Route path="/reports" element={<Lazy Component={ReportPage} />} />
+          <Route path="/reports/phase/:sessionId" element={<Lazy Component={PhaseReportPage} />} />
+          <Route path="/reports/data" element={<Lazy Component={DataManagePage} />} />
+          <Route path="/workers" element={<Lazy Component={WorkerDashboard} />} />
+          <Route path="/quick-tests" element={<Lazy Component={QuickTestPage} />} />
+          <Route path="/validation" element={<Lazy Component={ValidationCenterPage} />} />
+          <Route path="/local-validation" element={<Lazy Component={LocalValidationPage} />} />
+          <Route path="/jvm-observability" element={<Lazy Component={JvmObservabilityPage} />} />
           <Route
             path="/remote-hosts"
-            element={<ResourceWorkspacePage initialFilters={{ kind: 'REMOTE_HOST' }} title="远程主机" subtitle="兼容旧入口，内部已复用统一资源工作台。" />}
+            element={<Lazy Component={ResourceWorkspacePage} initialFilters={{ kind: 'REMOTE_HOST' }} title="远程主机" subtitle="兼容旧入口，内部已复用统一资源工作台。" />}
           />
-          <Route path="/remote-hosts/:id" element={<RemoteHostDetailPage />} />
-          <Route path="/remote-hosts/:id/:tab" element={<RemoteHostDetailPage />} />
-          <Route path="/resources/:id" element={<ResourceDetailPage />} />
-          <Route path="/resources/:id/:tab" element={<ResourceDetailPage />} />
-          <Route path="/servers/:id/jvm" element={<JvmDiagnosticsPage />} />
-          <Route path="/servers/:id/minecraft" element={<MinecraftDrillDownPage />} />
-          <Route path="/servers/:id/jvm-drilldown" element={<JvmDiagnosticsPage />} />
-          <Route path="/servers/:id/minecraft-drilldown" element={<MinecraftDrillDownPage />} />
-          <Route path="/governance" element={<GovernanceJobPage />} />
+          <Route path="/remote-hosts/:id" element={<Lazy Component={RemoteHostDetailPage} />} />
+          <Route path="/remote-hosts/:id/:tab" element={<Lazy Component={RemoteHostDetailPage} />} />
+          <Route path="/resources/:id" element={<Lazy Component={ResourceDetailPage} />} />
+          <Route path="/resources/:id/:tab" element={<Lazy Component={ResourceDetailPage} />} />
+          <Route path="/servers/:id/jvm" element={<Lazy Component={JvmDiagnosticsPage} />} />
+          <Route path="/servers/:id/minecraft" element={<Lazy Component={MinecraftDrillDownPage} />} />
+          <Route path="/servers/:id/jvm-drilldown" element={<Lazy Component={JvmDiagnosticsPage} />} />
+          <Route path="/servers/:id/minecraft-drilldown" element={<Lazy Component={MinecraftDrillDownPage} />} />
+          <Route path="/governance" element={<Lazy Component={GovernanceJobPage} />} />
+          <Route path="/settings" element={<Lazy Component={SettingsPage} />} />
+          <Route path="/ports" element={<Lazy Component={PortListPage} />} />
+          <Route path="/jvm" element={<Lazy Component={JvmListPage} />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

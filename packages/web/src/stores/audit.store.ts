@@ -23,7 +23,8 @@ export const useAuditStore = create<AuditState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await auditApi.list(get().filters);
-      set({ records: result.items, total: result.total, loading: false });
+      const items = Array.isArray(result?.items) ? result.items : [];
+      set({ records: items, total: result?.total ?? 0, loading: false });
     } catch (err: any) {
       set({ loading: false, error: err.message ?? 'Failed to fetch audit records' });
     }

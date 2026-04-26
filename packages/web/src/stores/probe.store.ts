@@ -53,6 +53,7 @@ export const useProbeStore = create<ProbeState & ProbeActions>((set, get) => ({
   fetchSnapshots: async () => {
     try {
       const responses = await probeApi.getAllSnapshots();
+      if (!Array.isArray(responses)) return;
       const snapshots = new Map(
         responses.map((r: SnapshotResponse) => [r.serverId, r.snapshot]),
       );
