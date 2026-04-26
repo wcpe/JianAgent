@@ -1,7 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WebSocketServer, type WebSocket } from 'ws';
+import { URL } from 'node:url';
+import type { Server as HttpServer } from 'node:http';
 import { createWsMessage, WsChannel } from '@jian-agent/shared-protocol';
 import type { AlertPayload, ServerStatusPayload } from '@jian-agent/shared-protocol';
 import type {
@@ -20,33 +22,96 @@ import type {
 } from '../event-bus/events.js';
 import { LogFileService } from '../log-file/log-file.service.js';
 import type { TailHandle } from '../log-file/log-file.service.js';
+import { AuthService } from '../auth/auth.service.js';
+import type { JwtPayload } from '../auth/auth.service.js';
+import { readRealtimeConfig } from '../common/network-config.js';
+import type { RealtimeConfig } from '../common/network-config.js';
 
 import { TerminalSessionService } from '../terminal-session/terminal-session.service.js';
 import type { TerminalCommandEvent } from '../event-bus/events.js';
 
 @Injectable()
-export class RealtimeGateway implements OnModuleInit {
+export class RealtimeGateway implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RealtimeGateway.name);
   private wss: WebSocketServer | null = null;
+  private readonly config: RealtimeConfig;
   private readonly rooms = new Map<string, Set<WebSocket>>();
   private readonly tailHandles = new Map<WebSocket, TailHandle>();
   private readonly clientSubscriptions = new Map<WebSocket, Map<string, () => void>>();
+  private readonly clientUsers = new Map<WebSocket, JwtPayload>();
+  private readonly outputBuffers = new Map<string, RealtimeOutputBuffer>();
+  private readonly outputDedup = new Map<string, string>();
+  private readonly outputDedupTs = new Map<string, number>();
+  private pingInterval: ReturnType<typeof setInterval> | null = null;
+  private dedupCleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private readonly clientAlive = new Map<WebSocket, boolean>();
 
   constructor(
     private readonly eventBus: EventEmitter2,
     private readonly logFileService: LogFileService,
     private readonly sessionService: TerminalSessionService,
-  ) {}
+    private readonly authService: AuthService,
+  ) {
+    this.config = readRealtimeConfig();
+  }
 
   onModuleInit(): void {
     // The WS server will be attached to the HTTP server in main.ts
   }
 
-  attachToServer(httpServer: any): void {
-    this.wss = new WebSocketServer({ server: httpServer, path: '/ws/realtime' });
-    this.wss.on('connection', (ws: WebSocket) => {
-      this.logger.log('Realtime WS client connected');
+  onModuleDestroy(): void {
+    if (this.pingInterval !== null) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+    if (this.dedupCleanupInterval !== null) {
+      clearInterval(this.dedupCleanupInterval);
+      this.dedupCleanupInterval = null;
+    }
+  }
+
+  attachToServer(httpServer: HttpServer): void {
+    this.wss = new WebSocketServer({
+      server: httpServer,
+      path: '/ws/realtime',
+      perMessageDeflate: {
+        zlibDeflateOptions: { level: 6 },
+        threshold: 1024, // Only compress messages > 1KB
+      },
+      verifyClient: (info, cb) => {
+        try {
+          const requestUrl = new URL(info.req.url ?? '', 'ws://localhost');
+          const token = requestUrl.searchParams.get('token');
+          if (!token) {
+            cb(false, 401, 'Unauthorized');
+            return;
+          }
+          this.authService.verifyToken(token);
+          cb(true);
+        } catch (err) {
+          this.logger.debug('WebSocket verifyClient auth failed', err);
+          cb(false, 401, 'Unauthorized');
+        }
+      },
+    });
+    this.wss.on('connection', (ws: WebSocket, req) => {
+      if (this.wss!.clients.size > this.config.maxConnections) {
+        ws.close(1013, 'Try Again Later');
+        return;
+      }
+
+      const requestUrl = new URL(req.url ?? '', 'ws://localhost');
+      const token = requestUrl.searchParams.get('token')!;
+      const user = this.authService.verifyToken(token);
+      this.clientUsers.set(ws, user);
+      this.clientAlive.set(ws, true);
+
+      this.logger.log(`Realtime WS client connected: ${user.username}`);
       this.clientSubscriptions.set(ws, new Map());
+
+      ws.on('pong', () => {
+        this.clientAlive.set(ws, true);
+      });
 
       ws.on('message', (raw: Buffer) => {
         try {
@@ -68,12 +133,13 @@ export class RealtimeGateway implements OnModuleInit {
           } else if (msg.channel === 'terminal-session:unsubscribe') {
             this.unsubscribeFromSession(ws, msg.payload?.sessionId);
           }
-        } catch {
-          // ignore malformed messages
+        } catch (err) {
+          this.logger.debug('Ignoring malformed WebSocket message', err);
         }
       });
 
       ws.on('close', () => {
+        const user = this.clientUsers.get(ws);
         this.handleLogTailStop(ws);
         this.removeFromAllRooms(ws);
         const subs = this.clientSubscriptions.get(ws);
@@ -81,9 +147,32 @@ export class RealtimeGateway implements OnModuleInit {
           for (const unsub of subs.values()) unsub();
           this.clientSubscriptions.delete(ws);
         }
-        this.logger.log('Realtime WS client disconnected');
+        this.clientUsers.delete(ws);
+        this.clientAlive.delete(ws);
+        this.logger.log(`Realtime WS client disconnected: ${user?.username ?? 'unknown'}`);
       });
     });
+
+    this.pingInterval = setInterval(() => {
+      for (const client of this.wss!.clients) {
+        if (!this.clientAlive.get(client)) {
+          client.terminate();
+          continue;
+        }
+        this.clientAlive.set(client, false);
+        client.ping();
+      }
+    }, 30_000);
+
+    this.dedupCleanupInterval = setInterval(() => {
+      const now = Date.now();
+      for (const [key, ts] of this.outputDedupTs) {
+        if (now - ts > this.config.outputDedupTtlMs) {
+          this.outputDedupTs.delete(key);
+          this.outputDedup.delete(key);
+        }
+      }
+    }, this.config.dedupCleanupIntervalMs);
   }
 
   // ── Log tail handlers ──
@@ -106,7 +195,7 @@ export class RealtimeGateway implements OnModuleInit {
 
       handle.onLine((line) => {
         if (ws.readyState === 1) {
-          const payload = createWsMessage(WsChannel.RESOURCE_LOG_TAIL as any, { line }, serverId);
+          const payload = createWsMessage(WsChannel.RESOURCE_LOG_TAIL, { line }, serverId);
           ws.send(JSON.stringify(payload));
         }
       });
@@ -127,13 +216,15 @@ export class RealtimeGateway implements OnModuleInit {
 
   // ── Terminal Session Handlers ──
 
-  private handleTerminalInput(ws: WebSocket, data: any): void {
+  private handleTerminalInput(ws: WebSocket, data: Record<string, unknown> | undefined): void {
     this.logger.log(`Received terminal input: ${JSON.stringify(data)}`);
     if (!data?.sessionId || typeof data.data !== 'string') return;
-    this.sessionService.write(data.sessionId, data.data);
+    const sessionId = data.sessionId as string;
+    const inputData = data.data;
+    this.sessionService.write(sessionId, inputData);
 
     // Emit command audit event
-    const command = data.data.replace(/\r?\n$/, '').trim();
+    const command = inputData.replace(/\r?\n$/, '').trim();
     if (command.length > 0) {
       const lower = command.toLowerCase();
       const isDanger =
@@ -144,9 +235,9 @@ export class RealtimeGateway implements OnModuleInit {
         command.includes(':(){:|:&};:');
 
       const event: TerminalCommandEvent = {
-        serverId: data.serverId ?? 'unknown',
-        userId: data.userId ?? 'anonymous',
-        username: data.username ?? 'anonymous',
+        serverId: (data.serverId as string) ?? 'unknown',
+        userId: (data.userId as string) ?? 'anonymous',
+        username: (data.username as string) ?? 'anonymous',
         command,
         isDanger,
         timestamp: Date.now(),
@@ -155,9 +246,9 @@ export class RealtimeGateway implements OnModuleInit {
     }
   }
 
-  private handleTerminalResize(data: any): void {
+  private handleTerminalResize(data: Record<string, unknown> | undefined): void {
     if (!data?.sessionId || typeof data.cols !== 'number' || typeof data.rows !== 'number') return;
-    this.sessionService.resize(data.sessionId, data.cols, data.rows);
+    this.sessionService.resize(data.sessionId as string, data.cols, data.rows);
   }
 
   private subscribeToSession(client: WebSocket, sessionId?: string): void {
@@ -173,7 +264,7 @@ export class RealtimeGateway implements OnModuleInit {
 
     const handler = (output: string) => {
       if (client.readyState === 1) {
-        const msg = createWsMessage(WsChannel.TERMINAL_SESSION_DATA as any, { sessionId, data: output }, sessionId);
+        const msg = createWsMessage(WsChannel.TERMINAL_SESSION_DATA, { sessionId, data: output }, sessionId);
         client.send(JSON.stringify(msg));
       }
     };
@@ -201,8 +292,7 @@ export class RealtimeGateway implements OnModuleInit {
 
   @OnEvent('server.output')
   handleServerOutput(event: ServerOutputEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_OUTPUT as any, event);
-    this.broadcastToRoom(`server:${event.serverId}`, payload);
+    this.enqueueServerOutput(event);
   }
 
   @OnEvent('server.state-changed')
@@ -214,39 +304,39 @@ export class RealtimeGateway implements OnModuleInit {
 
   @OnEvent('server.crashed')
   handleServerCrashed(event: ServerCrashedEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_CRASHED as any, event);
+    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_CRASHED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('servers:status', payload);
   }
 
   @OnEvent('server.health')
   handleServerHealth(event: ServerHealthEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_HEALTH as any, event);
+    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_HEALTH, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
   }
 
   @OnEvent('control-plane.agent.registered')
   handleControlPlaneAgentRegistered(event: ControlPlaneAgentRegisteredEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_REGISTERED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_REGISTERED, event);
     this.broadcastToRoom('control-plane:agents', payload);
   }
 
   @OnEvent('control-plane.agent.heartbeat')
   handleControlPlaneAgentHeartbeat(event: ControlPlaneAgentHeartbeatEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_HEARTBEAT as any, event);
+    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_HEARTBEAT, event);
     this.broadcastToRoom('control-plane:agents', payload);
   }
 
   @OnEvent('file-task.created')
   handleFileTaskCreated(event: FileTaskCreatedEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_CREATED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_CREATED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('file-tasks', payload);
   }
 
   @OnEvent('file-task.state-changed')
   handleFileTaskStateChanged(event: FileTaskStateChangedEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_STATE_CHANGED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_STATE_CHANGED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('file-tasks', payload);
   }
@@ -314,11 +404,31 @@ export class RealtimeGateway implements OnModuleInit {
 
   private leaveRoom(ws: WebSocket, room: string): void {
     this.rooms.get(room)?.delete(ws);
+    if (this.rooms.get(room)?.size === 0) {
+      this.rooms.delete(room);
+      // Clean up output buffer for empty rooms
+      const buffer = this.outputBuffers.get(room);
+      if (buffer?.flushTimer) clearTimeout(buffer.flushTimer);
+      this.outputBuffers.delete(room);
+      this.outputDedup.delete(room);
+      this.outputDedupTs.delete(room);
+    }
   }
 
   private removeFromAllRooms(ws: WebSocket): void {
     for (const members of this.rooms.values()) {
       members.delete(ws);
+    }
+    for (const [room, members] of this.rooms) {
+      if (members.size === 0) {
+        this.rooms.delete(room);
+        // Clean up output buffer for empty rooms
+        const buffer = this.outputBuffers.get(room);
+        if (buffer?.flushTimer) clearTimeout(buffer.flushTimer);
+        this.outputBuffers.delete(room);
+        this.outputDedup.delete(room);
+        this.outputDedupTs.delete(room);
+      }
     }
   }
 
@@ -327,8 +437,13 @@ export class RealtimeGateway implements OnModuleInit {
     if (!members) return;
     const data = JSON.stringify(message);
     for (const client of members) {
-      if (client.readyState === 1) {
+      if (client.readyState !== 1) {
+        continue;
+      }
+      try {
         client.send(data);
+      } catch (error) {
+        this.logger.warn(`Failed to send to room ${room}: ${error}`);
       }
     }
   }
@@ -337,9 +452,103 @@ export class RealtimeGateway implements OnModuleInit {
     if (!this.wss) return;
     const data = JSON.stringify(message);
     for (const client of this.wss.clients) {
-      if (client.readyState === 1) {
+      if (client.readyState !== 1) {
+        continue;
+      }
+      try {
         client.send(data);
+      } catch (error) {
+        this.logger.warn(`Failed to broadcast message: ${error}`);
       }
     }
   }
+
+  private enqueueServerOutput(event: ServerOutputEvent): void {
+    const room = `server:${event.serverId}`;
+    const dedupeKey = `${event.stream}:${event.chunk}`;
+    const now = Date.now();
+
+    const previousTs = this.outputDedupTs.get(room);
+    const previousChunk = this.outputDedup.get(room);
+    if (previousChunk === dedupeKey && previousTs && now - previousTs <= this.config.outputDedupWindowMs) {
+      return;
+    }
+
+    this.outputDedup.set(room, dedupeKey);
+    this.outputDedupTs.set(room, now);
+
+    const buffer = this.getOrCreateOutputBuffer(room);
+    buffer.chunksByStream[event.stream].push(event.chunk);
+    buffer.lastEventByStream[event.stream] = event;
+
+    if (!buffer.flushTimer) {
+      buffer.flushTimer = setTimeout(() => {
+        this.flushServerOutput(room);
+      }, this.config.outputAggregateWindowMs);
+    }
+  }
+
+  private flushServerOutput(room: string): void {
+    const buffer = this.outputBuffers.get(room);
+    if (!buffer) return;
+
+    const timestamp = Date.now();
+    const { chunksByStream } = buffer;
+    this.outputBuffers.delete(room);
+
+    if (buffer.flushTimer) {
+      clearTimeout(buffer.flushTimer);
+      buffer.flushTimer = undefined;
+    }
+
+    const streamTypes: Array<ServerOutputEvent['stream']> = ['stdout', 'stderr'];
+    for (const stream of streamTypes) {
+      const latestEvent = buffer.lastEventByStream[stream];
+      const chunks = chunksByStream[stream];
+      if (!latestEvent || chunks.length === 0) {
+        continue;
+      }
+
+      const payload = createWsMessage(
+        WsChannel.RESOURCE_SERVER_OUTPUT,
+        {
+          ...latestEvent,
+          chunk: chunks.join(''),
+          timestamp,
+        },
+      );
+      this.broadcastToRoom(room, payload);
+    }
+  }
+
+  private getOrCreateOutputBuffer(room: string): RealtimeOutputBuffer {
+    const existing = this.outputBuffers.get(room);
+    if (existing) return existing;
+
+    const created: RealtimeOutputBuffer = {
+      chunksByStream: {
+        stdout: [],
+        stderr: [],
+      },
+      lastEventByStream: {
+        stdout: undefined,
+        stderr: undefined,
+      },
+      flushTimer: undefined,
+    };
+    this.outputBuffers.set(room, created);
+    return created;
+  }
+}
+
+interface RealtimeOutputBuffer {
+  readonly chunksByStream: {
+    stdout: string[];
+    stderr: string[];
+  };
+  lastEventByStream: {
+    stdout: ServerOutputEvent | undefined;
+    stderr: ServerOutputEvent | undefined;
+  };
+  flushTimer: ReturnType<typeof setTimeout> | undefined;
 }
