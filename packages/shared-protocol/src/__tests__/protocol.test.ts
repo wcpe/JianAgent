@@ -26,8 +26,8 @@ describe('createWsMessage', () => {
     expect(msg.sessionId).toBe('sess-1');
   });
 
-  it('should support legacy channel aliases', () => {
-    const msg = createWsMessage(WsChannel.SERVER_STATUS, { state: 'RUNNING' });
-    expect(msg.channel).toBe('server:status');
+  it('should only expose unified channel names', () => {
+    expect('SERVER_STATUS' in WsChannel).toBe(false);
+    expect('TERMINAL_DATA' in WsChannel).toBe(false);
   });
 });

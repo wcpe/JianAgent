@@ -41,6 +41,7 @@ export const WsChannel = {
   TASK_CONTROL_PLANE_AGENT_HEARTBEAT: 'task:control-plane:agent:heartbeat',
   TASK_FILE_TASK_CREATED: 'task:file-task:created',
   TASK_FILE_TASK_STATE_CHANGED: 'task:file-task:state-changed',
+  TASK_SERVER_PROVISION_PROGRESS: 'task:server:provision:progress',
 
   // Terminal session channels
   TERMINAL_SESSION_DATA: 'terminal-session:data',
@@ -60,79 +61,14 @@ export const WsChannel = {
   ALERT_ACK: 'alert:ack',
   ALERT_SUMMARY: 'alert:summary',
 
-  // Legacy aliases (deprecated - use new unified channels)
-  /** @deprecated Use RESOURCE_SERVER_STATUS instead */
-  SERVER_STATUS: 'server:status',
-  /** @deprecated Use RESOURCE_SERVER_OUTPUT instead */
-  SERVER_OUTPUT: 'server:output',
-  /** @deprecated Use RESOURCE_SERVER_CRASHED instead */
-  SERVER_CRASHED: 'server:crashed',
-  /** @deprecated Use RESOURCE_SERVER_HEALTH instead */
-  SERVER_HEALTH: 'server:health',
-  /** @deprecated Use TERMINAL_SESSION_DATA instead */
-  TERMINAL_DATA: 'terminal:data',
-  /** @deprecated Use TERMINAL_SESSION_RESIZE instead */
-  TERMINAL_RESIZE: 'terminal:resize',
-  /** @deprecated Use TERMINAL_SESSION_INPUT instead */
-  TERMINAL_INPUT: 'terminal:input',
-  /** @deprecated Use TERMINAL_SESSION_MC_CONSOLE instead */
-  TERMINAL_MC_CONSOLE: 'terminal:mc-console',
-  /** @deprecated Use TERMINAL_SESSION_NODE_LOG instead */
-  TERMINAL_NODE_LOG: 'terminal:node-log',
-  /** @deprecated Use TERMINAL_SESSION_BOT_DEBUG instead */
-  TERMINAL_BOT_DEBUG: 'terminal:bot-debug',
-  /** @deprecated Use RESOURCE_BOT_SUMMARY instead */
-  BOT_SUMMARY: 'bot:summary',
-  /** @deprecated Use TASK_BOT_EVENT instead */
-  BOT_EVENT: 'bot:event',
-  /** @deprecated Use RESOURCE_BOT_STATE instead */
-  BOT_STATE: 'bot:state',
-  /** @deprecated Use TERMINAL_SESSION_BOT_DEBUG_OUTPUT instead */
-  BOT_DEBUG: 'bot:debug',
-  /** @deprecated Use TERMINAL_SESSION_BOT_CHAT instead */
-  BOT_CHAT: 'bot:chat',
-  /** @deprecated Use TASK_SESSION_STATUS instead */
-  SESSION_STATUS: 'session:status',
-  /** @deprecated Use RESOURCE_SESSION_STATE instead */
-  SESSION_STATE: 'session:state',
-  /** @deprecated Use TASK_SESSION_PHASE instead */
-  SESSION_PHASE: 'session:phase',
-  /** @deprecated Use TASK_PHASE_STATUS instead */
-  PHASE_STATUS: 'phase:status',
-  /** @deprecated Use ALERT_FIRED instead */
-  ALERT: 'alert',
-  /** @deprecated Use RESOURCE_PLUGIN_STATUS instead */
-  PLUGIN_STATUS: 'plugin:status',
-  /** @deprecated Use RESOURCE_PLUGIN_SNAPSHOT instead */
-  PLUGIN_SNAPSHOT: 'plugin:snapshot',
-  /** @deprecated Use RESOURCE_JAVA_HELPER_STATUS instead */
-  JAVA_HELPER_STATUS: 'java-helper:status',
-  /** @deprecated Use TASK_WORKER_EVENT instead */
-  WORKER_EVENT: 'worker:event',
-  /** @deprecated Use RESOURCE_WORKER_STATUS instead */
-  WORKER_STATUS: 'worker:status',
-  /** @deprecated Use RESOURCE_METRIC_SUMMARY instead */
-  METRIC_SUMMARY: 'metric:summary',
-  /** @deprecated Use TASK_CONTROL_PLANE_AGENT_REGISTERED instead */
-  CONTROL_PLANE_AGENT_REGISTERED: 'control-plane:agent:registered',
-  /** @deprecated Use TASK_CONTROL_PLANE_AGENT_HEARTBEAT instead */
-  CONTROL_PLANE_AGENT_HEARTBEAT: 'control-plane:agent:heartbeat',
-  /** @deprecated Use TERMINAL_SESSION_SSH_DATA instead */
-  SSH_TERMINAL_DATA: 'ssh:terminal:data',
-  /** @deprecated Use TERMINAL_SESSION_SSH_RESIZE instead */
-  SSH_TERMINAL_RESIZE: 'ssh:terminal:resize',
-  /** @deprecated Use RESOURCE_LOG_TAIL instead */
-  LOG_TAIL: 'log:tail',
-  /** @deprecated Use RESOURCE_LOG_TAIL_START instead */
-  LOG_TAIL_START: 'log:tail:start',
-  /** @deprecated Use RESOURCE_LOG_TAIL_STOP instead */
-  LOG_TAIL_STOP: 'log:tail:stop',
+  // System metrics channel
+  SYSTEM_METRICS: 'resource:system:metrics',
 } as const;
 
 export type WsChannel = (typeof WsChannel)[keyof typeof WsChannel];
 
 export interface WsMessage<T = unknown> {
-  readonly protocolVersion: number;
+  readonly protocolVersion?: number;
   readonly channel: WsChannel;
   readonly sessionId?: string;
   readonly timestamp: number;

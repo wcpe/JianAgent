@@ -40,16 +40,11 @@ describe('WsChannel unified categories', () => {
     expect(WsChannel.ALERT_SUMMARY).toBe('alert:summary');
   });
 
-  it('should support legacy aliases for backward compatibility', () => {
-    expect(WsChannel.BOT_STATE).toBe('bot:state');
-    expect(WsChannel.BOT_EVENT).toBe('bot:event');
-    expect(WsChannel.SESSION_STATE).toBe('session:state');
-    expect(WsChannel.SESSION_PHASE).toBe('session:phase');
-    expect(WsChannel.BOT_DEBUG).toBe('bot:debug');
-    expect(WsChannel.SERVER_STATUS).toBe('server:status');
-    expect(WsChannel.TERMINAL_DATA).toBe('terminal:data');
-    expect(WsChannel.TERMINAL_RESIZE).toBe('terminal:resize');
-    expect(WsChannel.TERMINAL_INPUT).toBe('terminal:input');
+  it('should not expose legacy aliases anymore', () => {
+    expect('BOT_STATE' in WsChannel).toBe(false);
+    expect('BOT_EVENT' in WsChannel).toBe(false);
+    expect('SERVER_STATUS' in WsChannel).toBe(false);
+    expect('TERMINAL_DATA' in WsChannel).toBe(false);
   });
 });
 
