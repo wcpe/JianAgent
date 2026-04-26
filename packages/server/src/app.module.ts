@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { StorageModule } from './storage/storage.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AuditModule } from './audit/audit.module.js';
@@ -14,6 +15,7 @@ import { BotModule } from './bot/bot.module.js';
 import { SessionModule } from './session/session.module.js';
 import { PluginBridgeModule } from './plugin-bridge/plugin-bridge.module.js';
 import { JavaHelperModule } from './java-helper/java-helper.module.js';
+import { JvmModule } from './jvm/jvm.module.js';
 import { SshModule } from './ssh/ssh.module.js';
 import { FileManagerModule } from './file-manager/file-manager.module.js';
 import { PluginManagerModule } from './plugin-manager/plugin-manager.module.js';
@@ -31,9 +33,16 @@ import { PlatformSpecializedModule } from './platform-specialized/platform-speci
 import { ValidationModule } from './validation/validation.module.js';
 import { LocalValidationModule } from './local-validation/local-validation.module.js';
 import { PlatformRuntimeModule } from './platform-runtime/platform-runtime.module.js';
+import { HealthModule } from './health/health.module.js';
+import { PortModule } from './port/port.module.js';
+import { RequestContextInterceptor } from './common/request-context.interceptor.js';
+import { ApiResponseInterceptor } from './common/api-response.interceptor.js';
+import { ApiExceptionFilter } from './common/api-exception.filter.js';
+import { CsrfGuard } from './common/csrf.guard.js';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({ throttlers: [{ ttl: 60000, limit: 60 }] }),
     EventBusModule,
     StorageModule,
     AuthModule,
@@ -47,6 +56,7 @@ import { PlatformRuntimeModule } from './platform-runtime/platform-runtime.modul
     SessionModule,
     PluginBridgeModule,
     JavaHelperModule,
+    JvmModule,
     SshModule,
     FileManagerModule,
     PluginManagerModule,
@@ -64,11 +74,34 @@ import { PlatformRuntimeModule } from './platform-runtime/platform-runtime.modul
     ValidationModule,
     LocalValidationModule,
     PlatformRuntimeModule,
+    HealthModule,
+    PortModule,
   ],
   providers: [
+    RequestContextInterceptor,
+    ApiResponseInterceptor,
+    ApiExceptionFilter,
+    AuditInterceptor,
+    CsrfGuard,
+    {
+      provide: APP_GUARD,
+      useExisting: CsrfGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
+      useExisting: RequestContextInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: AuditInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: ApiResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useExisting: ApiExceptionFilter,
     },
   ],
 })

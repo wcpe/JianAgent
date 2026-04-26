@@ -13,6 +13,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@fastify/compress": "^8.3.1",
+    "@fastify/helmet": "^13.0.2",
     "@jian-agent/bot-worker": "workspace:*",
     "@jian-agent/shared-domain": "workspace:*",
     "@jian-agent/shared-protocol": "workspace:*",
@@ -21,10 +23,12 @@
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/platform-fastify": "^11.0.0",
     "@nestjs/platform-ws": "^11.1.19",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.0.0",
     "adm-zip": "^0.5.17",
     "bcrypt": "^5.1.0",
     "better-sqlite3": "^11.0.0",
+    "cron-parser": "^5.5.0",
     "drizzle-orm": "^0.38.0",
     "iconv-lite": "^0.7.2",
     "js-yaml": "^4.1.1",
