@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { JavaHelperStatusDto } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface SystemPropertiesPanelProps {
   serverId: string;
@@ -46,11 +47,11 @@ export function SystemPropertiesPanel({ serverId, helperStatus }: SystemProperti
     setError(null);
     try {
       // Use evalScript to get system properties
-      const res = await fetch('/api/java-helper/eval', {
+      const res = await fetch('/api/v1/java-helper/eval', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
+          ...(sessionStorage.getItem('token') ? { Authorization: `Bearer ${sessionStorage.getItem('token')}` } : {}),
         },
         body: JSON.stringify({
           script: 'var props = System.getProperties(); var result = new java.util.HashMap(); for(var e = props.entrySet().iterator(); e.hasNext();) { var entry = e.next(); result.put(entry.getKey(), entry.getValue().toString()); } result;',
@@ -101,13 +102,7 @@ export function SystemPropertiesPanel({ serverId, helperStatus }: SystemProperti
         </div>
       )}
 
-      {error && (
-        <div className="mb-3 flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-3" />}
 
       {props && (
         <>

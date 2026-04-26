@@ -3,7 +3,7 @@ import { TerminalSessionPanel } from '../../features/terminal-session/TerminalSe
 export function PtyShellTerm({ serverId }: { readonly serverId?: string }) {
   if (!serverId) {
     return (
-      <div className="flex h-full items-center justify-center bg-[var(--terminal-bg)] text-sm text-slate-400">
+      <div className="flex h-full items-center justify-center bg-[var(--terminal-bg)] text-sm text-gray-400">
         请选择服务器后再打开 PTY Shell
       </div>
     );

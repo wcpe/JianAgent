@@ -63,7 +63,7 @@ export function ProbeConsolePanel({ serverId }: Props) {
           consoleResults.map((r) => (
             <div key={r.requestId} className="mb-1">
               <span className="text-gray-500">[{new Date(r.timestamp).toLocaleTimeString()}] </span>
-              <span className={r.success ? 'text-green-400' : 'text-red-400'}>
+              <span className={r.success ? 'text-success-400' : 'text-danger-400'}>
                 {r.message}
               </span>
             </div>

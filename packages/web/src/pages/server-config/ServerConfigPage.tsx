@@ -167,7 +167,7 @@ export function ServerConfigPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">服务器配置</h1>
       {message && (
-        <div className={`mb-4 px-4 py-2 rounded text-sm ${message.includes('失败') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+        <div className={`mb-4 px-4 py-2 rounded text-sm ${message.includes('失败') ? 'bg-danger-100 text-danger-700' : 'bg-success-100 text-success-700'}`}>
           {message}
         </div>
       )}
@@ -221,7 +221,7 @@ export function ServerConfigPage() {
                 <div key={i} className="flex gap-2 mb-1">
                   <input value={env.key} onChange={(e) => updateEnvVar(i, 'key', e.target.value)} placeholder="KEY" className="flex-1 border rounded px-2 py-1 text-sm" />
                   <input value={env.value} onChange={(e) => updateEnvVar(i, 'value', e.target.value)} placeholder="VALUE" className="flex-1 border rounded px-2 py-1 text-sm" />
-                  <button onClick={() => removeEnvVar(i)} className="text-red-500 text-sm px-2">×</button>
+                  <button onClick={() => removeEnvVar(i)} className="text-danger-500 text-sm px-2">×</button>
                 </div>
               ))}
               <button onClick={addEnvVar} className="text-blue-600 text-sm mt-1">+ 添加变量</button>
@@ -252,13 +252,13 @@ export function ServerConfigPage() {
 
           <div className="bg-white rounded-lg shadow p-4 space-y-2">
             <h3 className="text-sm text-gray-500 mb-2">操作</h3>
-            <button onClick={handleStart} disabled={isRunning || !selectedId} className="w-full bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50">
+            <button onClick={handleStart} disabled={isRunning || !selectedId} className="w-full bg-success-600 text-white px-3 py-2 rounded text-sm hover:bg-success-700 disabled:opacity-50">
               启动
             </button>
-            <button onClick={handleStop} disabled={!isRunning} className="w-full bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50">
+            <button onClick={handleStop} disabled={!isRunning} className="w-full bg-danger-600 text-white px-3 py-2 rounded text-sm hover:bg-danger-700 disabled:opacity-50">
               停止
             </button>
-            <button onClick={handleRestart} disabled={!isRunning || !selectedId} className="w-full bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50">
+            <button onClick={handleRestart} disabled={!isRunning || !selectedId} className="w-full bg-warning-600 text-white px-3 py-2 rounded text-sm hover:bg-warning-700 disabled:opacity-50">
               重启
             </button>
           </div>

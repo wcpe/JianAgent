@@ -5,15 +5,15 @@ import { botApi, type BotSnapshot } from '../../api/bot.api.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
 
 const stateColors: Record<string, string> = {
-  CREATED: 'bg-yellow-500',
-  CONNECTING: 'bg-yellow-500 animate-pulse',
-  SPAWNED: 'bg-green-500',
-  READY: 'bg-green-500',
-  RUNNING_PHASE: 'bg-green-500',
+  CREATED: 'bg-warning-500',
+  CONNECTING: 'bg-warning-500 animate-pulse',
+  SPAWNED: 'bg-success-500',
+  READY: 'bg-success-500',
+  RUNNING_PHASE: 'bg-success-500',
   DEBUGGING: 'bg-purple-500',
-  DEAD: 'bg-red-600',
+  DEAD: 'bg-danger-600',
   DISCONNECTED: 'bg-gray-500',
-  FAILED: 'bg-red-500',
+  FAILED: 'bg-danger-500',
   STOPPED: 'bg-gray-500',
 };
 
@@ -71,9 +71,9 @@ export const BotTable = memo(function BotTable({ bots, onStop, onSelect, onConso
     <div className="space-y-2">
       {/* Batch respawn banner */}
       {deadCount > 1 && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 dark:bg-red-900/20 border border-red-400/30 dark:border-red-500/30 rounded-xl backdrop-blur-xl">
-          <Skull className="w-4 h-4 text-red-400 animate-pulse" />
-          <span className="text-xs text-red-400 dark:text-red-300">{deadCount} 个机器人已死亡</span>
+        <div className="flex items-center gap-2 px-3 py-2 bg-danger-500/10 dark:bg-danger-700/20 border border-danger-400/30 dark:border-danger-500/30 rounded-xl backdrop-blur-xl">
+          <Skull className="w-4 h-4 text-danger-400 animate-pulse" />
+          <span className="text-xs text-danger-400 dark:text-danger-200">{deadCount} 个机器人已死亡</span>
           <button
             type="button"
             disabled={batchRespawning}
@@ -86,9 +86,9 @@ export const BotTable = memo(function BotTable({ bots, onStop, onSelect, onConso
         </div>
       )}
     <div className="overflow-x-auto">
-      <div ref={scrollRef} className="max-h-[70vh] overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+      <div ref={scrollRef} className="max-h-[70vh] overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
       <table className="w-full text-sm text-left">
-        <thead className="text-xs text-gray-600 dark:text-gray-300 uppercase bg-white/40 dark:bg-slate-800/40 sticky top-0 z-10 border-b border-white/40 dark:border-primary-300/10 font-semibold">
+        <thead className="text-xs text-gray-600 dark:text-gray-300 uppercase bg-white/40 dark:bg-gray-800/40 sticky top-0 z-10 border-b border-white/40 dark:border-primary-300/10 font-semibold">
           <tr>
             {onToggleSelect && <th className="px-3 py-2 w-8"></th>}
             <th className="px-3 py-2">名称</th>
@@ -119,10 +119,10 @@ export const BotTable = memo(function BotTable({ bots, onStop, onSelect, onConso
                 ref={rowVirtualizer.measureElement}
                 className={`border-b border-white/30 dark:border-primary-300/10 cursor-pointer transition-colors ${
                   isDead 
-                    ? 'bg-red-500/10 dark:bg-red-900/15 hover:bg-red-500/20 dark:hover:bg-red-900/25'
+                    ? 'bg-danger-500/10 dark:bg-danger-700/15 hover:bg-danger-500/20 dark:hover:bg-danger-700/25'
                     : virtualRow.index % 2 === 0 
-                    ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                    : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                    ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                    : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                 }`}
                 onClick={() => onSelect(bot.name)}
               >
@@ -140,17 +140,17 @@ export const BotTable = memo(function BotTable({ bots, onStop, onSelect, onConso
                 <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-200">{bot.name}</td>
                 <td className="px-3 py-2">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${stateColors[bot.state] ?? 'bg-yellow-500'}`} />
+                    <span className={`w-2 h-2 rounded-full ${stateColors[bot.state] ?? 'bg-warning-500'}`} />
                     <span className="text-xs">{isDead ? '已死亡' : bot.state}</span>
                     {bot.deathCount > 0 && (
-                      <span className="text-[9px] text-red-400">({bot.deathCount}死)</span>
+                      <span className="text-[9px] text-danger-400">({bot.deathCount}死)</span>
                     )}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs">{bot.currentBehavior || 'idle'}</td>
-                <td className="px-3 py-2 text-xs text-red-400">{isOnline ? bot.health?.toFixed(0) : '—'}</td>
-                <td className="px-3 py-2 text-xs text-orange-400">{isOnline ? bot.food : '—'}</td>
-                <td className="px-3 py-2 text-xs text-blue-400">{isOnline && bot.latencyMs ? `${bot.latencyMs}ms` : '—'}</td>
+                <td className="px-3 py-2 text-xs text-danger-400">{isOnline ? bot.health?.toFixed(0) : '—'}</td>
+                <td className="px-3 py-2 text-xs text-warning-400">{isOnline ? bot.food : '—'}</td>
+                <td className="px-3 py-2 text-xs text-info-400">{isOnline && bot.latencyMs ? `${bot.latencyMs}ms` : '—'}</td>
                 <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 max-w-[100px] truncate" title={bot.world}>{isOnline ? (bot.world || '—') : '—'}</td>
                 <td className="px-3 py-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                   {isOnline && bot.x !== undefined
@@ -181,7 +181,7 @@ export const BotTable = memo(function BotTable({ bots, onStop, onSelect, onConso
                     )}
                     <button
                       type="button"
-                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs transition-colors"
+                      className="text-danger-600 dark:text-danger-400 hover:text-danger-700 dark:hover:text-danger-200 text-xs transition-colors"
                       onClick={(e) => { e.stopPropagation(); onStop(bot.name); }}
                     >
                       停止

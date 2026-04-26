@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/auth.store.js';
 export function AuthGuard() {
   const storeToken = useAuthStore((s) => s.token);
   const localToken =
-    typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
   const hasToken = storeToken || localToken;
 
   if (!hasToken) return <Navigate to="/login" replace />;

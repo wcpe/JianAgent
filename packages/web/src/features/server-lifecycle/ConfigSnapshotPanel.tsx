@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { serverApi } from '../../api/server.api.js';
-import { History, RotateCcw, Clock, User, AlertTriangle } from 'lucide-react';
+import { History, RotateCcw, Clock, User } from 'lucide-react';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface ConfigSnapshot {
   id: string;
@@ -90,18 +91,7 @@ export function ConfigSnapshotPanel({ serverId }: ConfigSnapshotPanelProps) {
         </button>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2 text-red-600 dark:text-red-400">
-          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto text-red-400 hover:text-red-600"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       <p className="text-sm text-gray-500 dark:text-gray-400">
         每次配置更新时会自动创建快照。点击“恢复”可将配置回滚到对应版本。

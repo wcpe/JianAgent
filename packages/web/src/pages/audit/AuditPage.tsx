@@ -78,10 +78,10 @@ export function AuditPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+      <div className="overflow-hidden rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
+            <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
               <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold">时间</th>
               <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold">用户</th>
               <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold">操作</th>
@@ -107,14 +107,14 @@ export function AuditPage() {
               records.map((r, idx) => (
                 <tr
                   key={r.id}
-                  className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-slate-800/50' : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'}`}
+                  className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-gray-800/50' : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'}`}
                 >
                   <td className="px-4 py-2 whitespace-nowrap">{new Date(r.timestamp).toLocaleString()}</td>
                   <td className="px-4 py-2">{r.username}</td>
                   <td className="px-4 py-2 font-mono text-xs">{r.operation}</td>
                   <td className="px-4 py-2">{r.target}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs font-medium ${r.success ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`text-xs font-medium ${r.success ? 'text-success-600' : 'text-danger-600'}`}>
                       {r.success ? '成功' : '失败'}
                     </span>
                   </td>

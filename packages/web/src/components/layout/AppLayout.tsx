@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect, useRef, useCallback } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Sidebar as GlobalSidebar } from './Sidebar.js';
 import { ResourceSidebar } from './ResourceSidebar.js';
 import { TopStatusBar } from './TopStatusBar.js';
@@ -13,6 +14,8 @@ import { ErrorBoundary } from '../ErrorBoundary.js';
 import { Menu } from 'lucide-react';
 
 export function AppLayout() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const mode = useThemeStore((s) => s.mode);
   const preset = useThemeStore((s) => s.preset);
   const collapsed = useThemeStore((s) => s.sidebarCollapsed);
@@ -31,6 +34,46 @@ export function AppLayout() {
     return watchSystemScheme(() => applyTheme(mode, preset));
   }, [mode, preset]);
 
+  // Keyboard shortcuts: g+s → /resources, g+m → /monitoring, g+l → /log-center
+  const pendingG = useRef(false);
+  const gTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const tag = target.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || target.isContentEditable) return;
+
+      if (e.key === 'g' && !pendingG.current) {
+        pendingG.current = true;
+        if (gTimeout.current) clearTimeout(gTimeout.current);
+        gTimeout.current = setTimeout(() => {
+          pendingG.current = false;
+        }, 500);
+        return;
+      }
+
+      if (pendingG.current) {
+        pendingG.current = false;
+        if (gTimeout.current) { clearTimeout(gTimeout.current); gTimeout.current = null; }
+        switch (e.key) {
+          case 's': navigate('/resources'); break;
+          case 'm': navigate('/monitoring'); break;
+          case 'l': navigate('/log-center'); break;
+        }
+      }
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (gTimeout.current) clearTimeout(gTimeout.current);
+    };
+  }, [handleKeyDown]);
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
       {sidebarMode === 'global' ? <GlobalSidebar /> : <ResourceSidebar />}
@@ -43,7 +86,7 @@ export function AppLayout() {
         <button
           onClick={() => setMobileSidebarOpen(true)}
           className="md:hidden fixed top-4 left-4 z-20 p-2.5 bg-white/70 dark:bg-gray-900/60 text-primary-900 dark:text-primary-100 rounded-xl border border-gray-200 dark:border-gray-800 shadow-xl backdrop-blur-lg"
-          title="打开菜单"
+          title={t('sidebar.openMenu')}
         >
           <Menu size={20} />
         </button>

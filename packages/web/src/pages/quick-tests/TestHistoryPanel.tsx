@@ -6,9 +6,9 @@ type ResultFilter = 'all' | 'success' | 'error' | 'aborted';
 type SortDir = 'newest' | 'oldest';
 
 const resultColors: Record<string, string> = {
-  success: 'text-green-400',
-  error: 'text-red-400',
-  aborted: 'text-yellow-400',
+  success: 'text-success-400',
+  error: 'text-danger-400',
+  aborted: 'text-warning-400',
 };
 
 const resultLabels: Record<string, string> = {

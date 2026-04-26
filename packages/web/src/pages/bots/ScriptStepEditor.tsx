@@ -80,7 +80,7 @@ export function ScriptStepEditor({ step, index, total, onChange, onMove, onRemov
           ▼
         </button>
         <button type="button" onClick={() => onRemove(index)}
-          className="px-1.5 py-0.5 text-xs rounded border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+          className="px-1.5 py-0.5 text-xs rounded border border-danger-200 dark:border-danger-600 text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-700/20">
           ✕
         </button>
       </div>

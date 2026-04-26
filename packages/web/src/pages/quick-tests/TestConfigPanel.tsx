@@ -37,7 +37,7 @@ export function TestConfigPanel({ disabled }: TestConfigPanelProps) {
 
   if (runningServers.length === 0) {
     return (
-      <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4 text-sm text-yellow-700 dark:text-yellow-300">
+      <div className="bg-warning-50 dark:bg-warning-700/30 border border-warning-200 dark:border-warning-700 rounded-lg p-4 text-sm text-warning-700 dark:text-warning-200">
         没有运行中的服务器，请先启动一台
       </div>
     );
@@ -125,7 +125,7 @@ export function TestConfigPanel({ disabled }: TestConfigPanelProps) {
             type="button"
             disabled={disabled || !serverId}
             onClick={handleStart}
-            className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm rounded px-6 py-2 font-medium"
+            className="bg-success-600 hover:bg-success-500 disabled:opacity-50 text-white text-sm rounded px-6 py-2 font-medium"
           >
             开始测试
           </button>

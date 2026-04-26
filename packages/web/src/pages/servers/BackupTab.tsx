@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { serverApi } from '../../api/server.api.js';
 import type { BackupDto, BackupScheduleDto, BackupType, UpdateBackupScheduleRequest } from '@jian-agent/shared-domain';
 import { Download, Trash2, Plus, Clock, RefreshCw, Archive, Settings } from 'lucide-react';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface BackupTabProps {
   readonly serverId: string;
@@ -15,10 +16,10 @@ const BACKUP_TYPE_LABELS: Record<BackupType, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400',
-  running: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-  failed: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  pending: 'bg-warning-100 text-warning-700 dark:bg-warning-700/40 dark:text-warning-400',
+  running: 'bg-info-100 text-info-700 dark:bg-info-700/40 dark:text-info-400',
+  completed: 'bg-success-100 text-success-700 dark:bg-success-700/40 dark:text-success-400',
+  failed: 'bg-danger-100 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -144,11 +145,7 @@ export function BackupTab({ serverId }: BackupTabProps) {
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded text-sm">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       {/* Schedule Panel */}
       {showSchedule && schedule && (
@@ -202,10 +199,10 @@ export function BackupTab({ serverId }: BackupTabProps) {
           暂无备份记录
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60 overflow-hidden">
+        <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10">
+              <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10">
                 <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold whitespace-nowrap">文件名</th>
                 <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold whitespace-nowrap">类型</th>
                 <th className="text-left px-4 py-2 text-gray-600 dark:text-gray-300 font-semibold whitespace-nowrap">状态</th>
@@ -219,8 +216,8 @@ export function BackupTab({ serverId }: BackupTabProps) {
               {backups.map((b) => (
                 <tr key={b.id} className={`transition-colors ${
                   backups.indexOf(b) % 2 === 0
-                    ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                    : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                    ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                    : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                 }`}>
                   <td className="px-4 py-2 text-gray-900 dark:text-gray-100 font-mono text-xs max-w-[200px] truncate" title={b.fileName}>
                     {b.fileName}
@@ -255,7 +252,7 @@ export function BackupTab({ serverId }: BackupTabProps) {
                       )}
                       <button
                         onClick={() => handleDelete(b.id)}
-                        className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                        className="p-1 text-danger-600 hover:text-danger-700 dark:text-danger-400 dark:hover:text-danger-200 transition-colors"
                         title="删除"
                       >
                         <Trash2 className="w-4 h-4" />

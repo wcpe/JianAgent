@@ -8,7 +8,7 @@ const mockStorage: Record<string, string> = {};
 
 beforeEach(() => {
   Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
-  vi.stubGlobal('localStorage', {
+  vi.stubGlobal('sessionStorage', {
     getItem: vi.fn((k: string) => mockStorage[k] ?? null),
     setItem: vi.fn((k: string, v: string) => { mockStorage[k] = v; }),
     removeItem: vi.fn((k: string) => { delete mockStorage[k]; }),
@@ -37,7 +37,7 @@ describe('apiFetch', () => {
     await apiFetch('/test');
 
     const [url, opts] = (fetch as any).mock.calls[0]!;
-    expect(url).toBe('/api/test');
+    expect(url).toBe('/api/v1/test');
     expect(opts.headers['Authorization']).toBe('Bearer my-token');
   });
 
@@ -94,6 +94,33 @@ describe('apiFetch', () => {
       expect(e).toBeInstanceOf(ApiError);
       expect((e as ApiError).status).toBe(400);
       expect((e as ApiError).message).toBe('FILE_PATH_OUT_OF_BOUNDS: 路径超出允许范围');
+    }
+  });
+
+  it('parses nested structured error envelopes and request metadata', async () => {
+    mockFetch(409, {
+      success: false,
+      error: {
+        code: 'CONFLICT',
+        message: '资源冲突',
+        details: { resourceId: 'srv-1' },
+      },
+      meta: {
+        requestId: 'req-1',
+        traceId: 'trace-1',
+      },
+    });
+
+    try {
+      await apiFetch('/test');
+      throw new Error('expected apiFetch to throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ApiError);
+      expect((e as ApiError).status).toBe(409);
+      expect((e as ApiError).message).toBe('CONFLICT: 资源冲突');
+      expect((e as ApiError).requestId).toBe('req-1');
+      expect((e as ApiError).traceId).toBe('trace-1');
+      expect((e as ApiError).details).toEqual({ resourceId: 'srv-1' });
     }
   });
 });

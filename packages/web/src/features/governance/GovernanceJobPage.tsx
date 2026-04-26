@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { GovernanceActionDto } from '@jian-agent/shared-domain';
 import { governanceApi, type GovernanceJobDto } from '../../api/governance.api.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 function RiskBadge({ level }: { level: GovernanceActionDto['riskLevel'] }) {
   const config: Record<string, { label: string; className: string }> = {
-    low: { label: '低', className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-    medium: { label: '中', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
-    high: { label: '高', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
-    critical: { label: '严重', className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+    low: { label: '低', className: 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' },
+    medium: { label: '中', className: 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400' },
+    high: { label: '高', className: 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400' },
+    critical: { label: '严重', className: 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' },
   };
   const { label, className } = config[level] ?? config.medium;
   return (
@@ -21,10 +22,10 @@ function RiskBadge({ level }: { level: GovernanceActionDto['riskLevel'] }) {
 function ActionStatusBadge({ status }: { status: GovernanceActionDto['status'] }) {
   const config: Record<GovernanceActionDto['status'], { label: string; className: string }> = {
     pending: { label: '待审批', className: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
-    approved: { label: '已批准', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-    rejected: { label: '已拒绝', className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-    executed: { label: '已执行', className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-    failed: { label: '执行失败', className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+    approved: { label: '已批准', className: 'bg-info-100 text-info-700 dark:bg-info-900/30 dark:text-info-400' },
+    rejected: { label: '已拒绝', className: 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' },
+    executed: { label: '已执行', className: 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' },
+    failed: { label: '执行失败', className: 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' },
   };
   const { label, className } = config[status];
   return (
@@ -134,11 +135,7 @@ export function GovernanceJobPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       {loading ? (
         <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400">
@@ -151,7 +148,7 @@ export function GovernanceJobPage() {
           <div className="grid grid-cols-4 gap-3">
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">待审批</div>
-              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">{pendingActions.length}</div>
+              <div className="text-lg font-bold text-warning-600 dark:text-warning-400">{pendingActions.length}</div>
             </div>
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">治理任务</div>
@@ -159,13 +156,13 @@ export function GovernanceJobPage() {
             </div>
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">已执行</div>
-              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+              <div className="text-lg font-bold text-success-600 dark:text-success-400">
                 {actions.filter((a) => a.status === 'executed').length}
               </div>
             </div>
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">执行失败</div>
-              <div className="text-lg font-bold text-red-600 dark:text-red-400">
+              <div className="text-lg font-bold text-danger-600 dark:text-danger-400">
                 {actions.filter((a) => a.status === 'failed').length}
               </div>
             </div>
@@ -181,7 +178,7 @@ export function GovernanceJobPage() {
                 {pendingActions.map((action) => (
                   <div
                     key={action.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10"
+                    className="flex items-center justify-between p-3 rounded-lg border border-warning-200 dark:border-warning-700 bg-warning-50/50 dark:bg-warning-900/10"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <RiskBadge level={action.riskLevel} />
@@ -194,14 +191,14 @@ export function GovernanceJobPage() {
                       <button
                         onClick={() => handleAction(action.id, governanceApi.approveAction)}
                         disabled={acting === action.id}
-                        className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-success-600 text-white rounded hover:bg-success-700 disabled:opacity-50"
                       >
                         {acting === action.id ? '处理中...' : '批准'}
                       </button>
                       <button
                         onClick={() => handleAction(action.id, governanceApi.rejectAction)}
                         disabled={acting === action.id}
-                        className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-danger-600 text-white rounded hover:bg-danger-700 disabled:opacity-50"
                       >
                         拒绝
                       </button>
@@ -218,10 +215,10 @@ export function GovernanceJobPage() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
                 操作历史
               </h2>
-              <div className="overflow-hidden rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+              <div className="overflow-hidden rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300">
+                    <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300">
                       <th className="text-left px-4 py-2 font-semibold">时间</th>
                       <th className="text-left px-4 py-2 font-semibold">类型</th>
                       <th className="text-left px-4 py-2 font-semibold">风险</th>
@@ -234,7 +231,7 @@ export function GovernanceJobPage() {
                     {recentActions.map((action, idx) => (
                       <tr
                         key={action.id}
-                        className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-slate-800/50' : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'}`}
+                        className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-gray-800/50' : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'}`}
                       >
                         <td className="px-4 py-2 whitespace-nowrap">{formatTime(action.createdAt)}</td>
                         <td className="px-4 py-2"><ActionTypeLabel type={action.type} /></td>
@@ -276,9 +273,9 @@ export function GovernanceJobPage() {
                         {job.type} — {job.summary ?? job.id}
                       </span>
                       <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        job.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                        job.status === 'running' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                        job.status === 'failed' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                        job.status === 'completed' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' :
+                        job.status === 'running' ? 'bg-info-100 text-info-700 dark:bg-info-900/30 dark:text-info-400' :
+                        job.status === 'failed' ? 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' :
                         'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                       }`}>
                         {job.status}

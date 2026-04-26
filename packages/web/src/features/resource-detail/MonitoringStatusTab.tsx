@@ -12,9 +12,9 @@ function Row({
   readonly value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900">
-      <span className="text-slate-500 dark:text-slate-400">{label}</span>
-      <span className="font-medium text-slate-900 dark:text-slate-100">{value}</span>
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-gray-800 dark:bg-gray-900">
+      <span className="text-gray-500 dark:text-gray-400">{label}</span>
+      <span className="font-medium text-gray-900 dark:text-gray-100">{value}</span>
     </div>
   );
 }
@@ -24,14 +24,14 @@ export function MonitoringStatusTab({ detail }: MonitoringStatusTabProps) {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-slate-950/70">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+      <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-gray-950/70">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
           Monitoring
         </p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
           {detail.kind === 'REMOTE_HOST' ? '连接观测' : '监控与健康'}
         </h2>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {detail.kind === 'REMOTE_HOST'
             ? '首版仅展示远程主机连通性与 SSH 会话相关的观测摘要。'
             : '展示统一资源读模型下的健康、探针和监控能力摘要。'}

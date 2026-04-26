@@ -34,7 +34,7 @@ export function ResourceDetailPage({ backTo, backLabel }: ResourceDetailPageProp
   }, []);
 
   if (!id) {
-    return <div className="p-6 text-red-500">缺少资源 ID</div>;
+    return <div className="p-6 text-danger-500">缺少资源 ID</div>;
   }
 
   if (loading) {
@@ -44,7 +44,7 @@ export function ResourceDetailPage({ backTo, backLabel }: ResourceDetailPageProp
   if (error) {
     return (
       <div className="p-6">
-        <p className="text-red-500 mb-2">{error}</p>
+        <p className="text-danger-500 mb-2">{error}</p>
         <button
           onClick={reload}
           className="text-sm text-blue-500 hover:underline"

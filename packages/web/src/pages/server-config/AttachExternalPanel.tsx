@@ -1,6 +1,7 @@
 import { type FC, useState, useCallback } from 'react';
 import { apiFetch } from '../../api/client.js';
 import type { JavaProcessInfo } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 const AttachExternalPanel: FC = () => {
   const [processes, setProcesses] = useState<readonly JavaProcessInfo[]>([]);
@@ -55,7 +56,7 @@ const AttachExternalPanel: FC = () => {
         {loading ? '扫描中...' : '扫描 Java 进程'}
       </button>
 
-      {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+      {error && <ErrorAlert message={error} className="mb-4" />}
 
       {processes.length > 0 && (
         <table className="w-full text-sm text-left">

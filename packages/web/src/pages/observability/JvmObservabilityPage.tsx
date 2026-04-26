@@ -291,7 +291,7 @@ export function JvmObservabilityPage() {
       {message && <div className="text-sm text-primary-700">{message}</div>}
 
       {overview && (
-        <section className="rounded-xl border border-gray-200 p-4 bg-slate-950 text-white">
+        <section className="rounded-xl border border-gray-200 p-4 bg-gray-950 text-white">
           <div className="flex items-center justify-between gap-4 mb-3">
             <div>
               <h2 className="font-medium mb-1">监控联动摘要</h2>

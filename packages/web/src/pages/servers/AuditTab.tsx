@@ -173,7 +173,7 @@ export function AuditTab({ serverId }: AuditTabProps) {
       </div>
 
       {/* Audit records */}
-      <div className="flex-1 overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+      <div className="flex-1 overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
         {loading ? (
           <div className="flex justify-center py-8 text-gray-400 dark:text-gray-500 text-sm">加载中...</div>
         ) : records.length === 0 ? (
@@ -181,7 +181,7 @@ export function AuditTab({ serverId }: AuditTabProps) {
         ) : (
           <table className="w-full text-xs">
             <thead className="sticky top-0">
-              <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
+              <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
                 <th className="px-3 py-2 text-left text-gray-600 dark:text-gray-300 font-semibold w-40">时间</th>
                 <th className="px-3 py-2 text-left text-gray-600 dark:text-gray-300 font-semibold w-24">用户</th>
                 <th className="px-3 py-2 text-left text-gray-600 dark:text-gray-300 font-semibold">命令</th>
@@ -193,7 +193,7 @@ export function AuditTab({ serverId }: AuditTabProps) {
               {records.map((r, idx) => (
                 <tr
                   key={r.id}
-                  className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-slate-800/50' : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'} ${r.isDanger ? 'bg-red-50/70 dark:bg-red-900/20' : ''}`}
+                  className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-gray-800/50' : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'} ${r.isDanger ? 'bg-red-50/70 dark:bg-red-900/20' : ''}`}
                 >
                   <td className="px-3 py-1.5 text-gray-500 dark:text-gray-400 font-mono whitespace-nowrap">
                     {new Date(r.timestamp).toLocaleString()}

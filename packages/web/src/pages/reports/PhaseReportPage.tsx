@@ -20,7 +20,7 @@ const PhaseReportPage: FC = () => {
   }, [sessionId]);
 
   if (loading) return <p className="p-6 text-zinc-400">加载中...</p>;
-  if (error) return <p className="p-6 text-red-400">{error}</p>;
+  if (error) return <p className="p-6 text-danger-400">{error}</p>;
   if (!report) return <p className="p-6 text-zinc-400">未找到报告数据</p>;
 
   const totalDuration = report.durationMs || 1;
@@ -47,8 +47,8 @@ const PhaseReportPage: FC = () => {
             const startPct = ((phase.startTime - report.startTime) / totalDuration) * 100;
             const widthPct = Math.max(((phase.endTime - phase.startTime) / totalDuration) * 100, 2);
             const bgColor =
-              phase.status === 'completed' ? 'bg-green-500/80' :
-              phase.status === 'failed' ? 'bg-red-500/80' : 'bg-zinc-600';
+              phase.status === 'completed' ? 'bg-success-500/80' :
+              phase.status === 'failed' ? 'bg-danger-500/80' : 'bg-zinc-600';
 
             return (
               <div key={phase.phaseId} className="flex items-center gap-3">
@@ -67,8 +67,8 @@ const PhaseReportPage: FC = () => {
                 </div>
                 <span
                   className={`w-20 text-xs font-medium ${
-                    phase.status === 'completed' ? 'text-green-400' :
-                    phase.status === 'failed' ? 'text-red-400' : 'text-zinc-500'
+                    phase.status === 'completed' ? 'text-success-400' :
+                    phase.status === 'failed' ? 'text-danger-400' : 'text-zinc-500'
                   }`}
                 >
                   {phase.status}

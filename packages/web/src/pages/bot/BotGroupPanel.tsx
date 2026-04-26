@@ -132,7 +132,7 @@ const BotGroupPanel: FC<Props> = ({ sessionId: sessionIdProp }) => {
               </span>
               <button
                 type="button"
-                className="text-red-500 hover:text-red-700 text-xs"
+                className="text-danger-500 hover:text-danger-700 text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(g.id);
@@ -176,7 +176,7 @@ const BotGroupPanel: FC<Props> = ({ sessionId: sessionIdProp }) => {
                   <span>{name}</span>
                   <button
                     type="button"
-                    className="text-red-500 hover:text-red-700 text-xs"
+                    className="text-danger-500 hover:text-danger-700 text-xs"
                     onClick={() => handleRemoveBot(name)}
                   >
                     移除

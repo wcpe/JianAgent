@@ -1,4 +1,5 @@
 import { type FC, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAlertsStore } from './alerts.store.js';
 import { useAlertWs } from './useAlertWs.js';
 import AlertBadge from './AlertBadge.js';
@@ -31,7 +32,7 @@ function buildHourlyBuckets(alerts: readonly AlertDto[]): { hour: string; count:
   }
 
   return Array.from({ length: 24 }, (_, i) => {
-    const b = buckets.get(23 - i)!;
+    const b = buckets.get(23 - i) ?? { count: 0, maxLevel: 'INFO' as const };
     const d = new Date(now - (23 - i) * 60 * 60 * 1000);
     return { hour: `${d.getHours()}:00`, count: b.count, color: LEVEL_BAR_COLORS[b.maxLevel] ?? '#3b82f6' };
   });
@@ -43,7 +44,7 @@ const AlertTrendChart: FC<{ readonly alerts: readonly AlertDto[] }> = ({ alerts 
   const barWidth = 100 / 24;
 
   return (
-    <div className="bg-white/80 dark:bg-slate-900/60 shadow-xl dark:shadow-none rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl p-4">
+    <div className="bg-white/80 dark:bg-gray-900/60 shadow-xl dark:shadow-none rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl p-4">
       <h3 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">24小时告警趋势</h3>
       <svg viewBox="0 0 240 100" className="w-full" style={{ height: 100 }} preserveAspectRatio="none">
         {buckets.map((b, i) => {
@@ -74,6 +75,7 @@ const AlertTrendChart: FC<{ readonly alerts: readonly AlertDto[] }> = ({ alerts 
 
 const AlertListPage: FC = () => {
   const { alerts, summary, loading, fetchAlerts, fetchSummary, acknowledgeAlert } = useAlertsStore();
+  const navigate = useNavigate();
 
   useAlertWs();
 
@@ -83,25 +85,25 @@ const AlertListPage: FC = () => {
   }, [fetchAlerts, fetchSummary]);
 
   return (
-    <div className="bg-gradient-to-br from-primary-50 to-teal-50 dark:from-slate-950 dark:to-slate-900 min-h-screen p-6 space-y-4">
+    <div className="bg-gradient-to-br from-primary-50 to-teal-50 dark:from-gray-950 dark:to-gray-900 min-h-screen p-6 space-y-4">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">告警面板</h1>
 
       {summary && (
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl p-4 text-center">
+          <div className="bg-white/80 dark:bg-gray-900/60 rounded-2xl shadow-xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl p-4 text-center">
             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{summary.totalActive}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">活跃告警</p>
           </div>
-          <div className="bg-red-500/10 dark:bg-red-900/20 rounded-2xl shadow-xl border border-red-300/30 dark:border-red-400/20 backdrop-blur-xl p-4 text-center">
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{summary.criticalCount}</p>
+          <div className="bg-danger-500/10 dark:bg-danger-900/20 rounded-2xl shadow-xl border border-danger-200/30 dark:border-danger-400/20 backdrop-blur-xl p-4 text-center">
+            <p className="text-2xl font-bold text-danger-600 dark:text-danger-400">{summary.criticalCount}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">严重</p>
           </div>
-          <div className="bg-yellow-500/10 dark:bg-yellow-900/20 rounded-2xl shadow-xl border border-yellow-300/30 dark:border-yellow-400/20 backdrop-blur-xl p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{summary.warningCount}</p>
+          <div className="bg-warning-500/10 dark:bg-warning-900/20 rounded-2xl shadow-xl border border-warning-200/30 dark:border-warning-400/20 backdrop-blur-xl p-4 text-center">
+            <p className="text-2xl font-bold text-warning-600 dark:text-warning-400">{summary.warningCount}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">警告</p>
           </div>
-          <div className="bg-blue-500/10 dark:bg-primary-900/20 rounded-2xl shadow-xl border border-blue-300/30 dark:border-primary-400/20 backdrop-blur-xl p-4 text-center">
-            <p className="text-2xl font-bold text-blue-600 dark:text-primary-400">{summary.infoCount}</p>
+          <div className="bg-info-500/10 dark:bg-info-900/20 rounded-2xl shadow-xl border border-info-200/30 dark:border-info-400/20 backdrop-blur-xl p-4 text-center">
+            <p className="text-2xl font-bold text-info-600 dark:text-info-400">{summary.infoCount}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">信息</p>
           </div>
         </div>
@@ -109,9 +111,9 @@ const AlertListPage: FC = () => {
 
       <AlertTrendChart alerts={alerts} />
 
-      <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl overflow-hidden">
+      <div className="bg-white/80 dark:bg-gray-900/60 rounded-2xl shadow-xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10">
+          <thead className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10">
             <tr>
               <th className="text-left px-3 py-2 text-xs text-gray-600 dark:text-gray-300 font-semibold">时间</th>
               <th className="text-left px-3 py-2 text-xs text-gray-600 dark:text-gray-300 font-semibold">级别</th>
@@ -130,8 +132,8 @@ const AlertListPage: FC = () => {
               alerts.map((alert, idx) => (
                 <tr key={alert.id} className={`border-t border-white/30 dark:border-primary-300/10 transition-colors ${
                   idx % 2 === 0
-                    ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                    : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                    ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                    : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                 }`}>
                   <td className="px-3 py-2 font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                     {new Date(alert.timestamp).toLocaleString()}
@@ -141,9 +143,9 @@ const AlertListPage: FC = () => {
                   <td className="px-3 py-2 text-gray-700 dark:text-gray-300 max-w-sm truncate">{alert.message}</td>
                   <td className="px-3 py-2">
                     {alert.acknowledged ? (
-                      <span className="text-xs text-green-600 dark:text-green-400">已确认</span>
+                      <span className="text-xs text-success-600 dark:text-success-400">已确认</span>
                     ) : (
-                      <span className="text-xs text-red-600 dark:text-red-400">未确认</span>
+                      <span className="text-xs text-danger-600 dark:text-danger-400">未确认</span>
                     )}
                   </td>
                   <td className="px-3 py-2">
@@ -155,6 +157,19 @@ const AlertListPage: FC = () => {
                         确认
                       </button>
                     )}
+                    <button
+                      className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline transition-colors ml-2"
+                      onClick={() => {
+                        const ts = new Date(alert.timestamp).getTime();
+                        const startTime = new Date(ts - 5 * 60 * 1000).toISOString();
+                        const endTime = new Date(ts + 5 * 60 * 1000).toISOString();
+                        const params = new URLSearchParams({ startTime, endTime });
+                        if (alert.serverId) params.set('hosts', alert.serverId);
+                        navigate(`/log-center?${params.toString()}`);
+                      }}
+                    >
+                      查看日志
+                    </button>
                   </td>
                 </tr>
               ))

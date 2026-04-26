@@ -32,7 +32,8 @@ export const useAlertsStore = create<AlertsState & AlertsActions>((set, get) => 
   fetchAlerts: async () => {
     set({ loading: true });
     try {
-      const alerts = await alertsApi.listAlerts();
+      const res = await alertsApi.listAlerts();
+      const alerts = Array.isArray(res) ? res : (res as any)?.data ?? [];
       set({ alerts, loading: false });
     } catch (e) {
       set({ error: String(e), loading: false });
@@ -50,7 +51,8 @@ export const useAlertsStore = create<AlertsState & AlertsActions>((set, get) => 
 
   fetchRules: async () => {
     try {
-      const rules = await alertsApi.listRules();
+      const res = await alertsApi.listRules();
+      const rules = Array.isArray(res) ? res : (res as any)?.data ?? [];
       set({ rules });
     } catch (e) {
       set({ error: String(e) });

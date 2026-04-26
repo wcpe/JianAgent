@@ -7,10 +7,10 @@ import { ErrorState } from '../components/ErrorState.js';
 
 const STATE_COLORS: Record<string, string> = {
   CREATED: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  RUNNING: 'bg-green-200 text-green-800 dark:bg-green-900/40 dark:text-green-400',
-  PAUSED: 'bg-yellow-200 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400',
-  FINISHED: 'bg-blue-200 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400',
-  ERROR: 'bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-400',
+  RUNNING: 'bg-success-200 text-success-700 dark:bg-success-700/40 dark:text-success-400',
+  PAUSED: 'bg-warning-200 text-warning-700 dark:bg-warning-700/40 dark:text-warning-400',
+  FINISHED: 'bg-info-200 text-info-700 dark:bg-info-700/40 dark:text-info-400',
+  ERROR: 'bg-danger-200 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400',
 };
 
 export function SessionListPage() {
@@ -23,7 +23,8 @@ export function SessionListPage() {
     setError(null);
     try {
       const res = await sessionApi.list();
-      setSessions(res.data);
+      const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
+      setSessions(Array.isArray(data) ? data : []);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '加载失败');
     } finally {
@@ -54,10 +55,10 @@ export function SessionListPage() {
         />
       )}
       {!loading && !error && sessions.length > 0 && (
-      <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+      <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10 text-left text-xs text-gray-600 dark:text-gray-300 uppercase font-semibold">
+          <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10 text-left text-xs text-gray-600 dark:text-gray-300 uppercase font-semibold">
             <th className="px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">名称</th>
             <th className="px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">状态</th>
             <th className="px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">当前阶段</th>
@@ -69,7 +70,7 @@ export function SessionListPage() {
           {sessions.map((s, idx) => (
             <tr
               key={s.id}
-              className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-slate-800/50' : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'}`}
+              className={`transition-colors ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-gray-800/50' : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'}`}
             >
               <td className="px-4 py-2">
                 <button className="text-primary-600 dark:text-primary-400 hover:underline transition-colors" onClick={() => navigate(`/sessions/${s.id}`)}>
@@ -94,7 +95,7 @@ export function SessionListPage() {
                 )}
                 {s.state === 'RUNNING' && (
                   <button
-                    className="text-red-600 dark:text-red-400 hover:underline text-xs transition-colors"
+                    className="text-danger-600 dark:text-danger-400 hover:underline text-xs transition-colors"
                     onClick={() => sessionApi.stop(s.id).then(fetchSessions)}
                   >
                     停止

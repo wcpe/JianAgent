@@ -20,10 +20,10 @@ interface CardProps {
 
 function SummaryCard({ label, value, sub }: CardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="text-xs text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{value}</div>
-      {sub ? <div className="mt-1 text-xs text-slate-400">{sub}</div> : null}
+    <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">{value}</div>
+      {sub ? <div className="mt-1 text-xs text-gray-400">{sub}</div> : null}
     </div>
   );
 }
@@ -136,14 +136,14 @@ export function ResourceSummaryCards({ detail }: ResourceSummaryCardsProps) {
 
   return (
     <div className="space-y-4 p-4">
-      <section className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-slate-950/70">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+      <section className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-gray-950/70">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
           Overview
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
           {detail.name}
         </h1>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {detail.serverType === 'external'
             ? '外置服务器通过统一资源面板纳管，当前不暴露托管控制能力。'
             : detail.kind === 'REMOTE_HOST'
@@ -158,24 +158,24 @@ export function ResourceSummaryCards({ detail }: ResourceSummaryCardsProps) {
         ))}
       </div>
 
-      <section className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-slate-950/70">
+      <section className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-gray-950/70">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
               Actions
             </p>
-            <h2 className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
               当前可用动作
             </h2>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          {detail.availableActions.map((action) => (
+          {(detail.availableActions ?? []).map((action) => (
             <button
               key={action.key}
               onClick={() => void handleAction(action.key)}
               disabled={!action.enabled}
-              className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
               title={action.reason ?? action.label}
             >
               {action.label}

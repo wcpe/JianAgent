@@ -5,32 +5,10 @@ import { Wifi, WifiOff, Server, Bot, Search, Globe, X } from 'lucide-react';
 import { wsClient } from '../../ws/ws-client.js';
 import { useServerStore } from '../../stores/server.store.js';
 import { botApi } from '../../api/bot.api.js';
+import { SEARCH_ROUTES } from './nav-config.js';
 
 const LANGUAGES = [
   { code: 'zh-CN', label: '中文' },
-] as const;
-
-const SEARCH_ROUTES = [
-  { path: '/dashboard', i18nKey: 'nav.dashboard' },
-  { path: '/servers', i18nKey: 'nav.servers' },
-  { path: '/terminals', i18nKey: 'nav.terminals' },
-  { path: '/bots', i18nKey: 'nav.bots' },
-  { path: '/bots/scripts', i18nKey: 'bots.scripts' },
-  { path: '/quick-tests', i18nKey: 'nav.quickTests' },
-  { path: '/sessions', i18nKey: 'nav.sessions' },
-  { path: '/session-templates', i18nKey: 'nav.sessionTemplates' },
-  { path: '/sessions/compare', i18nKey: 'nav.sessionCompare' },
-  { path: '/monitoring', i18nKey: 'nav.monitoring' },
-  { path: '/population', i18nKey: 'nav.population' },
-  { path: '/diagnostics', i18nKey: 'nav.diagnostics' },
-  { path: '/logs', i18nKey: 'nav.logs' },
-  { path: '/alerts', i18nKey: 'nav.alerts' },
-  { path: '/audit', i18nKey: 'nav.audit' },
-  { path: '/reports', i18nKey: 'nav.reports' },
-  { path: '/workers', i18nKey: 'nav.workers' },
-  { path: '/bot-groups', i18nKey: 'nav.botGroups' },
-  { path: '/plugin-actions', i18nKey: 'nav.pluginActions' },
-  { path: '/start-templates', i18nKey: 'nav.startTemplates' },
 ] as const;
 
 type WsState = 'connected' | 'disconnected' | 'reconnecting';
@@ -89,9 +67,8 @@ export function TopStatusBar() {
 
   const filteredRoutes = searchQuery.trim()
     ? SEARCH_ROUTES.filter((r) => {
-        const label = t(r.i18nKey);
         const q = searchQuery.toLowerCase();
-        return label.toLowerCase().includes(q) || r.path.toLowerCase().includes(q);
+        return r.label.toLowerCase().includes(q) || r.path.toLowerCase().includes(q);
       })
     : SEARCH_ROUTES;
 
@@ -117,10 +94,10 @@ export function TopStatusBar() {
 
   const wsColor =
     wsState === 'connected'
-      ? 'text-green-500'
+      ? 'text-success-500'
       : wsState === 'reconnecting'
-        ? 'text-yellow-500'
-        : 'text-red-500';
+        ? 'text-warning-500'
+        : 'text-danger-500';
 
   const wsLabel =
     wsState === 'connected'
@@ -237,7 +214,7 @@ export function TopStatusBar() {
                   className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <span className="text-xs font-mono text-gray-400 dark:text-gray-500">{r.path}</span>
-                  <span className="ml-auto">{t(r.i18nKey)}</span>
+                  <span className="ml-auto">{r.label}</span>
                 </button>
               ))}
               {filteredRoutes.length === 0 && (

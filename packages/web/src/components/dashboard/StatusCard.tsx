@@ -9,11 +9,11 @@ interface StatusCardProps {
 }
 
 const colorMap: Record<string, string> = {
-  green: 'border-green-500 text-green-400',
-  yellow: 'border-yellow-500 text-yellow-400',
-  red: 'border-red-500 text-red-400',
+  green: 'border-success-500 text-success-400',
+  yellow: 'border-warning-500 text-warning-400',
+  red: 'border-danger-500 text-danger-400',
   gray: 'border-gray-500 text-gray-400',
-  blue: 'border-blue-500 text-blue-400',
+  blue: 'border-info-500 text-info-400',
 };
 
 const StatusCard: FC<StatusCardProps> = ({ icon, label, value, color = 'gray', subtitle }) => {

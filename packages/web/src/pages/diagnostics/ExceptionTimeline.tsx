@@ -5,7 +5,7 @@ interface Props {
   readonly events: readonly ExceptionEventDto[];
 }
 
-type ColorClass = 'bg-red-500' | 'bg-yellow-500' | 'bg-gray-400';
+type ColorClass = 'bg-danger-500' | 'bg-warning-500' | 'bg-gray-400';
 
 function getExceptionColor(exceptionClass: string): ColorClass {
   if (
@@ -15,14 +15,14 @@ function getExceptionColor(exceptionClass: string): ColorClass {
     exceptionClass.includes('IllegalArgumentException') ||
     exceptionClass.includes('Error')
   ) {
-    return 'bg-red-500';
+    return 'bg-danger-500';
   }
   if (
     exceptionClass.includes('IOException') ||
     exceptionClass.includes('TimeoutException') ||
     exceptionClass.includes('SocketException')
   ) {
-    return 'bg-yellow-500';
+    return 'bg-warning-500';
   }
   return 'bg-gray-400';
 }
@@ -115,7 +115,7 @@ const ExceptionTimeline: FC<Props> = ({ events }) => {
                   {event.message && (
                     <div>
                       <span className="text-gray-500">消息: </span>
-                      <span className="text-red-600">{event.message}</span>
+                      <span className="text-danger-600">{event.message}</span>
                     </div>
                   )}
                   <div>

@@ -2,6 +2,7 @@ import { type FC, useState, useEffect, useCallback } from 'react';
 import { StyledSelect } from '../../components/ui/StyledSelect.js';
 import { apiFetch } from '../../api/client.js';
 import type { ScheduledStopDto, ConditionalStopDto, ConditionType } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface StopStrategyPanelProps {
   readonly serverId: string;
@@ -113,7 +114,7 @@ const StopStrategyPanel: FC<StopStrategyPanelProps> = ({ serverId }) => {
   return (
     <div className="rounded-lg bg-gray-800 p-6 space-y-6">
       <h2 className="text-lg font-semibold text-gray-200">停止策略</h2>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <ErrorAlert message={error} />}
 
       {/* Scheduled Stop */}
       <div className="space-y-3">

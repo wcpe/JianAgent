@@ -3,6 +3,7 @@ import { startTemplateApi } from '../../api/start-template.api.js';
 import { javaRuntimeApi } from '../../api/java-runtime.api.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
 import type { StartTemplateDto, CreateStartTemplateDto } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 /* ── Styles ── */
 
@@ -131,7 +132,7 @@ const StartTemplatePage: FC = () => {
         </button>
       </div>
 
-      {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+      {error && <ErrorAlert message={error} />}
 
       {/* Form */}
       {showForm && (

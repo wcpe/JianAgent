@@ -5,6 +5,7 @@ import { MotdRenderer, PingBars } from '../../components/MotdRenderer.js';
 import { ServerCardActions } from './ServerCardActions.js';
 import { ServerLogPreview } from './ServerLogPreview.js';
 import { populationApi, type PopulationRecord } from '../../api/population.api.js';
+import { formatServerAddress } from '../../constants/server-defaults.js';
 
 interface ServerCardProps {
   readonly server: ServerWithStatusDto;
@@ -62,7 +63,7 @@ function McServerBanner({ server }: { readonly server: ServerWithStatusDto }) {
 
         {/* Players + Ping */}
         <div className="flex-shrink-0 text-right space-y-1">
-          <div className={`text-xs ${isOnline ? 'text-gray-300' : 'text-red-400'}`}>
+          <div className={`text-xs ${isOnline ? 'text-gray-300' : 'text-danger-400'}`}>
             {isOnline
               ? `${server.onlinePlayers ?? 0}/${server.maxPlayers ?? 0}`
               : '离线'}
@@ -82,10 +83,10 @@ function McServerBanner({ server }: { readonly server: ServerWithStatusDto }) {
           </div>
           <div className="border-t border-[#5020d0]/30 my-1.5" />
           <div className="text-gray-400 space-y-0.5">
-            <p>地址: <span className="text-gray-200">{server.host ?? 'localhost'}:{server.port ?? 25565}</span></p>
+            <p>地址: <span className="text-gray-200">{formatServerAddress(server.host, server.port)}</span></p>
             {server.version && <p>版本: <span className="text-gray-200">{server.version}</span></p>}
             <p>玩家: <span className="text-gray-200">{server.onlinePlayers ?? 0} / {server.maxPlayers ?? 0}</span></p>
-            {server.latencyMs != null && <p>延迟: <span className={server.latencyMs < 100 ? 'text-green-400' : server.latencyMs < 300 ? 'text-yellow-400' : 'text-red-400'}>{server.latencyMs}ms</span></p>}
+            {server.latencyMs != null && <p>延迟: <span className={server.latencyMs < 100 ? 'text-success-400' : server.latencyMs < 300 ? 'text-warning-400' : 'text-danger-400'}>{server.latencyMs}ms</span></p>}
             {server.serverType === 'external' && <p className="text-blue-400">外置服务器</p>}
           </div>
         </div>
@@ -236,13 +237,13 @@ export function ServerCard({ server, index = 0, onEdit, onTerminal, isSelected, 
         {isExternal ? (
           <div className="space-y-1">
             <p className="text-blue-500 dark:text-blue-400 font-medium">外置服务器</p>
-            <p>{server.host ?? 'localhost'}:{server.port ?? 25565}</p>
+            <p>{formatServerAddress(server.host, server.port)}</p>
             {server.version && <p>版本: {server.version}</p>}
           </div>
         ) : (
           <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <span className="text-gray-400 dark:text-gray-500">地址</span>
-            <span className="text-gray-700 dark:text-gray-300">{server.host ?? 'localhost'}:{server.port ?? 25565}</span>
+            <span className="text-gray-700 dark:text-gray-300">{formatServerAddress(server.host, server.port)}</span>
             <span className="text-gray-400 dark:text-gray-500">Jar</span>
             <span className="truncate text-gray-700 dark:text-gray-300" title={server.jarPath ?? '—'}>{server.jarPath ?? '—'}</span>
             <span className="text-gray-400 dark:text-gray-500">目录</span>

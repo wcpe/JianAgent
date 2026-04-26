@@ -118,9 +118,9 @@ export function LogAlertRules() {
 
   const levelColor = (level: string) => {
     switch (level.toUpperCase()) {
-      case 'ERROR': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'WARN': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'INFO': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'ERROR': return 'bg-danger-100 text-danger-700 dark:bg-danger-700/30 dark:text-danger-400';
+      case 'WARN': return 'bg-warning-100 text-warning-700 dark:bg-warning-700/30 dark:text-warning-400';
+      case 'INFO': return 'bg-info-100 text-info-700 dark:bg-info-700/30 dark:text-info-400';
       default: return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
     }
   };
@@ -130,7 +130,7 @@ export function LogAlertRules() {
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">日志告警规则</h1>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-3">
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 active:scale-95 transition-all duration-150"
@@ -149,7 +149,7 @@ export function LogAlertRules() {
       {showForm && (
         <form
           onSubmit={handleCreate}
-          className="mb-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-4 space-y-4"
+          className="mb-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-4 space-y-4"
         >
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">新建告警规则</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,10 +253,10 @@ export function LogAlertRules() {
           action={{ label: '新建规则', onClick: () => setShowForm(true) }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-slate-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
+              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-gray-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
                 <th className="px-4 py-3">名称</th>
                 <th className="px-4 py-3">匹配模式</th>
                 <th className="px-4 py-3">级别</th>
@@ -272,8 +272,8 @@ export function LogAlertRules() {
                   key={rule.id}
                   className={`transition-colors ${
                     rule.id.charCodeAt(0) % 2 === 0
-                      ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                      : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                      ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                      : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                   }`}
                 >
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{rule.name}</td>
@@ -290,7 +290,7 @@ export function LogAlertRules() {
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       rule.enabled
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-success-100 text-success-700 dark:bg-success-700/30 dark:text-success-400'
                         : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                     }`}>
                       {rule.enabled ? '启用' : '禁用'}
@@ -306,7 +306,7 @@ export function LogAlertRules() {
                       </button>
                       <button
                         onClick={() => handleDelete(rule)}
-                        className="text-red-600 dark:text-red-400 hover:underline text-xs"
+                        className="text-danger-600 dark:text-danger-400 hover:underline text-xs"
                       >
                         删除
                       </button>

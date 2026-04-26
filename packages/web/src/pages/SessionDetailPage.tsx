@@ -44,12 +44,12 @@ export function SessionDetailPage() {
 
       <div className="flex gap-2 mb-6">
         {session.state === 'CREATED' && (
-          <button onClick={handleStart} className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+          <button onClick={handleStart} className="px-3 py-1 bg-success-500 text-white rounded text-sm hover:bg-success-600">
             启动
           </button>
         )}
         {session.state === 'RUNNING' && (
-          <button onClick={handleStop} className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+          <button onClick={handleStop} className="px-3 py-1 bg-danger-500 text-white rounded text-sm hover:bg-danger-600">
             停止
           </button>
         )}

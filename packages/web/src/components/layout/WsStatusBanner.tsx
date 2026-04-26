@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { wsClient } from '../../ws/ws-client.js';
 
 export function WsStatusBanner() {
+  const { t } = useTranslation();
   const [disconnected, setDisconnected] = useState(false);
 
   useEffect(() => {
@@ -14,8 +16,8 @@ export function WsStatusBanner() {
   if (!disconnected) return null;
 
   return (
-    <div className="bg-yellow-600 text-yellow-100 text-sm text-center py-1.5 px-4">
-      实时连接已断开，正在重连…
+    <div className="bg-warning-600 text-warning-100 text-sm text-center py-1.5 px-4">
+      {t('wsStatus.disconnected')}
     </div>
   );
 }

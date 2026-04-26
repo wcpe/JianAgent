@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Download, Copy, ChevronDown, ChevronUp } from 'lucide-react';
 import type { LogEntryDto, LogSearchResult } from '@jian-agent/shared-domain';
+import { logCenterApi } from '../../api/log-center.api.js';
 
 interface LogResultListProps {
   readonly result: LogSearchResult | null;
@@ -9,13 +10,20 @@ interface LogResultListProps {
   readonly onPageChange: (page: number) => void;
   readonly query?: string;
   readonly emptyMessage?: string;
+  readonly searchFilters?: {
+    readonly q?: string;
+    readonly hosts?: readonly string[];
+    readonly level?: string;
+    readonly startTime?: string;
+    readonly endTime?: string;
+  };
 }
 
 const LEVEL_COLORS: Record<string, string> = {
   DEBUG: 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800',
-  INFO: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
-  WARN: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30',
-  ERROR: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30',
+  INFO: 'text-info-600 dark:text-info-400 bg-info-50 dark:bg-info-700/30',
+  WARN: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-700/30',
+  ERROR: 'text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-700/30',
 };
 
 function formatTimestamp(ts: string): string {
@@ -54,8 +62,14 @@ function LogEntryRow({ entry, query }: { entry: LogEntryDto; query: string }) {
     navigator.clipboard.writeText(entry.rawLine ?? entry.content).catch(() => {});
   }, [entry]);
 
+  const levelBg = entry.level === 'ERROR'
+    ? 'bg-red-50 dark:bg-red-900/10'
+    : entry.level === 'WARN'
+      ? 'bg-yellow-50 dark:bg-yellow-900/10'
+      : '';
+
   return (
-    <div className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+    <div className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors group ${levelBg}`}>
       <div className="flex items-start gap-3 px-4 py-2.5">
         {/* Timestamp */}
         <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap tabular-nums min-w-[120px] shrink-0 pt-0.5">
@@ -108,7 +122,7 @@ function LogEntryRow({ entry, query }: { entry: LogEntryDto; query: string }) {
             <p>来源: {entry.sourceFile}</p>
             <p>ID: {entry.id}</p>
           </div>
-          <pre className="mt-2 text-sm font-mono text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-slate-800 rounded-lg p-3 whitespace-pre-wrap break-all overflow-x-auto">
+          <pre className="mt-2 text-sm font-mono text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg p-3 whitespace-pre-wrap break-all overflow-x-auto">
             {entry.rawLine ?? entry.content}
           </pre>
         </div>
@@ -117,23 +131,76 @@ function LogEntryRow({ entry, query }: { entry: LogEntryDto; query: string }) {
   );
 }
 
-export function LogResultList({ result, loading, page, onPageChange, query = '', emptyMessage }: LogResultListProps) {
+export function LogResultList({ result, loading, page, onPageChange, query = '', emptyMessage, searchFilters }: LogResultListProps) {
   const totalPages = result ? Math.ceil(result.total / result.limit) : 0;
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
+  const [exporting, setExporting] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleExport = useCallback(() => {
-    if (!result || result.entries.length === 0) return;
-    const header = 'timestamp,level,host,source,content\n';
-    const csv = result.entries.map((e) =>
-      `"${e.timestamp}","${e.level}","${e.hostName}","${e.sourceFile}","${e.content.replace(/"/g, '""')}"`
-    ).join('\n');
-    const blob = new Blob([header + csv], { type: 'text/csv;charset=utf-8;' });
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+    }
+    if (exportDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [exportDropdownOpen]);
+
+  const downloadBlob = useCallback((content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `log-export-page${page}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-  }, [result, page]);
+  }, []);
+
+  const handleExportCurrentPage = useCallback(() => {
+    if (!result || result.entries.length === 0) return;
+    setExportDropdownOpen(false);
+    const dateSuffix = new Date().toISOString().slice(0, 10);
+    if (exportFormat === 'json') {
+      const json = JSON.stringify(result.entries, null, 2);
+      downloadBlob(json, `log-export-page${page}-${dateSuffix}.json`, 'application/json');
+    } else {
+      const header = 'timestamp,level,host,source,content\n';
+      const csv = result.entries.map((e) =>
+        `"${e.timestamp}","${e.level}","${e.hostName}","${e.sourceFile}","${e.content.replace(/"/g, '""')}"`
+      ).join('\n');
+      downloadBlob(header + csv, `log-export-page${page}-${dateSuffix}.csv`, 'text/csv');
+    }
+  }, [result, page, exportFormat, downloadBlob]);
+
+  const handleExportAll = useCallback(async () => {
+    setExportDropdownOpen(false);
+    setExporting(true);
+    try {
+      const res = await logCenterApi.exportAll({
+        q: searchFilters?.q,
+        hosts: searchFilters?.hosts ? [...searchFilters.hosts] : undefined,
+        level: searchFilters?.level,
+        startTime: searchFilters?.startTime,
+        endTime: searchFilters?.endTime,
+        format: exportFormat,
+      });
+      const dateSuffix = new Date().toISOString().slice(0, 10);
+      if (res.data.format === 'json' && res.data.entries) {
+        const json = JSON.stringify(res.data.entries, null, 2);
+        downloadBlob(json, `log-export-all-${dateSuffix}.json`, 'application/json');
+      } else if (res.data.content) {
+        downloadBlob(res.data.content, `log-export-all-${dateSuffix}.csv`, 'text/csv');
+      }
+    } catch {
+      // export failed silently
+    } finally {
+      setExporting(false);
+    }
+  }, [searchFilters, exportFormat, downloadBlob]);
 
   if (loading) {
     return (
@@ -170,14 +237,49 @@ export function LogResultList({ result, loading, page, onPageChange, query = '',
           共 <strong className="text-gray-700 dark:text-gray-300">{result.total}</strong> 条结果
           （第 {result.page} / {totalPages} 页）
         </span>
-        <button
-          type="button"
-          onClick={handleExport}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/80 dark:bg-slate-900/60 border border-white/55 dark:border-primary-300/20 rounded-lg hover:bg-white dark:hover:bg-slate-900 text-gray-600 dark:text-gray-400 transition-colors"
-        >
-          <Download size={12} />
-          导出 CSV
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Format toggle */}
+          <select
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value as 'csv' | 'json')}
+            className="px-2 py-1.5 text-xs rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-600 dark:text-gray-400 focus:outline-none"
+          >
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+          </select>
+
+          {/* Export dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/80 dark:bg-gray-900/60 border border-white/55 dark:border-primary-300/20 rounded-lg hover:bg-white dark:hover:bg-gray-900 text-gray-600 dark:text-gray-400 transition-colors disabled:opacity-50"
+            >
+              <Download size={12} />
+              {exporting ? '导出中...' : '导出'}
+              <ChevronDown size={10} />
+            </button>
+            {exportDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-white/55 dark:border-primary-300/20 bg-white dark:bg-gray-900 shadow-xl z-20">
+                <button
+                  type="button"
+                  onClick={handleExportCurrentPage}
+                  className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg"
+                >
+                  导出当前页
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportAll}
+                  className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg"
+                >
+                  导出全部 (最多5000条)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Results */}
@@ -194,7 +296,7 @@ export function LogResultList({ result, loading, page, onPageChange, query = '',
             type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
@@ -218,7 +320,7 @@ export function LogResultList({ result, loading, page, onPageChange, query = '',
                 className={`w-8 h-8 rounded-lg text-sm transition-colors ${
                   pageNum === page
                     ? 'bg-primary-600 text-white font-medium shadow-lg'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
                 {pageNum}
@@ -230,7 +332,7 @@ export function LogResultList({ result, loading, page, onPageChange, query = '',
             type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronRight size={16} />
           </button>

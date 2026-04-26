@@ -103,6 +103,18 @@ export const logCenterApi = {
       method: 'DELETE',
     });
   },
+
+  exportAll: async (params: { q?: string; hosts?: string[]; level?: string; startTime?: string; endTime?: string; format?: string }): Promise<{ success: boolean; data: { format: string; content?: string; entries?: unknown[]; total?: number } }> => {
+    const query = new URLSearchParams();
+    if (params.q) query.set('q', params.q);
+    if (params.hosts?.length) query.set('hosts', params.hosts.join(','));
+    if (params.level) query.set('level', params.level);
+    if (params.startTime) query.set('startTime', params.startTime);
+    if (params.endTime) query.set('endTime', params.endTime);
+    query.set('format', params.format ?? 'csv');
+    query.set('limit', '5000');
+    return apiFetch<{ success: boolean; data: { format: string; content?: string; entries?: unknown[]; total?: number } }>(`/logs/export?${query.toString()}`);
+  },
 } as const;
 
 // Backward-compatible exports used by existing pages (LogAlertRules.tsx, LogCollectionManager.tsx)

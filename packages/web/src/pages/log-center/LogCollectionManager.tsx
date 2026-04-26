@@ -127,7 +127,7 @@ export function LogCollectionManager() {
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">日志采集配置</h1>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-3">
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 active:scale-95 transition-all duration-150"
@@ -146,7 +146,7 @@ export function LogCollectionManager() {
       {showForm && (
         <form
           onSubmit={handleCreate}
-          className="mb-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-4 space-y-4"
+          className="mb-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-4 space-y-4"
         >
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">新建采集配置</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,10 +239,10 @@ export function LogCollectionManager() {
           action={{ label: '新建配置', onClick: () => setShowForm(true) }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-slate-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
+              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-gray-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
                 <th className="px-4 py-3">主机</th>
                 <th className="px-4 py-3">类型</th>
                 <th className="px-4 py-3">文件路径</th>
@@ -259,8 +259,8 @@ export function LogCollectionManager() {
                   key={config.id}
                   className={`transition-colors ${
                     config.id.charCodeAt(0) % 2 === 0
-                      ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                      : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                      ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                      : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                   }`}
                 >
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{hostName(config.hostId)}</td>
@@ -276,7 +276,7 @@ export function LogCollectionManager() {
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       config.enabled
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-success-100 text-success-700 dark:bg-success-700/30 dark:text-success-400'
                         : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                     }`}>
                       {config.enabled ? '启用' : '禁用'}
@@ -292,7 +292,7 @@ export function LogCollectionManager() {
                       </button>
                       <button
                         onClick={() => handleDelete(config)}
-                        className="text-red-600 dark:text-red-400 hover:underline text-xs"
+                        className="text-danger-600 dark:text-danger-400 hover:underline text-xs"
                       >
                         删除
                       </button>

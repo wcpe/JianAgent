@@ -4,7 +4,7 @@ import { EmptyState } from '../../components/EmptyState.js';
 import { ErrorState } from '../../components/ErrorState.js';
 import { StyledSelect } from '../../components/ui/StyledSelect.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
-import { CreateHostDrawer } from './CreateHostDrawer.js';
+import { CreateHostModal } from './CreateHostModal.js';
 import type { RemoteHostDto } from '@jian-agent/shared-domain';
 
 type ViewMode = 'card' | 'table';
@@ -93,7 +93,7 @@ export function RemoteHostListPage() {
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">远程主机</h1>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-3">
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setCreateOpen(true)}
@@ -158,7 +158,7 @@ export function RemoteHostListPage() {
           {filtered.map((host) => (
             <div
               key={host.id}
-              className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl shadow-lg p-4 flex flex-col gap-3"
+              className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg p-4 flex flex-col gap-3"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{host.name}</h3>
@@ -202,10 +202,10 @@ export function RemoteHostListPage() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-slate-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
+              <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-gray-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
                 <th className="px-4 py-3">名称</th>
                 <th className="px-4 py-3">状态</th>
                 <th className="px-4 py-3">地址</th>
@@ -220,8 +220,8 @@ export function RemoteHostListPage() {
                   key={host.id}
                   className={`transition-colors ${
                     host.id.charCodeAt(0) % 2 === 0
-                      ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                      : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                      ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                      : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                   }`}
                 >
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{host.name}</td>
@@ -272,15 +272,14 @@ export function RemoteHostListPage() {
       )}
 
       {/* Drawers */}
-      {createOpen && (
-        <CreateHostDrawer
-          onClose={() => setCreateOpen(false)}
-          onCreated={() => {
-            setCreateOpen(false);
-            fetchHosts();
-          }}
-        />
-      )}
+      <CreateHostModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => {
+          setCreateOpen(false);
+          fetchHosts();
+        }}
+      />
     </div>
   );
 }

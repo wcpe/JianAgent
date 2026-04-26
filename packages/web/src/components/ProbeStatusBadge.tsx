@@ -1,10 +1,10 @@
 const STATUS_COLORS: Record<string, string> = {
-  READY: 'bg-green-200 text-green-800',
-  CONNECTING: 'bg-yellow-200 text-yellow-800',
-  HANDSHAKING: 'bg-blue-200 text-blue-800',
-  DISCONNECTED: 'bg-red-200 text-red-800',
+  READY: 'bg-success-200 text-success-700',
+  CONNECTING: 'bg-warning-200 text-warning-700',
+  HANDSHAKING: 'bg-info-200 text-info-700',
+  DISCONNECTED: 'bg-danger-200 text-danger-700',
   UNAVAILABLE: 'bg-gray-300 text-gray-700',
-  VERSION_MISMATCH: 'bg-orange-200 text-orange-800',
+  VERSION_MISMATCH: 'bg-warning-200 text-warning-700',
 };
 
 interface Props {

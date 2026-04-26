@@ -5,16 +5,16 @@ interface LifecycleProgressBadgeProps {
 
 const phaseColors: Record<string, string> = {
   IDLE: 'bg-gray-400',
-  VALIDATING: 'bg-blue-400 animate-pulse',
-  PRE_START: 'bg-blue-500 animate-pulse',
-  STARTING: 'bg-yellow-500 animate-pulse',
-  POST_START: 'bg-yellow-400 animate-pulse',
-  RUNNING: 'bg-green-500',
-  PRE_STOPPING: 'bg-orange-400 animate-pulse',
-  STOPPING: 'bg-orange-500 animate-pulse',
-  POST_STOPPING: 'bg-orange-300 animate-pulse',
+  VALIDATING: 'bg-info-400 animate-pulse',
+  PRE_START: 'bg-info-500 animate-pulse',
+  STARTING: 'bg-warning-500 animate-pulse',
+  POST_START: 'bg-warning-400 animate-pulse',
+  RUNNING: 'bg-success-500',
+  PRE_STOPPING: 'bg-warning-400 animate-pulse',
+  STOPPING: 'bg-warning-500 animate-pulse',
+  POST_STOPPING: 'bg-warning-200 animate-pulse',
   STOPPED: 'bg-gray-500',
-  FAILED: 'bg-red-500',
+  FAILED: 'bg-danger-500',
 };
 
 const phaseLabels: Record<string, string> = {

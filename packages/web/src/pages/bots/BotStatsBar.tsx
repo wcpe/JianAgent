@@ -2,9 +2,9 @@ import type { BotStats } from '../../api/bot.api.js';
 
 const items = (s: BotStats) => [
   { label: '总计', value: s.total, color: 'text-gray-900 dark:text-gray-200' },
-  { label: '在线', value: s.online, color: 'text-green-400' },
+  { label: '在线', value: s.online, color: 'text-success-400' },
   { label: '离线', value: s.offline, color: 'text-gray-500 dark:text-gray-400' },
-  { label: '异常', value: s.error, color: 'text-red-400' },
+  { label: '异常', value: s.error, color: 'text-danger-400' },
 ];
 
 export function BotStatsBar({ stats }: { readonly stats: BotStats | null }) {

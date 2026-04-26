@@ -1,4 +1,5 @@
 import { type FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import type { Terminal } from '@xterm/xterm';
 import type { DebugRecordingDto, DebugRecordingEventDto } from '@jian-agent/shared-domain';
 import { terminalApi } from '../../api/terminal.api.js';
 
@@ -11,7 +12,7 @@ const SPEED_OPTIONS = [0.5, 1, 2, 4] as const;
 
 const DebugReplayPanel: FC<Props> = ({ recordingId, onClose }) => {
   const termRef = useRef<HTMLDivElement>(null);
-  const termInstance = useRef<any>(null);
+  const termInstance = useRef<Terminal | null>(null);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
   const [progress, setProgress] = useState(0);
@@ -49,7 +50,7 @@ const DebugReplayPanel: FC<Props> = ({ recordingId, onClose }) => {
 
   // Initialize xterm
   useEffect(() => {
-    let term: any;
+    let term: Terminal | null = null;
     const loadTerminal = async () => {
       try {
         const { Terminal } = await import('@xterm/xterm');
@@ -133,7 +134,7 @@ const DebugReplayPanel: FC<Props> = ({ recordingId, onClose }) => {
   }
 
   if (error) {
-    return <div className="text-red-500 text-sm py-4 text-center">{error}</div>;
+    return <div className="text-danger-500 text-sm py-4 text-center">{error}</div>;
   }
 
   return (

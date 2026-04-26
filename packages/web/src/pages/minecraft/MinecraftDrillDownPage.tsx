@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 import { probeApi } from '../../api/probe.api.js';
 import { useWsChannel } from '../../ws/use-ws-channel.js';
 import type { ProbeSnapshotDto } from '@jian-agent/shared-domain';
@@ -90,20 +91,14 @@ export function MinecraftDrillDownPage() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       {/* Status Bar */}
       <section className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50">
         <div className="flex flex-wrap items-center gap-6">
           <div>
             <span className="text-xs text-gray-400 dark:text-gray-500 block">探针状态</span>
-            <span className={`text-sm font-semibold ${connected ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+            <span className={`text-sm font-semibold ${connected ? 'text-success-600 dark:text-success-400' : 'text-gray-500 dark:text-gray-400'}`}>
               {connected ? '已连接' : loading ? '加载中…' : '未连接'}
             </span>
           </div>
@@ -112,9 +107,9 @@ export function MinecraftDrillDownPage() {
               <div>
                 <span className="text-xs text-gray-400 dark:text-gray-500 block">TPS</span>
                 <span className={`text-sm font-mono font-semibold ${
-                  snapshot.tps >= 19 ? 'text-green-600 dark:text-green-400' :
-                  snapshot.tps >= 15 ? 'text-yellow-600 dark:text-yellow-400' :
-                  'text-red-600 dark:text-red-400'
+                  snapshot.tps >= 19 ? 'text-success-600 dark:text-success-400' :
+                  snapshot.tps >= 15 ? 'text-warning-600 dark:text-warning-400' :
+                  'text-danger-600 dark:text-danger-400'
                 }`}>
                   {snapshot.tps.toFixed(1)}
                 </span>

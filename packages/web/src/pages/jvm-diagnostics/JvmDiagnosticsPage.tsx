@@ -120,14 +120,14 @@ export function JvmDiagnosticsPage() {
 
       {/* Error alerts */}
       {pageError && (
-        <div className="flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
+        <div className="flex items-start gap-2 rounded border border-danger-200 dark:border-danger-700 bg-danger-50 dark:bg-danger-700/30 p-3 text-sm text-danger-700 dark:text-danger-200">
           <span>⚠</span>
           <span className="flex-1">{pageError}</span>
-          <button onClick={() => setPageError(null)} className="text-red-400 hover:text-red-600">✕</button>
+          <button onClick={() => setPageError(null)} className="text-danger-400 hover:text-danger-600">✕</button>
         </div>
       )}
       {helperError && (
-        <div className="text-sm text-red-500 dark:text-red-400">{helperError}</div>
+        <div className="text-sm text-danger-500 dark:text-danger-400">{helperError}</div>
       )}
 
       {/* Status Bar */}
@@ -137,8 +137,8 @@ export function JvmDiagnosticsPage() {
             <div>
               <span className="text-xs text-gray-400 dark:text-gray-500 block">Helper 状态</span>
               <span className={`text-sm font-semibold ${
-                attached ? 'text-green-600 dark:text-green-400' :
-                helperStatus?.state === 'FAILED' ? 'text-red-600 dark:text-red-400' :
+                attached ? 'text-success-600 dark:text-success-400' :
+                helperStatus?.state === 'FAILED' ? 'text-danger-600 dark:text-danger-400' :
                 'text-gray-600 dark:text-gray-400'
               }`}>
                 {helperStatus?.state ?? 'IDLE'}
@@ -181,7 +181,7 @@ export function JvmDiagnosticsPage() {
               <button
                 onClick={handleDetach}
                 disabled={helperLoading}
-                className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50"
+                className="px-3 py-1.5 bg-danger-600 text-white text-sm rounded-lg hover:bg-danger-700 disabled:opacity-50"
               >
                 断开 JVM
               </button>

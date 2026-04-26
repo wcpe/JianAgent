@@ -1,8 +1,8 @@
 import { useDialogStore, type ToastItem } from '../../stores/dialog.store.js';
 
 const typeStyles: Record<ToastItem['type'], string> = {
-  success: 'bg-green-600/90 text-white border border-green-500/30',
-  error: 'bg-red-600/90 text-white border border-red-500/30',
+  success: 'bg-success-600/90 text-white border border-success-500/30',
+  error: 'bg-danger-600/90 text-white border border-danger-500/30',
   info: 'bg-primary-600/90 dark:bg-primary-700/80 text-white border border-primary-500/30',
 };
 

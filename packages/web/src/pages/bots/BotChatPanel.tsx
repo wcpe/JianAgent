@@ -21,10 +21,10 @@ function getMsgType(msg: string): 'system' | 'command' | 'whisper' | 'death' | '
 }
 
 const MSG_COLORS: Record<ReturnType<typeof getMsgType>, string> = {
-  system: 'text-yellow-400',
-  command: 'text-green-400',
+  system: 'text-warning-400',
+  command: 'text-success-400',
   whisper: 'text-purple-400',
-  death: 'text-red-400',
+  death: 'text-danger-400',
   join: 'text-gray-500',
   normal: 'text-gray-800 dark:text-gray-200',
 };
@@ -143,7 +143,7 @@ export function BotChatPanel() {
                     tabIndex={0}
                     onClick={(e) => { e.stopPropagation(); handleClear(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleClear(); } }}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
+                    className="text-gray-400 hover:text-danger-400 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </span>

@@ -82,14 +82,14 @@ export const useResourceWorkspaceStore = create<ResourceWorkspaceState>(
           limit,
         });
         set({
-          items: result.items,
+          items: Array.isArray(result?.items) ? result.items : [],
           summary: result.summary,
           total: result.total,
           page: result.page,
           limit: result.limit,
           loading: false,
-          selectedIds: get().selectedIds.filter((id) =>
-            result.items.some((item) => item.summary.id === id),
+          selectedIds: (get().selectedIds ?? []).filter((id) =>
+            (result?.items ?? []).some((item) => item.summary.id === id),
           ),
         });
       } catch (error) {

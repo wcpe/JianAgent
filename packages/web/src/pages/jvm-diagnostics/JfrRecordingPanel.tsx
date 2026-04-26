@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { javaHelperApi } from '../../api/java-helper.api.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 import type { JfrTask } from '../../api/java-helper.api.js';
 
 interface JfrRecordingPanelProps {
@@ -9,11 +10,11 @@ interface JfrRecordingPanelProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  running: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-  completed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  failed: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  running: 'bg-success-100 text-success-700 dark:bg-success-700/40 dark:text-success-400',
+  completed: 'bg-info-100 text-info-700 dark:bg-info-700/40 dark:text-info-400',
+  failed: 'bg-danger-100 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400',
   expired: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400',
+  pending: 'bg-warning-100 text-warning-700 dark:bg-warning-700/40 dark:text-warning-400',
   approved: 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400',
 };
 
@@ -126,13 +127,7 @@ export function JfrRecordingPanel({ serverId, pid, attached }: JfrRecordingPanel
         </button>
       </div>
 
-      {error && (
-        <div className="mb-3 flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-3" />}
 
       {message && (
         <div className="mb-3 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded p-2">
@@ -176,7 +171,7 @@ export function JfrRecordingPanel({ serverId, pid, attached }: JfrRecordingPanel
               </button>
             )}
             {task.error && (
-              <span className="text-xs text-red-500 dark:text-red-400 truncate max-w-xs">{task.error}</span>
+              <span className="text-xs text-danger-500 dark:text-danger-400 truncate max-w-xs">{task.error}</span>
             )}
           </div>
         ))}

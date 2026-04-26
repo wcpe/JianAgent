@@ -20,7 +20,7 @@ export const reportApi = {
     ),
 
   exportReportUrl: (sessionId: string, format: 'html' | 'pdf' | 'json') =>
-    `/api/metrics/report/${encodeURIComponent(sessionId)}/export/${format}`,
+    `/api/v1/metrics/report/${encodeURIComponent(sessionId)}/export/${format}`,
 
   getArchiveStats: () => apiFetch<ArchiveStatsDto>('/storage/archive/stats'),
 

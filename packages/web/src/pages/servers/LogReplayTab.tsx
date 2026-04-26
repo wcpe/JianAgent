@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { serverApi, type LogFileEntry, type LogSearchResult } from '../../api/server.api.js';
 import { wsClient } from '../../ws/ws-client.js';
 import { WsChannel } from '@jian-agent/shared-protocol';
+import { LogFilterToolbar, INITIAL_LOG_FILTERS, type LogFilterState } from '../../components/log/LogFilterToolbar.js';
+import { LogExportButton } from '../../components/log/LogExportButton.js';
+import { parseLogLine } from '../../features/terminal/log-line-parser.js';
 
 interface LogReplayTabProps {
   readonly serverId: string;
@@ -223,6 +226,28 @@ export function LogReplayTab({ serverId }: LogReplayTabProps) {
   // ── Content lines for rendering ──
   const contentLines = useMemo(() => content.split('\n'), [content]);
 
+  // ── Log filter state ──
+  const [logFilters, setLogFilters] = useState<LogFilterState>(INITIAL_LOG_FILTERS);
+
+  const filteredLines = useMemo(() => {
+    if (!logFilters.levels.length && !logFilters.keyword) return contentLines;
+    return contentLines.filter(line => {
+      if (!line.trim()) return true; // keep empty lines
+      const parsed = parseLogLine(line);
+      if (logFilters.levels.length && !logFilters.levels.includes(parsed.level)) return false;
+      if (logFilters.keyword && !line.toLowerCase().includes(logFilters.keyword.toLowerCase())) return false;
+      return true;
+    });
+  }, [contentLines, logFilters]);
+
+  const exportEntries = useMemo(() =>
+    filteredLines.map(line => {
+      const parsed = parseLogLine(line);
+      return { timestamp: parsed.timestamp, level: parsed.level, source: '', content: parsed.message };
+    }),
+    [filteredLines],
+  );
+
   return (
     <div className="flex h-full bg-white dark:bg-gray-900">
       {/* Left: File list */}
@@ -299,8 +324,12 @@ export function LogReplayTab({ serverId }: LogReplayTabProps) {
             >
               {searching ? '搜索中...' : '搜索'}
             </button>
+            <LogExportButton entries={exportEntries} filename={selectedFile ?? 'log-export'} />
           </div>
         </div>
+
+        {/* Filter toolbar */}
+        <LogFilterToolbar filters={logFilters} onFiltersChange={setLogFilters} compact />
 
         {/* Search results panel */}
         {showSearch && (
@@ -345,7 +374,7 @@ export function LogReplayTab({ serverId }: LogReplayTabProps) {
             </div>
           ) : (
             <div className="font-mono text-xs leading-5 min-w-max">
-              {contentLines.map((line, i) => (
+              {filteredLines.map((line, i) => (
                 <div
                   key={i}
                   ref={(el) => { if (el) lineRefs.current.set(i + 1, el); else lineRefs.current.delete(i + 1); }}
@@ -378,7 +407,7 @@ export function LogReplayTab({ serverId }: LogReplayTabProps) {
               </span>
             )}
           </span>
-          <span>{contentLines.length} 行</span>
+          <span>{filteredLines.length} / {contentLines.length} 行</span>
         </div>
       </div>
     </div>

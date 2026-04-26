@@ -1,8 +1,8 @@
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer, Legend, AreaChart, Area,
 } from 'recharts';
-import { BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import { BarChart3, PieChart as PieChartIcon, TrendingUp, AlertTriangle } from 'lucide-react';
 import type { LogAnalyticsResult } from '@jian-agent/shared-domain';
 
 interface LogAnalyticsPanelProps {
@@ -77,7 +77,7 @@ export function LogAnalyticsPanel({ analytics, loading }: LogAnalyticsPanelProps
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-2">
         {levelData.map((d) => (
-          <div key={d.name} className="rounded-xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-slate-900/40 px-3 py-2">
+          <div key={d.name} className="rounded-xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-gray-900/40 px-3 py-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">{d.name}</p>
             <p className="text-lg font-bold" style={{ color: d.fill }}>{d.value}</p>
           </div>
@@ -85,7 +85,7 @@ export function LogAnalyticsPanel({ analytics, loading }: LogAnalyticsPanelProps
       </div>
 
       {/* Level distribution pie chart */}
-      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-slate-900/40 p-4">
+      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-gray-900/40 p-4">
         <div className="flex items-center gap-2 mb-3">
           <PieChartIcon size={14} className="text-primary-500" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">级别分布</span>
@@ -122,7 +122,7 @@ export function LogAnalyticsPanel({ analytics, loading }: LogAnalyticsPanelProps
       </div>
 
       {/* Timeline bar chart */}
-      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-slate-900/40 p-4">
+      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-gray-900/40 p-4">
         <div className="flex items-center gap-2 mb-3">
           <BarChart3 size={14} className="text-primary-500" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间线分布</span>
@@ -142,8 +142,27 @@ export function LogAnalyticsPanel({ analytics, loading }: LogAnalyticsPanelProps
         )}
       </div>
 
+      {/* Error trend area chart */}
+      {analytics.errorTrend && analytics.errorTrend.length > 0 && (
+        <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-gray-900/40 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle size={14} className="text-danger-500" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ERROR 趋势</span>
+          </div>
+          <ResponsiveContainer width="100%" height={150}>
+            <AreaChart data={analytics.errorTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <XAxis dataKey="time" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
+              <YAxis tick={{ fontSize: 10 }} stroke="#9CA3AF" allowDecimals={false} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Area type="monotone" dataKey="count" stroke="#ef4444" fill="#ef444433" name="ERROR 数" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* Top keywords */}
-      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-slate-900/40 p-4">
+      <div className="rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/60 dark:bg-gray-900/40 p-4">
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp size={14} className="text-primary-500" />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">热词 Top 10</span>
@@ -156,7 +175,7 @@ export function LogAnalyticsPanel({ analytics, loading }: LogAnalyticsPanelProps
               return (
                 <div key={kw.word} className="flex items-center gap-2">
                   <span className="text-xs text-gray-400 w-4 text-right shrink-0">{idx + 1}</span>
-                  <div className="flex-1 relative h-6 rounded bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="flex-1 relative h-6 rounded bg-gray-100 dark:bg-gray-800 overflow-hidden">
                     <div
                       className="absolute inset-y-0 left-0 bg-primary-100 dark:bg-primary-900/40 rounded"
                       style={{ width: `${pct}%` }}

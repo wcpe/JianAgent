@@ -40,7 +40,7 @@ export function ServerCardActions({ server, onEdit, onTerminal }: ServerCardActi
           onClick={() => lifecycle(() => startServer(server.id), '启动中')}
           disabled={isRunning || isBusy}
           title="正常启动服务器进程"
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded disabled:opacity-40 hover:bg-green-700 active:scale-95 transition-all duration-150"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-success-600 text-white rounded disabled:opacity-40 hover:bg-success-700 active:scale-95 transition-all duration-150"
         >
           <Play className="w-3.5 h-3.5" /> 启动
         </button>
@@ -48,7 +48,7 @@ export function ServerCardActions({ server, onEdit, onTerminal }: ServerCardActi
           onClick={() => lifecycle(() => stopServer(server.id), '已下发停止指令')}
           disabled={!isRunning}
           title="向服务器发送 stop 指令安全停机"
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-red-600 text-white rounded disabled:opacity-40 hover:bg-red-700 active:scale-95 transition-all duration-150"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-danger-600 text-white rounded disabled:opacity-40 hover:bg-danger-700 active:scale-95 transition-all duration-150"
         >
           <Square className="w-3.5 h-3.5" /> 停止
         </button>
@@ -56,7 +56,7 @@ export function ServerCardActions({ server, onEdit, onTerminal }: ServerCardActi
           onClick={() => lifecycle(() => interruptServer(server.id), '已强制中断')}
           disabled={!isRunning}
           title="直接杀掉进程 (SIGKILL)，可能导致数据丢失"
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded disabled:opacity-40 hover:bg-orange-700 active:scale-95 transition-all duration-150"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-warning-600 text-white rounded disabled:opacity-40 hover:bg-warning-700 active:scale-95 transition-all duration-150"
         >
           <Zap className="w-3.5 h-3.5" /> 中断
         </button>
@@ -64,7 +64,7 @@ export function ServerCardActions({ server, onEdit, onTerminal }: ServerCardActi
           onClick={() => lifecycle(() => restartServer(server.id), '正在重启')}
           disabled={!isRunning}
           title="先安全停机再重新启动"
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-yellow-600 text-white rounded disabled:opacity-40 hover:bg-yellow-700 active:scale-95 transition-all duration-150"
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-warning-600 text-white rounded disabled:opacity-40 hover:bg-warning-700 active:scale-95 transition-all duration-150"
         >
           <RotateCw className="w-3.5 h-3.5" /> 重启
         </button>
@@ -101,7 +101,7 @@ export function ServerCardActions({ server, onEdit, onTerminal }: ServerCardActi
           }}
           disabled={!isExternal && (isRunning || isBusy)}
           title={!isExternal && (isRunning || isBusy) ? '请先停止服务器' : undefined}
-          className="flex items-center gap-1 px-2 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 disabled:opacity-40 active:scale-95 transition-all duration-150 dark:border-red-800 dark:text-red-500 dark:hover:bg-red-900/30"
+          className="flex items-center gap-1 px-2 py-1 text-xs border border-danger-200 text-danger-600 rounded hover:bg-danger-50 disabled:opacity-40 active:scale-95 transition-all duration-150 dark:border-danger-700 dark:text-danger-500 dark:hover:bg-danger-700/30"
         >
           <Trash2 className="w-3.5 h-3.5" /> 删除
         </button>

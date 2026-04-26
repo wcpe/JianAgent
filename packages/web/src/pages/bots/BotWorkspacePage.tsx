@@ -6,7 +6,7 @@ import { botApi, type SavedBotConfig } from '../../api/bot.api.js';
 import { BotStatsBar } from './BotStatsBar.js';
 import { BotTable } from './BotTable.js';
 import { BotCardGrid } from './BotCardGrid.js';
-import { CreateBotDrawer } from './CreateBotDrawer.js';
+import { CreateBotModal } from './CreateBotModal.js';
 import { BotChatPanel } from './BotChatPanel.js';
 import { EmptyState } from '../../components/EmptyState.js';
 import { ErrorState } from '../../components/ErrorState.js';
@@ -72,7 +72,7 @@ export function BotWorkspacePage() {
   // Load saved configs
   useEffect(() => {
     botApi.listSavedConfigs(serverId || undefined)
-      .then((res) => setSavedConfigs(res.data))
+      .then((res) => setSavedConfigs(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
   }, [serverId]);
 
@@ -93,7 +93,7 @@ export function BotWorkspacePage() {
     fetchBots();
     fetchStats(serverId || undefined);
     botApi.listSavedConfigs(serverId || undefined)
-      .then((res) => setSavedConfigs(res.data))
+      .then((res) => setSavedConfigs(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
   }, [fetchBots, fetchStats, serverId]);
 
@@ -233,7 +233,7 @@ export function BotWorkspacePage() {
       }
       showToast(`已导入 ${imported} 个配置`, 'success');
       const res = await botApi.listSavedConfigs(serverId || undefined);
-      setSavedConfigs(res.data);
+      setSavedConfigs(Array.isArray(res.data) ? res.data : []);
     } catch {
       showToast('导入失败：文件格式错误', 'error');
     }
@@ -248,7 +248,7 @@ export function BotWorkspacePage() {
   return (
     <div className="p-6 space-y-4">
       {/* 顶栏 */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm p-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-sm p-3">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mr-2">机器人控制台</h1>
           <button
@@ -283,7 +283,7 @@ export function BotWorkspacePage() {
                 useDialogStore.getState().showToast(err.message ?? '停止失败', 'error');
               }
             }}
-            className="bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg px-4 py-2 active:scale-95 transition-all duration-150 font-medium shadow-sm"
+            className="bg-danger-600 hover:bg-danger-700 text-white text-sm rounded-lg px-4 py-2 active:scale-95 transition-all duration-150 font-medium shadow-sm"
           >
             全部停止
           </button>
@@ -292,22 +292,22 @@ export function BotWorkspacePage() {
           <button
             type="button"
             onClick={handleRefresh}
-            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 rounded-lg px-3 py-2 active:scale-95 transition-all duration-150 backdrop-blur-md shadow-sm font-medium"
+            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 rounded-lg px-3 py-2 active:scale-95 transition-all duration-150 backdrop-blur-md shadow-sm font-medium"
           >
             刷新
           </button>
-          <div className="flex border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 rounded-lg overflow-hidden backdrop-blur-md shadow-sm">
+          <div className="flex border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 rounded-lg overflow-hidden backdrop-blur-md shadow-sm">
             <button
               type="button"
               onClick={() => setViewMode('card')}
-              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'card' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-slate-800/50'}`}
+              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'card' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'}`}
             >
               卡片
             </button>
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'table' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-slate-800/50'}`}
+              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'table' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'}`}
             >
               表格
             </button>
@@ -332,7 +332,7 @@ export function BotWorkspacePage() {
         <input
           type="text"
           placeholder="搜索机器人..."
-          className="border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 backdrop-blur-md shadow-sm transition-all"
+          className="border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 backdrop-blur-md shadow-sm transition-all"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -379,7 +379,7 @@ export function BotWorkspacePage() {
             批量执行脚本
           </button>
           <button type="button" onClick={handleBatchStop}
-            className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 active:scale-95 transition-all duration-150 font-medium shadow-sm">
+            className="px-3 py-1.5 text-xs bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:scale-95 transition-all duration-150 font-medium shadow-sm">
             批量停止
           </button>
           <button type="button" onClick={handleBatchDelete}
@@ -436,7 +436,7 @@ export function BotWorkspacePage() {
                 <span className="text-gray-500 dark:text-gray-400">{cfg.rejoinStrategy}</span>
                 <button type="button"
                   onClick={() => handleDeleteSavedConfig(cfg.id)}
-                  className="text-red-400 hover:text-red-300 ml-1"
+                  className="text-danger-400 hover:text-danger-200 ml-1"
                 >
                   ✕
                 </button>
@@ -496,7 +496,7 @@ export function BotWorkspacePage() {
       )}
 
       {/* 创建抽屉 */}
-      <CreateBotDrawer
+      <CreateBotModal
         serverId={serverId}
         open={drawerOpen}
         onClose={() => { setDrawerOpen(false); handleRefresh(); }}

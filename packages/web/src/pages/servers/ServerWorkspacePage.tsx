@@ -7,8 +7,9 @@ import { EmptyState } from '../../components/EmptyState.js';
 import { ErrorState } from '../../components/ErrorState.js';
 import { ServerCardGrid } from './ServerCardGrid.js';
 import { ServerTableView } from './ServerTableView.js';
-import { CreateServerDrawer } from './CreateServerDrawer.js';
+import { CreateServerModal } from './CreateServerModal.js';
 import { EditServerDrawer } from './EditServerDrawer.js';
+import { ServerSetupWizard } from './ServerSetupWizard.js';
 import { StyledSelect } from '../../components/ui/StyledSelect.js';
 import { ServerGroupFilter } from './ServerGroupFilter.js';
 import { BatchOperationBar } from '../../features/server-lifecycle/BatchOperationBar.js';
@@ -28,6 +29,7 @@ export function ServerWorkspacePage() {
   const [groupFilter, setGroupFilter] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchLoading, setBatchLoading] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     fetchServers();
@@ -100,10 +102,10 @@ export function ServerWorkspacePage() {
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">服务器工作台</h1>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm p-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-sm p-3">
         <div className="flex flex-wrap gap-2 items-center">
           <button
-            onClick={() => setCreateOpen(true)}
+            onClick={() => setWizardOpen(true)}
             className="px-3 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 active:scale-95 transition-all duration-150 font-medium shadow-sm"
           >
             新建服务器
@@ -112,7 +114,7 @@ export function ServerWorkspacePage() {
             placeholder="搜索名称..."
             value={filter.search}
             onChange={(e) => setFilter({ search: e.target.value })}
-            className="border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm w-40 md:w-48 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 backdrop-blur-md shadow-sm transition-all"
+            className="border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm w-40 md:w-48 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 backdrop-blur-md shadow-sm transition-all"
           />
           <StyledSelect
             value={filter.status ?? ''}
@@ -132,19 +134,19 @@ export function ServerWorkspacePage() {
           />
         </div>
         <div className="flex gap-2 items-center">
-          <button onClick={fetchServers} className="px-3 py-2 border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-800/80 active:scale-95 transition-all duration-150 backdrop-blur-md shadow-sm font-medium">
+          <button onClick={fetchServers} className="px-3 py-2 border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800/80 active:scale-95 transition-all duration-150 backdrop-blur-md shadow-sm font-medium">
             刷新
           </button>
-          <div className="flex border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 rounded-lg overflow-hidden backdrop-blur-md shadow-sm">
+          <div className="flex border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 rounded-lg overflow-hidden backdrop-blur-md shadow-sm">
             <button
               onClick={() => setViewMode('card')}
-              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'card' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-slate-800/50'}`}
+              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'card' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'}`}
             >
               卡片
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'table' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-slate-800/50'}`}
+              className={`px-3 py-2 text-sm transition-colors font-medium ${viewMode === 'table' ? 'bg-primary-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'}`}
             >
               表格
             </button>
@@ -193,7 +195,8 @@ export function ServerWorkspacePage() {
       />
 
       {/* Drawers */}
-      {createOpen && <CreateServerDrawer onClose={() => setCreateOpen(false)} />}
+      <CreateServerModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ServerSetupWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />
       {editTarget && <EditServerDrawer server={editTarget} onClose={() => setEditTarget(null)} />}
     </div>
   );

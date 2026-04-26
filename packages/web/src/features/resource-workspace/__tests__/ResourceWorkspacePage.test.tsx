@@ -93,12 +93,12 @@ vi.mock('../resource-workspace.store.js', () => ({
     selector(storeState),
 }));
 
-vi.mock('../../../pages/servers/CreateServerDrawer.js', () => ({
-  CreateServerDrawer: () => <div>server-drawer</div>,
+vi.mock('../../../pages/servers/CreateServerModal.js', () => ({
+  CreateServerModal: () => <div>server-modal</div>,
 }));
 
-vi.mock('../../../pages/remote-hosts/CreateHostDrawer.js', () => ({
-  CreateHostDrawer: () => <div>host-drawer</div>,
+vi.mock('../../../pages/remote-hosts/CreateHostModal.js', () => ({
+  CreateHostModal: () => <div>host-modal</div>,
 }));
 
 describe('ResourceWorkspacePage', () => {

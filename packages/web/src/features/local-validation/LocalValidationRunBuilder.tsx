@@ -32,7 +32,7 @@ function statusTone(status: LocalValidationRunDto['status']): string {
   if (status.startsWith('FAILED') || status === 'CANCELLED') {
     return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
   }
-  return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+  return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
 }
 
 export function LocalValidationRunBuilder({
@@ -63,36 +63,36 @@ export function LocalValidationRunBuilder({
 
   return (
     <div className="grid gap-4">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
             Run Builder
           </p>
-          <h2 className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">创建本地验证运行</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">创建本地验证运行</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             初始化本地 Paper 测试服，执行综合对抗验收包，并保留运行证据。
           </p>
         </div>
 
         <div className="grid gap-3">
-          <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
+          <label className="grid gap-1 text-sm text-gray-600 dark:text-gray-300">
             运行名称
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
             />
           </label>
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
+            <label className="grid gap-1 text-sm text-gray-600 dark:text-gray-300">
               Paper 版本
               <input
                 value={paperVersion}
                 onChange={(event) => setPaperVersion(event.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
               />
             </label>
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
+            <label className="grid gap-1 text-sm text-gray-600 dark:text-gray-300">
               机器人数量
               <input
                 type="number"
@@ -100,17 +100,17 @@ export function LocalValidationRunBuilder({
                 max={200}
                 value={requestedBotCount}
                 onChange={(event) => setRequestedBotCount(Math.max(1, Number.parseInt(event.target.value, 10) || 1))}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
               />
             </label>
           </div>
 
-          <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
+          <label className="grid gap-1 text-sm text-gray-600 dark:text-gray-300">
             场景包
             <select
               value={scenarioPackId}
               onChange={(event) => setScenarioPackId(event.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
             >
               <option value="">选择场景包</option>
               {scenarioPacks.map((pack) => (
@@ -122,12 +122,12 @@ export function LocalValidationRunBuilder({
           </label>
 
           {scenarioPacks.find((pack) => pack.id === scenarioPackId)?.description ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">
               {scenarioPacks.find((pack) => pack.id === scenarioPackId)?.description}
             </div>
           ) : null}
 
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <input
               type="checkbox"
               checked={keepServerRunning}
@@ -135,7 +135,7 @@ export function LocalValidationRunBuilder({
             />
             运行后保留服务器进程
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <input
               type="checkbox"
               checked={keepWorkspace}
@@ -157,7 +157,7 @@ export function LocalValidationRunBuilder({
               keepServerRunning,
               keepWorkspace,
             })}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+            className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-100 dark:text-gray-900"
           >
             {status === 'creating' ? '创建中...' : '创建运行'}
           </button>
@@ -184,22 +184,22 @@ export function LocalValidationRunBuilder({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
               Runs
             </p>
-            <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">最近运行</h3>
+            <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">最近运行</h3>
           </div>
           {loadingRuns ? (
-            <span className="text-xs text-slate-500 dark:text-slate-400">刷新中...</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">刷新中...</span>
           ) : null}
         </div>
 
         <div className="mt-4 grid gap-3">
           {runs.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <div className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
               还没有本地验证运行，先创建一个 Paper 验收运行。
             </div>
           ) : runs.map((run) => {
@@ -211,18 +211,18 @@ export function LocalValidationRunBuilder({
                 onClick={() => onSelectRun(run.id)}
                 className={`rounded-2xl border px-4 py-3 text-left transition ${
                   selected
-                    ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-200 dark:bg-slate-100 dark:text-slate-900'
-                    : 'border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100'
+                    ? 'border-gray-900 bg-gray-900 text-white dark:border-gray-200 dark:bg-gray-100 dark:text-gray-900'
+                    : 'border-gray-200 bg-gray-50 text-gray-900 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-100'
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="font-medium">{run.name}</div>
-                    <div className={`mt-1 text-xs ${selected ? 'text-white/70 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <div className={`mt-1 text-xs ${selected ? 'text-white/70 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'}`}>
                       {run.paperVersion ?? '未指定版本'} · {run.requestedBotCount} bots
                     </div>
                   </div>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${selected ? 'bg-white/15 text-white dark:bg-slate-800 dark:text-slate-100' : statusTone(run.status)}`}>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${selected ? 'bg-white/15 text-white dark:bg-gray-800 dark:text-gray-100' : statusTone(run.status)}`}>
                     {run.status}
                   </span>
                 </div>

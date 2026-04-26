@@ -1,23 +1,27 @@
 import { apiFetch } from './client.js';
 import type {
   ServerConfig,
-  ServerWithStatusDto,
   CreateServerConfigRequest,
   UpdateServerConfigRequest,
   BackupDto,
   BackupScheduleDto,
   CreateBackupRequest,
   UpdateBackupScheduleRequest,
-  ConditionalStopDto,
-  ConditionType,
-  StartTemplateDto,
-  CreateStartTemplateDto,
-  UpdateStartTemplateDto,
   FileTaskDto,
   FileTaskRequest,
   PluginMetadataDto,
   PluginOperationResultDto,
+  ProvisionServerRequest,
+  ProvisionServerResponse,
+  PaperVersionInfo,
 } from '@jian-agent/shared-domain';
+
+// ── Re-export sub-modules for backward compatibility ──
+export { serverLifecycleApi } from './server-lifecycle.api.js';
+export { serverSshApi, type SshStatusResponse, type SshSessionsResponse } from './server-ssh.api.js';
+export { serverMonitoringApi } from './server-monitoring.api.js';
+
+// ── Local interfaces (used by file / log operations) ──
 
 export interface FileEntry {
   readonly name: string;
@@ -39,43 +43,24 @@ export interface LogSearchResult {
   readonly content: string;
 }
 
-export interface SshStatusResponse {
-  readonly connected: boolean;
-  readonly observability: {
-    readonly totalActiveSessions: number;
-    readonly perServerQuota: number;
-    readonly activeSessionsForServer: number;
-    readonly remainingSessionsForServer: number;
-    readonly activeSessionIds: readonly string[];
-    readonly activeSessionBriefIds: readonly string[];
-  };
-}
+// ── Barrel: unified serverApi object ──
+// Delegates to sub-modules so that callers importing { serverApi } keep working.
 
-export interface SshSessionsResponse {
-  readonly connected: boolean;
-  readonly sessions: readonly {
-    sessionId: string;
-    sessionBriefId: string;
-    serverId: string;
-    openedAt: string;
-    lastActivityAt: string;
-    idleForMs: number;
-    idleTimeoutMs: number;
-  }[];
-}
+import { serverLifecycleApi } from './server-lifecycle.api.js';
+import { serverSshApi } from './server-ssh.api.js';
+import { serverMonitoringApi } from './server-monitoring.api.js';
 
 export const serverApi = {
-  listServers: () =>
-    apiFetch<readonly ServerWithStatusDto[]>('/servers'),
+  // ── Lifecycle (delegated) ──
+  ...serverLifecycleApi,
 
-  batchOperation: (action: string, serverIds: string[], stopMode?: string) =>
-    apiFetch<{ results: Array<{ serverId: string; success: boolean; error?: string }> }>(
-      '/servers/batch',
-      { method: 'POST', body: JSON.stringify({ action, serverIds, stopMode }) },
-    ),
+  // ── SSH (delegated) ──
+  ...serverSshApi,
 
-  getServer: (id: string) =>
-    apiFetch<ServerWithStatusDto>(`/servers/${encodeURIComponent(id)}`),
+  // ── Monitoring (delegated) ──
+  ...serverMonitoringApi,
+
+  // ── Server Config CRUD ──
 
   getServerConfig: (id: string) =>
     apiFetch<ServerConfig>(`/servers/${encodeURIComponent(id)}/config`),
@@ -94,69 +79,6 @@ export const serverApi = {
 
   deleteServer: (id: string) =>
     apiFetch<void>(`/servers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-
-  startServer: (id: string) =>
-    apiFetch<{ success: boolean; pid?: number }>(`/servers/${encodeURIComponent(id)}/start`, {
-      method: 'POST',
-    }),
-
-  stopServer: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/stop`, {
-      method: 'POST',
-    }),
-
-  interruptServer: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/interrupt`, {
-      method: 'POST',
-    }),
-
-  restartServer: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/restart`, {
-      method: 'POST',
-    }),
-
-  pingServer: (id: string) =>
-    apiFetch<{ success: boolean; data: { online: boolean; motd?: string; onlinePlayers?: number; maxPlayers?: number; version?: string } }>(
-      `/servers/${encodeURIComponent(id)}/ping`,
-      { method: 'POST' },
-    ),
-
-  attachProcess: (id: string, pid: number) =>
-    apiFetch<{ success: boolean; state: string }>(`/servers/${encodeURIComponent(id)}/attach`, {
-      method: 'POST',
-      body: JSON.stringify({ pid }),
-    }),
-
-  detachProcess: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/detach`, {
-      method: 'POST',
-    }),
-
-  listJavaProcesses: () =>
-    apiFetch<{ success: boolean; data: Array<{ pid: number; command: string }> }>('/servers/java-processes'),
-
-  // ── SSH ──
-
-  sshConnect: (id: string) =>
-    apiFetch<{ success: boolean; sessionId: string }>(`/servers/${encodeURIComponent(id)}/ssh/connect`, {
-      method: 'POST',
-    }),
-
-  sshDisconnect: (id: string, sessionId?: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/ssh/disconnect${sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : ''}`, {
-      method: 'DELETE',
-    }),
-
-  sshTest: (id: string) =>
-    apiFetch<{ success: boolean; message: string }>(`/servers/${encodeURIComponent(id)}/ssh/test`, {
-      method: 'POST',
-    }),
-
-  sshStatus: (id: string) =>
-    apiFetch<SshStatusResponse>(`/servers/${encodeURIComponent(id)}/ssh/status`),
-
-  sshSessions: (id: string) =>
-    apiFetch<SshSessionsResponse>(`/servers/${encodeURIComponent(id)}/ssh/sessions`),
 
   // ── File Management (Sync short operations) ──
 
@@ -191,7 +113,6 @@ export const serverApi = {
 
   // ── File Management (Async long operations) ──
 
-  // Legacy upload method - now returns taskId for async tracking
   uploadFile: (id: string, dirPath: string, filename: string, data: string) =>
     apiFetch<{ taskId: string }>(`/servers/${encodeURIComponent(id)}/files/tasks`, {
       method: 'POST',
@@ -209,7 +130,6 @@ export const serverApi = {
       body: JSON.stringify(request),
     }),
 
-  // Convenience methods for specific async operations
   uploadFileAsync: (id: string, dirPath: string, filename: string, data: string) =>
     apiFetch<{ taskId: string }>(`/servers/${encodeURIComponent(id)}/files/tasks`, {
       method: 'POST',
@@ -404,91 +324,14 @@ export const serverApi = {
       body: JSON.stringify(request),
     }),
 
-  // ── Scheduled Stop / Restart ──
+  // ── Server Provision ──
 
-  scheduleStop: (id: string, stopAt: string, mode: 'graceful' | 'force' = 'graceful') =>
-    apiFetch<{ success: boolean; stopAt: string; mode: string }>(`/servers/${encodeURIComponent(id)}/scheduled-stop`, {
+  provisionServer: (dto: ProvisionServerRequest) =>
+    apiFetch<ProvisionServerResponse>('/servers/provision', {
       method: 'POST',
-      body: JSON.stringify({ stopAt, mode }),
+      body: JSON.stringify(dto),
     }),
 
-  scheduleRestart: (id: string, restartAt: string) =>
-    apiFetch<{ success: boolean; restartAt: string }>(`/servers/${encodeURIComponent(id)}/scheduled-restart`, {
-      method: 'POST',
-      body: JSON.stringify({ restartAt }),
-    }),
-
-  getScheduledStop: (id: string) =>
-    apiFetch<{ stopAt: string; mode: string } | null>(`/servers/${encodeURIComponent(id)}/scheduled-stop`),
-
-  cancelScheduledStop: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/scheduled-stop`, {
-      method: 'DELETE',
-    }),
-
-  // ── Conditional Stop ──
-
-  getConditionalStop: (id: string) =>
-    apiFetch<ConditionalStopDto | null>(`/servers/${encodeURIComponent(id)}/conditional-stop`),
-
-  setConditionalStop: (id: string, type: ConditionType, params: Record<string, number>) =>
-    apiFetch<ConditionalStopDto>(`/servers/${encodeURIComponent(id)}/conditional-stop`, {
-      method: 'PUT',
-      body: JSON.stringify({ type, params }),
-    }),
-
-  clearConditionalStop: (id: string) =>
-    apiFetch<{ success: boolean }>(`/servers/${encodeURIComponent(id)}/conditional-stop`, {
-      method: 'DELETE',
-    }),
-
-  // ── Health Status ──
-
-  getHealthStatus: (id: string) =>
-    apiFetch<{ serverId: string; unresponsive: boolean; restartCount: number; monitoredServers: readonly string[] }>(
-      `/servers/${encodeURIComponent(id)}/health`,
-    ),
-
-  // ── Start Templates ──
-
-  listTemplates: () =>
-    apiFetch<readonly StartTemplateDto[]>('/start-templates'),
-
-  getTemplate: (templateId: string) =>
-    apiFetch<StartTemplateDto>(`/start-templates/${encodeURIComponent(templateId)}`),
-
-  createTemplate: (request: CreateStartTemplateDto) =>
-    apiFetch<StartTemplateDto>('/start-templates', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    }),
-
-  updateTemplate: (templateId: string, request: UpdateStartTemplateDto) =>
-    apiFetch<StartTemplateDto>(`/start-templates/${encodeURIComponent(templateId)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(request),
-    }),
-
-  deleteTemplate: (templateId: string) =>
-    apiFetch<void>(`/start-templates/${encodeURIComponent(templateId)}`, {
-      method: 'DELETE',
-    }),
-
-  // ── Config Snapshots ──
-
-  listSnapshots: (id: string) =>
-    apiFetch<Array<{ id: string; name: string; createdAt: string; createdBy: string }>>(
-      `/servers/${encodeURIComponent(id)}/snapshots`
-    ),
-
-  getSnapshot: (id: string, snapId: string) =>
-    apiFetch<{ id: string; serverId: string; name: string; configJson: string; createdAt: string; createdBy: string }>(
-      `/servers/${encodeURIComponent(id)}/snapshots/${encodeURIComponent(snapId)}`
-    ),
-
-  restoreSnapshot: (id: string, snapId: string) =>
-    apiFetch<{ success: boolean }>(
-      `/servers/${encodeURIComponent(id)}/snapshots/${encodeURIComponent(snapId)}/restore`,
-      { method: 'POST' }
-    ),
+  listPaperVersions: () =>
+    apiFetch<PaperVersionInfo[]>('/servers/paper-versions'),
 } as const;

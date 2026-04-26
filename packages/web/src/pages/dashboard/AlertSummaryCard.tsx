@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { useDashboardStore } from '../../stores/dashboard.store.js';
 
 const levelColors: Record<string, string> = {
-  CRITICAL: 'bg-red-600',
-  WARNING: 'bg-yellow-600',
-  INFO: 'bg-blue-600',
+  CRITICAL: 'bg-danger-600',
+  WARNING: 'bg-warning-600',
+  INFO: 'bg-info-600',
 };
 
 const AlertSummaryCard: FC = () => {
@@ -16,13 +16,13 @@ const AlertSummaryCard: FC = () => {
       <h3 className="text-sm font-medium text-gray-300 mb-3">告警摘要</h3>
 
       <div className="flex gap-3 mb-4">
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-900/50 px-2.5 py-0.5 text-xs font-medium text-red-300">
+        <span className="inline-flex items-center gap-1 rounded-full bg-danger-700/50 px-2.5 py-0.5 text-xs font-medium text-danger-200">
           CRITICAL {alertStats.critical}
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-yellow-900/50 px-2.5 py-0.5 text-xs font-medium text-yellow-300">
+        <span className="inline-flex items-center gap-1 rounded-full bg-warning-700/50 px-2.5 py-0.5 text-xs font-medium text-warning-200">
           WARNING {alertStats.warning}
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-blue-900/50 px-2.5 py-0.5 text-xs font-medium text-blue-300">
+        <span className="inline-flex items-center gap-1 rounded-full bg-info-700/50 px-2.5 py-0.5 text-xs font-medium text-info-200">
           INFO {alertStats.info}
         </span>
       </div>
@@ -42,7 +42,7 @@ const AlertSummaryCard: FC = () => {
         )}
       </ul>
 
-      <Link to="/alerts" className="mt-3 block text-center text-xs text-blue-400 hover:text-blue-300">
+      <Link to="/alerts" className="mt-3 block text-center text-xs text-info-400 hover:text-info-200">
         查看全部 →
       </Link>
     </div>

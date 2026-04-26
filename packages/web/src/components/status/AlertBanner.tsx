@@ -10,9 +10,9 @@ interface AlertPayload {
 }
 
 const LEVEL_STYLES: Record<string, string> = {
-  CRITICAL: 'bg-red-600 text-white',
-  WARNING: 'bg-yellow-500 text-black',
-  INFO: 'bg-blue-500 text-white',
+  CRITICAL: 'bg-danger-600 text-white',
+  WARNING: 'bg-warning-500 text-black',
+  INFO: 'bg-info-500 text-white',
 };
 
 export function AlertBanner() {

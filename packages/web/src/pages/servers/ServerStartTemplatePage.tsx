@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { startTemplateApi } from '../../api/start-template.api.js';
 import type { StartTemplateDto, CreateStartTemplateDto } from '@jian-agent/shared-domain';
 import { Plus, Trash2, Edit, Save, X, FileCode, Copy, Filter } from 'lucide-react';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 export function ServerStartTemplatePage() {
   const [templates, setTemplates] = useState<readonly StartTemplateDto[]>([]);
@@ -95,11 +96,7 @@ export function ServerStartTemplatePage() {
         </button>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-red-700 dark:text-red-300 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       {/* Group filter */}
       {groups.length > 0 && (
@@ -235,7 +232,7 @@ function TemplateCard({
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={onClone}
-            className="p-1.5 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 text-gray-500 hover:text-success-600 dark:text-gray-400 dark:hover:text-success-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
             title="复制模板"
           >
             <Copy className="w-4 h-4" />
@@ -248,7 +245,7 @@ function TemplateCard({
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 text-gray-500 hover:text-danger-600 dark:text-gray-400 dark:hover:text-danger-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -322,9 +319,7 @@ function TemplateForm({
         {initial ? '编辑模板' : '新建模板'}
       </h3>
 
-      {error && (
-        <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       <div className="grid grid-cols-2 gap-3">
         <div>

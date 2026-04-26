@@ -103,7 +103,7 @@ export function LogSearchBar({ filters, onFiltersChange, onSearch, loading }: Lo
     .map((h) => h.label);
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-3 shadow-lg">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/55 backdrop-blur-xl p-3 shadow-lg">
       {/* Keyword input */}
       <div className="relative flex-1 min-w-[200px]">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -113,7 +113,7 @@ export function LogSearchBar({ filters, onFiltersChange, onSearch, loading }: Lo
           value={filters.q}
           onChange={(e) => handleKeywordChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 focus:border-transparent backdrop-blur-md"
+          className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 focus:border-transparent backdrop-blur-md"
         />
         {filters.q && (
           <button
@@ -131,7 +131,7 @@ export function LogSearchBar({ filters, onFiltersChange, onSearch, loading }: Lo
         <button
           type="button"
           onClick={() => setHostDropdownOpen(!hostDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-slate-900 transition-colors min-w-[140px]"
+          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-900 transition-colors min-w-[140px]"
         >
           <span className="truncate max-w-[160px]">
             {selectedHostLabels.length === 0
@@ -145,14 +145,14 @@ export function LogSearchBar({ filters, onFiltersChange, onSearch, loading }: Lo
         {hostDropdownOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setHostDropdownOpen(false)} />
-            <div className="absolute z-20 top-full left-0 mt-1 w-56 max-h-60 overflow-y-auto rounded-lg border border-white/55 dark:border-primary-300/20 bg-white dark:bg-slate-900 shadow-xl">
+            <div className="absolute z-20 top-full left-0 mt-1 w-56 max-h-60 overflow-y-auto rounded-lg border border-white/55 dark:border-primary-300/20 bg-white dark:bg-gray-900 shadow-xl">
               {hostOptions.length === 0 && (
                 <div className="px-3 py-2 text-sm text-gray-400">无可用主机</div>
               )}
               {hostOptions.map((host) => (
                 <label
                   key={host.id}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -198,13 +198,13 @@ export function LogSearchBar({ filters, onFiltersChange, onSearch, loading }: Lo
             type="datetime-local"
             value={filters.startTime ? filters.startTime.slice(0, 16) : ''}
             onChange={(e) => onFiltersChange({ ...filters, startTime: e.target.value ? new Date(e.target.value).toISOString() : '' })}
-            className="px-2 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            className="px-2 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           <input
             type="datetime-local"
             value={filters.endTime ? filters.endTime.slice(0, 16) : ''}
             onChange={(e) => onFiltersChange({ ...filters, endTime: e.target.value ? new Date(e.target.value).toISOString() : '' })}
-            className="px-2 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            className="px-2 py-2 text-sm rounded-lg border border-white/55 dark:border-primary-300/20 bg-white/80 dark:bg-gray-900/60 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
         </>
       )}

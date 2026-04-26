@@ -62,9 +62,9 @@ function PhaseIndicator({ current }: { readonly current: TestPhase }) {
     <div className="flex items-center gap-1">
       {PHASES.map((p, i) => {
         let bg = 'bg-gray-600';
-        if (isFailed && i === Math.max(0, idx)) bg = 'bg-red-500';
-        else if (i < idx) bg = 'bg-green-500';
-        else if (i === idx) bg = 'bg-blue-500 animate-pulse';
+        if (isFailed && i === Math.max(0, idx)) bg = 'bg-danger-500';
+        else if (i < idx) bg = 'bg-success-500';
+        else if (i === idx) bg = 'bg-info-500 animate-pulse';
 
         return (
           <div key={p} className="flex items-center gap-1">
@@ -158,13 +158,13 @@ export function TestRunPanel() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-gray-50 dark:bg-gray-900/60 rounded-lg p-3">
           <span className="text-xs text-gray-500 dark:text-gray-400">机器人</span>
-          <p className="text-lg font-semibold text-green-400">
+          <p className="text-lg font-semibold text-success-400">
             {onlineCount} / {createdNames.length}
           </p>
         </div>
         <div className="bg-gray-50 dark:bg-gray-900/60 rounded-lg p-3">
           <span className="text-xs text-gray-500 dark:text-gray-400">运行时长</span>
-          <p className="text-lg font-semibold text-blue-400">{formatTime(elapsed)}</p>
+          <p className="text-lg font-semibold text-info-400">{formatTime(elapsed)}</p>
         </div>
         <div className="bg-gray-50 dark:bg-gray-900/60 rounded-lg p-3">
           <span className="text-xs text-gray-500 dark:text-gray-400">行为</span>
@@ -187,7 +187,7 @@ export function TestRunPanel() {
 
       {/* Error */}
       {errorMessage && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded p-3 text-sm text-red-600 dark:text-red-300">
+        <div className="bg-danger-50 dark:bg-danger-700/30 border border-danger-200 dark:border-danger-700 rounded p-3 text-sm text-danger-600 dark:text-danger-200">
           {errorMessage}
         </div>
       )}
@@ -209,7 +209,7 @@ export function TestRunPanel() {
           <button
             type="button"
             onClick={endTest}
-            className="bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded px-4 py-2"
+            className="bg-warning-600 hover:bg-warning-500 text-white text-sm rounded px-4 py-2"
           >
             提前结束测试
           </button>
@@ -218,7 +218,7 @@ export function TestRunPanel() {
           <button
             type="button"
             onClick={forceCleanup}
-            className="bg-red-600 hover:bg-red-500 text-white text-sm rounded px-4 py-2"
+            className="bg-danger-600 hover:bg-danger-500 text-white text-sm rounded px-4 py-2"
           >
             强制清理
           </button>

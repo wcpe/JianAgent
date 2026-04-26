@@ -12,9 +12,9 @@ interface MinecraftOpsTabProps {
 function TpsBadge({ tps }: { tps: number | null }) {
   if (tps == null) return <span className="text-gray-400">-</span>;
 
-  const color = tps >= 19 ? 'text-green-600 dark:text-green-400' :
-                tps >= 15 ? 'text-yellow-600 dark:text-yellow-400' :
-                'text-red-600 dark:text-red-400';
+  const color = tps >= 19 ? 'text-success-600 dark:text-success-400' :
+                tps >= 15 ? 'text-warning-600 dark:text-warning-400' :
+                'text-danger-600 dark:text-danger-400';
 
   return (
     <span className={`text-lg font-bold ${color}`}>
@@ -46,10 +46,10 @@ function PlayerCard({ player }: { player: PlayerOnlineDto }) {
 
 function PluginStatusBadge({ state }: { state: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    enabled: { label: '启用', className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+    enabled: { label: '启用', className: 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' },
     disabled: { label: '禁用', className: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
-    loaded: { label: '已加载', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-    error: { label: '错误', className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+    loaded: { label: '已加载', className: 'bg-info-100 text-info-700 dark:bg-info-900/30 dark:text-info-400' },
+    error: { label: '错误', className: 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400' },
   };
   const { label, className } = config[state] ?? config.disabled;
   return (
@@ -137,7 +137,7 @@ export function MinecraftOpsTab({ resourceId }: MinecraftOpsTabProps) {
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-red-500 mb-2">{error}</p>
+        <p className="text-danger-500 mb-2">{error}</p>
         <button onClick={loadSummary} className="text-sm text-gray-500 dark:text-gray-400">
           重试
         </button>
@@ -189,7 +189,7 @@ export function MinecraftOpsTab({ resourceId }: MinecraftOpsTabProps) {
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">在线玩家</div>
           <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            {summary.players.length} / {summary.maxPlayers}
+            {(summary.players ?? []).length} / {summary.maxPlayers}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
@@ -201,13 +201,13 @@ export function MinecraftOpsTab({ resourceId }: MinecraftOpsTabProps) {
       </div>
 
       {/* Players section */}
-      {summary.players.length > 0 && (
+      {(summary.players ?? []).length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            在线玩家 ({summary.players.length})
+            在线玩家 ({(summary.players ?? []).length})
           </h4>
           <div className="space-y-1">
-            {summary.players.map((player) => (
+            {(summary.players ?? []).map((player) => (
               <PlayerCard key={player.uuid} player={player} />
             ))}
           </div>
@@ -215,13 +215,13 @@ export function MinecraftOpsTab({ resourceId }: MinecraftOpsTabProps) {
       )}
 
       {/* Worlds section */}
-      {summary.worlds.length > 0 && (
+      {(summary.worlds ?? []).length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            世界 ({summary.worlds.length})
+            世界 ({(summary.worlds ?? []).length})
           </h4>
           <div className="space-y-1">
-            {summary.worlds.map((world) => (
+            {(summary.worlds ?? []).map((world) => (
               <WorldCard key={world.name} world={world} />
             ))}
           </div>
@@ -229,13 +229,13 @@ export function MinecraftOpsTab({ resourceId }: MinecraftOpsTabProps) {
       )}
 
       {/* Plugins section */}
-      {summary.plugins.length > 0 && (
+      {(summary.plugins ?? []).length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            插件 ({summary.plugins.length})
+            插件 ({(summary.plugins ?? []).length})
           </h4>
           <div className="space-y-1">
-            {summary.plugins.map((plugin) => (
+            {(summary.plugins ?? []).map((plugin) => (
               <div key={plugin.name} className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-gray-700/50">
                 <div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{plugin.name}</div>

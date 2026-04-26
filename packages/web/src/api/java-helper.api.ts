@@ -32,7 +32,7 @@ export const javaHelperApi = {
     apiFetch<{ success: boolean }>('/java-helper/start', { method: 'POST' }),
 
   resolve: () =>
-    apiFetch<{ success: boolean; data: any }>('/java-helper/resolve', { method: 'POST' }),
+    apiFetch<{ success: boolean; data: Record<string, unknown> }>('/java-helper/resolve', { method: 'POST' }),
 
   scanJar: (jarPath: string) =>
     apiFetch<{ success: boolean; data: JarScanResult }>('/java-helper/scan-jar', {
@@ -52,7 +52,7 @@ export const javaHelperApi = {
     }),
 
   attach: (pid: string) =>
-    apiFetch<{ success: boolean; data: any }>('/java-helper/attach', {
+    apiFetch<{ success: boolean; data: Record<string, unknown> }>('/java-helper/attach', {
       method: 'POST',
       body: JSON.stringify({ pid }),
     }),
@@ -90,8 +90,8 @@ export const javaHelperApi = {
     }),
 
   downloadJfrStream: async (taskId: string): Promise<Blob> => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`/api/java-helper/jfr/download-stream?taskId=${encodeURIComponent(taskId)}`, {
+    const token = sessionStorage.getItem('token');
+    const response = await fetch(`/api/v1/java-helper/jfr/download-stream?taskId=${encodeURIComponent(taskId)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (!response.ok) {

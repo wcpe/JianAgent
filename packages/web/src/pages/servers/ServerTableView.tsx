@@ -2,6 +2,7 @@ import type { ServerWithStatusDto } from '@jian-agent/shared-domain';
 import { ServerStatusPill } from '../../components/ServerStatusPill.js';
 import { useServerStore } from '../../stores/server.store.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
+import { formatServerAddress } from '../../constants/server-defaults.js';
 
 interface ServerTableViewProps {
   readonly servers: readonly ServerWithStatusDto[];
@@ -23,10 +24,10 @@ export function ServerTableView({ servers, onEdit, onTerminal, selectedIds, onTo
   const { startServer, stopServer, restartServer, deleteServer } = useServerStore();
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+    <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-slate-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
+          <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-gray-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase whitespace-nowrap font-semibold">
             {onToggleSelect && <th className="px-4 py-3 w-8"></th>}
             <th className="px-4 py-3">名称</th>
             <th className="px-4 py-3">状态</th>
@@ -46,8 +47,8 @@ export function ServerTableView({ servers, onEdit, onTerminal, selectedIds, onTo
             const isSelected = selectedIds?.has(s.id) ?? false;
             return (
               <tr key={s.id} className={`transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : s.id.charCodeAt(0) % 2 === 0
-                  ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                  : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                  ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                  : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
               }`}>
                 {onToggleSelect && (
                   <td className="px-4 py-3">
@@ -64,7 +65,7 @@ export function ServerTableView({ servers, onEdit, onTerminal, selectedIds, onTo
                   <ServerStatusPill status={status} />
                 </td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{s.jarPath ?? '—'}</td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{s.host ?? 'localhost'}:{s.port ?? 25565}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatServerAddress(s.host, s.port)}</td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{s.pid ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatUptime(s.uptime)}</td>
                 <td className="px-4 py-3">

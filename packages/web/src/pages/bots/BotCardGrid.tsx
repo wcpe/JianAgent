@@ -5,15 +5,15 @@ import { botApi, type BotSnapshot } from '../../api/bot.api.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
 
 const stateColors: Record<string, string> = {
-  CREATED: 'bg-yellow-500',
-  CONNECTING: 'bg-yellow-500 animate-pulse',
-  SPAWNED: 'bg-green-500',
-  READY: 'bg-green-500',
-  RUNNING_PHASE: 'bg-green-500',
+  CREATED: 'bg-warning-500',
+  CONNECTING: 'bg-warning-500 animate-pulse',
+  SPAWNED: 'bg-success-500',
+  READY: 'bg-success-500',
+  RUNNING_PHASE: 'bg-success-500',
   DEBUGGING: 'bg-purple-500',
-  DEAD: 'bg-red-600',
+  DEAD: 'bg-danger-600',
   DISCONNECTED: 'bg-gray-500',
-  FAILED: 'bg-red-500',
+  FAILED: 'bg-danger-500',
   STOPPED: 'bg-gray-500',
 };
 
@@ -123,7 +123,7 @@ function BotCard({
   readonly selected: boolean;
   readonly onToggleSelect?: (name: string) => void;
 }) {
-  const color = stateColors[bot.state] ?? 'bg-yellow-500';
+  const color = stateColors[bot.state] ?? 'bg-warning-500';
   const label = stateLabels[bot.state] ?? bot.state;
   const isOnline = bot.state !== 'STOPPED' && bot.state !== 'FAILED' && bot.state !== 'DISCONNECTED';
   const isDead = bot.isDead || bot.state === 'DEAD';
@@ -159,7 +159,7 @@ function BotCard({
   }, [expanded, isOnline, bot.name]);
 
   return (
-    <div className={`rounded-lg border shadow-sm hover:shadow-md transition-shadow ${isDead ? 'bg-red-950/30 dark:bg-red-950/40 border-red-500/50 ring-1 ring-red-500/20' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+    <div className={`rounded-lg border shadow-sm hover:shadow-md transition-shadow ${isDead ? 'bg-danger-700/30 dark:bg-danger-700/40 border-danger-500/50 ring-1 ring-danger-500/20' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
       {/* Header */}
       <div className="px-3 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
@@ -171,8 +171,8 @@ function BotCard({
               className="w-3.5 h-3.5 accent-blue-600 flex-shrink-0"
             />
           )}
-          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isDead ? 'bg-red-500 animate-pulse' : color}`} />
-          <span className={`text-sm font-medium truncate ${isDead ? 'text-red-300' : 'text-gray-900 dark:text-gray-100'}`}>{bot.name}</span>
+          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isDead ? 'bg-danger-500 animate-pulse' : color}`} />
+          <span className={`text-sm font-medium truncate ${isDead ? 'text-danger-200' : 'text-gray-900 dark:text-gray-100'}`}>{bot.name}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -185,7 +185,7 @@ function BotCard({
       {/* Death banner */}
       {isDead && (
         <div className="mx-3 mb-1 space-y-1">
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-red-600/90 text-white rounded text-[10px]">
+          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-danger-600/90 text-white rounded text-[10px]">
             <Skull className="w-3.5 h-3.5 animate-pulse" />
             <div className="flex-1 min-w-0">
               <span className="font-medium">已死亡</span>
@@ -210,7 +210,7 @@ function BotCard({
             </button>
           </div>
           {bot.lastError && (
-            <div className="flex items-start gap-1 px-2 py-1 bg-red-900/30 rounded text-[9px] text-red-300">
+            <div className="flex items-start gap-1 px-2 py-1 bg-danger-700/30 rounded text-[9px] text-danger-200">
               <AlertTriangle className="w-2.5 h-2.5 mt-0.5 flex-shrink-0" />
               <span className="truncate" title={bot.lastError}>{bot.lastError}</span>
             </div>
@@ -222,19 +222,19 @@ function BotCard({
       {isOnline && (
         <div className="px-3 pb-1 grid grid-cols-4 gap-1.5 text-[10px]">
           <div className="bg-gray-50 dark:bg-gray-900 rounded px-1.5 py-1">
-            <div className="flex items-center gap-0.5 text-red-400"><Heart className="w-2.5 h-2.5" />HP</div>
+            <div className="flex items-center gap-0.5 text-danger-400"><Heart className="w-2.5 h-2.5" />HP</div>
             <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{bot.health?.toFixed(0) ?? '—'}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-900 rounded px-1.5 py-1">
-            <div className="text-orange-400">🍖</div>
+            <div className="text-warning-400">🍖</div>
             <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{bot.food ?? '—'}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-900 rounded px-1.5 py-1">
-            <div className="flex items-center gap-0.5 text-blue-400"><Wifi className="w-2.5 h-2.5" />ms</div>
+            <div className="flex items-center gap-0.5 text-info-400"><Wifi className="w-2.5 h-2.5" />ms</div>
             <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{bot.latencyMs ?? '—'}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-900 rounded px-1.5 py-1">
-            <div className="flex items-center gap-0.5 text-green-400"><MapPin className="w-2.5 h-2.5" />W</div>
+            <div className="flex items-center gap-0.5 text-success-400"><MapPin className="w-2.5 h-2.5" />W</div>
             <p className="font-semibold text-gray-800 dark:text-gray-200 text-xs truncate" title={bot.world}>{bot.world || '—'}</p>
           </div>
         </div>
@@ -251,7 +251,7 @@ function BotCard({
       {!isOnline && (
         <div className="px-3 pb-2 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
           {bot.serverId && <p className="truncate">服务器: {bot.serverId.slice(0, 8)}...</p>}
-          {bot.lastError && <p className="text-red-400 truncate" title={bot.lastError}>错误: {bot.lastError}</p>}
+          {bot.lastError && <p className="text-danger-400 truncate" title={bot.lastError}>错误: {bot.lastError}</p>}
         </div>
       )}
 
@@ -298,7 +298,7 @@ function BotCard({
       <div className="px-3 py-1.5 border-t border-gray-100 dark:border-gray-700 flex gap-2">
         <button
           type="button"
-          className="text-xs text-blue-500 hover:text-blue-400 active:scale-90 transition-all duration-100 flex items-center gap-0.5"
+          className="text-xs text-info-500 hover:text-info-400 active:scale-90 transition-all duration-100 flex items-center gap-0.5"
           onClick={(e) => { e.stopPropagation(); onConsole(bot.name); }}
         >
           <Terminal className="w-3 h-3" />
@@ -306,7 +306,7 @@ function BotCard({
         </button>
         <button
           type="button"
-          className="text-xs text-red-400 hover:text-red-300 ml-auto flex items-center gap-0.5 active:scale-90 transition-all duration-100"
+          className="text-xs text-danger-400 hover:text-danger-200 ml-auto flex items-center gap-0.5 active:scale-90 transition-all duration-100"
           onClick={(e) => { e.stopPropagation(); onStop(bot.name); }}
         >
           <Square className="w-3 h-3" />

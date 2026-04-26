@@ -7,6 +7,7 @@ import { LocalValidationAssertionPanel } from './LocalValidationAssertionPanel.j
 import { LocalValidationEvidenceDrawer } from './LocalValidationEvidenceDrawer.js';
 import { LocalValidationRunBuilder } from './LocalValidationRunBuilder.js';
 import { LocalValidationStageTimeline } from './LocalValidationStageTimeline.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 type BuilderStatus = 'idle' | 'creating' | 'starting' | 'cancelling';
 
@@ -122,12 +123,12 @@ export function LocalValidationPage() {
       />
 
       <div className="grid gap-4">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
             Local Validation
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">本地验证运行台</h1>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">本地验证运行台</h1>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             打通本地 Paper 测试服、机器人验收包、断言结果和运行证据的一站式验证工作台。
           </p>
           {preselectedServerId ? (
@@ -135,11 +136,7 @@ export function LocalValidationPage() {
               已从资源详情携带服务器上下文进入：{preselectedServerId}
             </div>
           ) : null}
-          {error ? (
-            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-300">
-              {error}
-            </div>
-          ) : null}
+          {error ? <ErrorAlert message={error} className="mt-4" /> : null}
         </section>
 
         <LocalValidationStageTimeline

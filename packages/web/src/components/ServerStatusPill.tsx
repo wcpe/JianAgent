@@ -3,11 +3,11 @@ interface ServerStatusPillProps {
 }
 
 const STATUS_STYLES: Record<string, { dot: string; bg: string; text: string; label: string }> = {
-  running:  { dot: 'bg-green-500 animate-pulse', bg: 'bg-green-100', text: 'text-green-700', label: '运行中' },
-  starting: { dot: 'bg-yellow-500 animate-pulse', bg: 'bg-yellow-100', text: 'text-yellow-700', label: '启动中' },
-  stopping: { dot: 'bg-yellow-500 animate-pulse', bg: 'bg-yellow-100', text: 'text-yellow-700', label: '正在停止' },
+  running:  { dot: 'bg-success-500 animate-pulse', bg: 'bg-success-100', text: 'text-success-700', label: '运行中' },
+  starting: { dot: 'bg-warning-500 animate-pulse', bg: 'bg-warning-100', text: 'text-warning-700', label: '启动中' },
+  stopping: { dot: 'bg-warning-500 animate-pulse', bg: 'bg-warning-100', text: 'text-warning-700', label: '正在停止' },
   stopped:  { dot: 'bg-gray-400', bg: 'bg-gray-100', text: 'text-gray-600', label: '已停止' },
-  error:    { dot: 'bg-red-500', bg: 'bg-red-100', text: 'text-red-700', label: '异常' },
+  error:    { dot: 'bg-danger-500', bg: 'bg-danger-100', text: 'text-danger-700', label: '异常' },
   unknown:  { dot: 'bg-gray-400', bg: 'bg-gray-100', text: 'text-gray-600', label: '未知' },
 };
 

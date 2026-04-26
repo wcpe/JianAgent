@@ -5,7 +5,7 @@ interface StyledSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 const baseClasses =
-  'appearance-none bg-white/80 dark:bg-slate-900/60 border border-white/55 dark:border-primary-300/20 ' +
+  'appearance-none bg-white/80 dark:bg-gray-900/60 border border-white/55 dark:border-primary-300/20 ' +
   'rounded-lg text-gray-800 dark:text-gray-200 pr-8 bg-no-repeat bg-[length:16px_16px] ' +
   'focus:outline-none focus:ring-2 focus:ring-primary-400 dark:focus:ring-primary-300 ' +
   'disabled:opacity-50 disabled:cursor-not-allowed transition-all backdrop-blur-md shadow-sm';

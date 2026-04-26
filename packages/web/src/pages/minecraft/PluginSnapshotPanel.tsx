@@ -64,7 +64,7 @@ export function PluginSnapshotPanel({ serverId: _serverId, snapshot, connected }
             onClick={() => setStatusFilter('enabled')}
             className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
               statusFilter === 'enabled'
-                ? 'bg-green-600 text-white'
+                ? 'bg-success-600 text-white'
                 : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
@@ -74,7 +74,7 @@ export function PluginSnapshotPanel({ serverId: _serverId, snapshot, connected }
             onClick={() => setStatusFilter('disabled')}
             className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
               statusFilter === 'disabled'
-                ? 'bg-red-600 text-white'
+                ? 'bg-danger-600 text-white'
                 : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
@@ -121,8 +121,8 @@ function PluginCard({ plugin }: { plugin: PluginDetailDto }) {
         <span
           className={`px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 ${
             plugin.enabled
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+              ? 'bg-success-100 text-success-700 dark:bg-success-700/40 dark:text-success-400'
+              : 'bg-danger-100 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400'
           }`}
         >
           {plugin.enabled ? '启用' : '禁用'}

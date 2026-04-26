@@ -6,6 +6,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { Sidebar } from '../Sidebar.js';
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'zh-CN', changeLanguage: vi.fn() } }),
+}));
+
 const mockLogout = vi.fn();
 const mockNavigate = vi.fn();
 
@@ -23,6 +27,8 @@ vi.mock('../../stores/theme.store.js', () => ({
       toggleSidebarFloating: vi.fn(),
       mobileSidebarOpen: false,
       setMobileSidebarOpen: vi.fn(),
+      collapsedGroups: {},
+      toggleNavGroup: vi.fn(),
     }),
 }));
 

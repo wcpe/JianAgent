@@ -17,8 +17,8 @@ export function ConfirmDialog() {
         onClick={() => resolve(false)}
       />
 
-      {/* Dialog - enhanced glass styling */}
-      <div className="relative bg-white/90 dark:bg-slate-900/70 rounded-2xl shadow-2xl border border-white/50 dark:border-primary-300/20 p-6 max-w-sm w-full mx-4 animate-scale-in backdrop-blur-xl">
+      {/* Dialog - solid styling */}
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 max-w-sm w-full mx-4 animate-scale-in">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {options.title}
         </h3>
@@ -28,16 +28,16 @@ export function ConfirmDialog() {
         <div className="flex justify-end gap-3">
           <button
             onClick={() => resolve(false)}
-            className="px-4 py-2 text-sm rounded-lg bg-white/50 dark:bg-slate-800/50 border border-white/40 dark:border-primary-300/15 text-gray-700 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-slate-800/70 transition-all backdrop-blur-md"
+            className="px-4 py-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
           >
             {options.cancelLabel ?? '取消'}
           </button>
           <button
             onClick={() => resolve(true)}
-            className={`px-4 py-2 text-sm rounded-lg text-white font-medium transition-all backdrop-blur-md ${
+            className={`px-4 py-2 text-sm rounded-lg text-white font-medium transition-all ${
               isDanger
-                ? 'bg-red-600/90 hover:bg-red-700 border border-red-500/30'
-                : 'bg-primary-600/90 hover:bg-primary-700 border border-primary-500/30'
+                ? 'bg-red-600 hover:bg-red-700 border border-red-500'
+                : 'bg-blue-600 hover:bg-blue-700 border border-blue-500'
             }`}
           >
             {options.confirmLabel ?? '确认'}

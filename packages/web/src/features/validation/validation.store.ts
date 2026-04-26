@@ -37,6 +37,10 @@ interface ValidationState {
   runs: ValidationRunDto[];
   loadRuns: (planId?: string) => Promise<void>;
 
+  // Error
+  error: string | null;
+  clearError: () => void;
+
   // Reset
   reset: () => void;
 }
@@ -45,15 +49,19 @@ export const useValidationStore = create<ValidationState>((set, get) => ({
   mode: 'quick',
   setMode: (mode) => set({ mode }),
 
+  error: null,
+  clearError: () => set({ error: null }),
+
   plans: [],
   plansLoading: false,
   loadPlans: async () => {
     set({ plansLoading: true });
     try {
       const res = await validationApi.listPlans();
-      set({ plans: res.data, plansLoading: false });
-    } catch {
-      set({ plansLoading: false });
+      set({ plans: Array.isArray(res.data) ? res.data : [], plansLoading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Operation failed';
+      set({ error: message, plansLoading: false });
     }
   },
 
@@ -63,7 +71,7 @@ export const useValidationStore = create<ValidationState>((set, get) => ({
     set({ runView: 'running', verdict: null, observability: null });
     try {
       const res = await validationApi.quickValidate({ serverId, name, botCount, durationSec });
-      set({ activeRun: res.data });
+      set({ activeRun: res.data ?? null });
     } catch (err: unknown) {
       set({ runView: 'idle' });
       throw err;
@@ -73,7 +81,7 @@ export const useValidationStore = create<ValidationState>((set, get) => ({
     set({ runView: 'running', verdict: null, observability: null });
     try {
       const res = await validationApi.startRun(planId);
-      set({ activeRun: res.data });
+      set({ activeRun: res.data ?? null });
     } catch (err: unknown) {
       set({ runView: 'idle' });
       throw err;
@@ -86,14 +94,13 @@ export const useValidationStore = create<ValidationState>((set, get) => ({
   refreshRun: async (runId) => {
     try {
       const res = await validationApi.getRun(runId);
-      set({ activeRun: res.data });
+      set({ activeRun: res.data ?? null });
       if (res.data.status === 'completed' || res.data.status === 'failed') {
         set({ runView: 'verdict' });
         await get().loadVerdict(runId);
       }
-    } catch { /* ignore */ }
+    } catch (err) { console.warn('refreshRun failed', err); }
   },
-
   verdict: null,
   observability: null,
   loadVerdict: async (runId) => {
@@ -102,16 +109,19 @@ export const useValidationStore = create<ValidationState>((set, get) => ({
         validationApi.getVerdictByRunId(runId),
         validationApi.getObservabilitySummary(runId),
       ]);
-      set({ verdict: vRes.data ?? null, observability: oRes.data });
-    } catch { /* ignore */ }
+      set({ verdict: vRes.data ?? null, observability: oRes.data ?? null });
+    } catch (err) { console.warn('loadVerdict failed', err); }
   },
 
   runs: [],
   loadRuns: async (planId) => {
     try {
       const res = await validationApi.listRuns(planId);
-      set({ runs: res.data });
-    } catch { /* ignore */ }
+      set({ runs: Array.isArray(res.data) ? res.data : [] });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Operation failed';
+      set({ error: message });
+    }
   },
 
   reset: () => set({

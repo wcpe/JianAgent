@@ -1,8 +1,9 @@
 import { COMPATIBILITY_MATRIX, ResourceCompatibilityTag } from '@jian-agent/shared-domain';
+import type { ResourceCapabilityDto } from '@jian-agent/shared-domain';
 
 export interface ResourceCompatibilityBadgeProps {
   platformType?: string;
-  capabilities?: any;
+  capabilities?: ResourceCapabilityDto;
 }
 
 const TAG_LABELS: Record<ResourceCompatibilityTag, string> = {
@@ -40,18 +41,17 @@ const TAG_COLORS: Record<ResourceCompatibilityTag, string> = {
  * If capabilities are provided, filter tags by enabled capabilities.
  * Otherwise, use the static compatibility matrix.
  */
-function resolveTags(platformType: string, capabilities?: Record<string, { enabled: boolean }>): ResourceCompatibilityTag[] {
+function resolveTags(platformType: string, capabilities?: ResourceCapabilityDto): ResourceCompatibilityTag[] {
   const matrixTags = COMPATIBILITY_MATRIX[platformType] ?? [];
-  
+
   if (!capabilities) {
     return matrixTags;
   }
-  
+
   // Filter matrix tags by actual capabilities
   return matrixTags.filter(tag => {
-    const capKey = tag.replace('-', '') as keyof typeof capabilities;
     // Map tag names to capability keys
-    const capabilityMap: Record<string, string> = {
+    const capabilityMap: Record<string, keyof ResourceCapabilityDto> = {
       'terminal': 'terminal',
       'files': 'files',
       'plugins': 'plugins',
@@ -60,7 +60,7 @@ function resolveTags(platformType: string, capabilities?: Record<string, { enabl
       'jvm': 'jvm',
       'monitoring': 'monitoring',
     };
-    
+
     const key = capabilityMap[tag];
     if (key && capabilities[key]) {
       return capabilities[key].enabled;

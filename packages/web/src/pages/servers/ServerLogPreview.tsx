@@ -11,7 +11,7 @@ export function ServerLogPreview({ serverId }: ServerLogPreviewProps) {
   useEffect(() => {
     serverApi.getServer(serverId).then(() => {
       // Attempt to fetch recent logs; silently fallback if endpoint unavailable
-      fetch(`/api/servers/${encodeURIComponent(serverId)}/logs/recent?lines=5`)
+      fetch(`/api/v1/servers/${encodeURIComponent(serverId)}/logs/recent?lines=5`)
         .then((r) => (r.ok ? r.json() : []))
         .then((data: string[]) => setLines(Array.isArray(data) ? data.slice(-5) : []))
         .catch(() => setLines([]));

@@ -17,9 +17,9 @@ const TABS = [
 ] as const;
 
 const STATUS_DOT: Record<string, string> = {
-  running: 'bg-green-500',
+  running: 'bg-success-500',
   stopped: 'bg-gray-400',
-  error: 'bg-red-500',
+  error: 'bg-danger-500',
 };
 
 export function TerminalPage() {
@@ -129,7 +129,7 @@ export function TerminalPage() {
   return (
     <div className="h-full flex gap-3 p-3">
       {/* ── Left: Server list panel ── */}
-      <aside className="w-[200px] shrink-0 flex flex-col rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl">
+      <aside className="w-[200px] shrink-0 flex flex-col rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-xl">
         <h2 className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
           服务器
         </h2>
@@ -153,9 +153,9 @@ export function TerminalPage() {
       </aside>
 
       {/* ── Right: Tabs + Toolbar + Terminal ── */}
-      <div className="flex-1 flex flex-col min-w-0 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden relative z-0">
+      <div className="flex-1 flex flex-col min-w-0 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-xl overflow-hidden relative z-0">
         {/* Tab bar & Toolbar */}
-        <div className="flex shrink-0 items-center gap-4 px-4 py-2 border-b border-white/55 dark:border-primary-300/20 bg-white/65 dark:bg-slate-900/50">
+        <div className="flex shrink-0 items-center gap-4 px-4 py-2 border-b border-white/55 dark:border-primary-300/20 bg-white/65 dark:bg-gray-900/50">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -184,7 +184,7 @@ export function TerminalPage() {
         </div>
 
         {sshStatus && (
-          <div className="flex shrink-0 items-center gap-4 border-b border-white/55 dark:border-primary-300/20 bg-slate-50/90 dark:bg-slate-950/70 px-3 py-2 text-xs text-slate-700 dark:text-slate-200">
+          <div className="flex shrink-0 items-center gap-4 border-b border-white/55 dark:border-primary-300/20 bg-gray-50/90 dark:bg-gray-950/70 px-3 py-2 text-xs text-gray-700 dark:text-gray-200">
             <span>
               SSH 会话: <strong>{sshStatus.observability.activeSessionsForServer}</strong> / {sshStatus.observability.perServerQuota}
             </span>
@@ -204,14 +204,14 @@ export function TerminalPage() {
         )}
 
         {sshSessions.length > 0 && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-white/55 dark:border-primary-300/20 bg-slate-100/90 dark:bg-slate-900/70 px-3 py-2 text-xs text-slate-700 dark:text-slate-200">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-white/55 dark:border-primary-300/20 bg-gray-100/90 dark:bg-gray-900/70 px-3 py-2 text-xs text-gray-700 dark:text-gray-200">
             <span className="font-medium">会话明细</span>
             {sshSessions.map((session) => {
               const idleSeconds = Math.floor(session.idleForMs / 1000);
               return (
-                <div key={session.sessionId} className="inline-flex items-center gap-2 rounded-full border border-slate-300/80 bg-white/80 px-2 py-1 dark:border-slate-700 dark:bg-slate-800/80">
+                <div key={session.sessionId} className="inline-flex items-center gap-2 rounded-full border border-gray-300/80 bg-white/80 px-2 py-1 dark:border-gray-700 dark:bg-gray-800/80">
                   <span>{session.sessionBriefId}</span>
-                  <span className="text-slate-500 dark:text-slate-400">空闲 {idleSeconds}s</span>
+                  <span className="text-gray-500 dark:text-gray-400">空闲 {idleSeconds}s</span>
                   <button
                     type="button"
                     onClick={() => handleDisconnectSession(session.sessionId)}

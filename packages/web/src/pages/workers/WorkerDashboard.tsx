@@ -48,9 +48,9 @@ const WorkerDashboard: FC = () => {
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'text-green-400';
-      case 'unhealthy': return 'text-yellow-400';
-      case 'offline': return 'text-red-400';
+      case 'online': return 'text-success-400';
+      case 'unhealthy': return 'text-warning-400';
+      case 'offline': return 'text-danger-400';
       default: return 'text-zinc-500';
     }
   };
@@ -104,7 +104,7 @@ const WorkerDashboard: FC = () => {
                 <div className="flex-1 h-2 bg-zinc-700 rounded overflow-hidden">
                   <div
                     className={`h-full rounded ${
-                      loadPercent > 80 ? 'bg-red-500' : loadPercent > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                      loadPercent > 80 ? 'bg-danger-500' : loadPercent > 50 ? 'bg-warning-500' : 'bg-success-500'
                     }`}
                     style={{ width: `${loadPercent}%` }}
                   />
@@ -151,7 +151,7 @@ const WorkerDashboard: FC = () => {
           ))}
           <button
             onClick={handleSaveStrategy}
-            className="ml-2 px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 text-white text-sm"
+            className="ml-2 px-3 py-1.5 rounded bg-success-600 hover:bg-success-500 text-white text-sm"
           >
             保存策略
           </button>

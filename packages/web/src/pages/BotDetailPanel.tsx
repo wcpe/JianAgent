@@ -74,7 +74,7 @@ export function BotDetailPanel({ name, onClose }: Props) {
 
         <button
           onClick={handleStop}
-          className="w-full mt-4 px-3 py-2 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+          className="w-full mt-4 px-3 py-2 bg-danger-500 text-white rounded text-sm hover:bg-danger-600"
         >
           停止此 Bot
         </button>

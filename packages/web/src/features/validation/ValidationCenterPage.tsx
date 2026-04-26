@@ -6,6 +6,7 @@ import { ValidationRunPanel } from './ValidationRunPanel.js';
 import { ValidationVerdictCard } from './ValidationVerdictCard.js';
 import { StyledSelect } from '../../components/ui/StyledSelect.js';
 import type { ValidationPlanDto, ValidationPhaseDto } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 const MODES: { value: ValidationMode; label: string; desc: string }[] = [
   { value: 'quick', label: '快速验证', desc: '即开即用，自动采集关键指标并生成结论' },
@@ -96,7 +97,7 @@ export function ValidationCenterPage() {
         <div className="bg-white dark:bg-gray-800/50 shadow-sm dark:shadow-none rounded-lg p-5 space-y-4">
           <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200">快速验证配置</h2>
           {runningServers.length === 0 ? (
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4 text-sm text-yellow-700 dark:text-yellow-300">
+            <div className="bg-warning-50 dark:bg-warning-900/30 border border-warning-200 dark:border-warning-700 rounded-lg p-4 text-sm text-warning-700 dark:text-warning-200">
               没有运行中的服务器，请先启动一台
             </div>
           ) : (
@@ -141,7 +142,7 @@ export function ValidationCenterPage() {
                   type="button"
                   disabled={!serverId}
                   onClick={handleQuickStart}
-                  className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm rounded px-6 py-2 font-medium"
+                  className="bg-success-600 hover:bg-success-500 disabled:opacity-50 text-white text-sm rounded px-6 py-2 font-medium"
                 >
                   开始验证
                 </button>
@@ -171,11 +172,7 @@ export function ValidationCenterPage() {
       )}
 
       {/* Error display */}
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded p-3 text-sm text-red-600 dark:text-red-300">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       {/* Active run panel */}
       {runView !== 'idle' && activeRun && (
@@ -263,11 +260,7 @@ function TemplateSelector() {
           </button>
         </div>
       </div>
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded p-3 text-sm text-red-600 dark:text-red-300">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
       {selectedPlanId && (
         <PlanDetail plan={plans.find((p) => p.id === selectedPlanId)!} />
       )}

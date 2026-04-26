@@ -24,7 +24,6 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
     setError('');
     try {
       const list = await serverApi.listPlugins(serverId);
-      console.log('Fetched plugins:', list);
       setPlugins(list);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '加载失败';
@@ -161,11 +160,11 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
         reader.readAsDataURL(file);
       });
 
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch(`/api/servers/${encodeURIComponent(serverId)}/plugins/upload`, {
+      const res = await fetch(`/api/v1/servers/${encodeURIComponent(serverId)}/plugins/upload`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ filename: file.name, data: base64 }),
@@ -220,11 +219,11 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
       </div>
 
       {error && (
-        <div className="px-4 py-2 text-xs text-red-600 bg-red-50 dark:bg-red-900/30">{error}</div>
+        <div className="px-4 py-2 text-xs text-danger-600 bg-danger-50 dark:bg-danger-700/30">{error}</div>
       )}
 
       {/* Plugin list */}
-      <div className="flex-1 overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+      <div className="flex-1 overflow-y-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
         {loading ? (
           <div className="flex items-center justify-center h-32 text-gray-400 text-sm">加载中...</div>
         ) : plugins.length === 0 ? (
@@ -232,7 +231,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
         ) : (
           <table className="w-full text-sm">
             <thead>
-                <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
+                <tr className="bg-white/40 dark:bg-gray-800/40 border-b border-white/40 dark:border-primary-300/10 text-xs text-gray-600 dark:text-gray-300 font-semibold">
                   <th className="text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">名称</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300 w-24">版本</th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300 w-20">
@@ -240,7 +239,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                     {' '}状态
                   </th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300 w-20">
-                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">热轨</span>
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-warning-100 dark:bg-warning-700/30 text-warning-600 dark:text-warning-400">热轨</span>
                     {' '}运行
                   </th>
                   <th className="text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300 w-32">作者</th>
@@ -251,7 +250,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
               {plugins.map((plugin, idx) => (
                 <React.Fragment key={plugin.name}>
                 <tr
-                  className={`transition-colors cursor-pointer ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-slate-800/50' : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'}`}
+                  className={`transition-colors cursor-pointer ${idx % 2 === 0 ? 'hover:bg-white/50 dark:hover:bg-gray-800/50' : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'}`}
                   onClick={() => setExpandedPlugin(expandedPlugin === plugin.name ? null : plugin.name)}
                 >
                   <td className="px-4 py-2 text-gray-800 dark:text-gray-200">
@@ -263,9 +262,9 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                   <td className="px-4 py-2">
                     <span className={`inline-block px-2 py-0.5 text-xs rounded ${
                       plugin.installState === 'INSTALLED'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-success-100 text-success-700 dark:bg-success-700/30 dark:text-success-400'
                         : plugin.installState === 'CORRUPTED'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        ? 'bg-danger-100 text-danger-700 dark:bg-danger-700/30 dark:text-danger-400'
                         : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500'
                     }`}>
                       {plugin.installState === 'INSTALLED' ? '已安装' : plugin.installState === 'CORRUPTED' ? '损坏' : '已禁用'}
@@ -275,9 +274,9 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                   <td className="px-4 py-2">
                     <span className={`inline-block px-2 py-0.5 text-xs rounded ${
                       plugin.runtimeState === 'RUNNING'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-success-100 text-success-700 dark:bg-success-700/30 dark:text-success-400'
                         : plugin.runtimeState === 'LOAD_ERROR'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        ? 'bg-danger-100 text-danger-700 dark:bg-danger-700/30 dark:text-danger-400'
                         : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500'
                     }`}>
                       {plugin.runtimeState === 'RUNNING' ? '运行中' : plugin.runtimeState === 'LOAD_ERROR' ? '加载错误' : '已停止'}
@@ -312,7 +311,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleHotUnload(plugin.name); }}
                             disabled={isLoading('hot-unload', plugin.name)}
-                            className="px-2 py-1 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded disabled:opacity-50 transition-colors"
+                            className="px-2 py-1 text-xs text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-700/30 rounded disabled:opacity-50 transition-colors"
                             title="热轨：卸载运行中的插件"
                           >
                             {isLoading('hot-unload', plugin.name) ? '...' : '热卸载'}
@@ -320,7 +319,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleHotReload(plugin.name); }}
                             disabled={isLoading('hot-reload', plugin.name)}
-                            className="px-2 py-1 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded disabled:opacity-50 transition-colors"
+                            className="px-2 py-1 text-xs text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-700/30 rounded disabled:opacity-50 transition-colors"
                             title="热轨：重载插件（卸载+加载）"
                           >
                             {isLoading('hot-reload', plugin.name) ? '...' : '热重载'}
@@ -330,7 +329,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                         <button
                           onClick={(e) => { e.stopPropagation(); handleHotLoad(plugin.name); }}
                           disabled={isLoading('hot-load', plugin.name)}
-                          className="px-2 py-1 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded disabled:opacity-50 transition-colors"
+                          className="px-2 py-1 text-xs text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-700/30 rounded disabled:opacity-50 transition-colors"
                           title="热轨：加载插件到运行时"
                         >
                           {isLoading('hot-load', plugin.name) ? '...' : '热加载'}
@@ -340,7 +339,7 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(plugin.name); }}
                         disabled={isLoading('delete', plugin.name)}
-                        className="px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded disabled:opacity-50 transition-colors"
+                        className="px-2 py-1 text-xs text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-700/30 rounded disabled:opacity-50 transition-colors"
                         title="删除插件 JAR 文件"
                       >
                         {isLoading('delete', plugin.name) ? '...' : '删除'}
@@ -358,8 +357,8 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                         <div>
                           <span className="text-gray-400">文件轨: </span>
                           <span className={`${
-                            plugin.installState === 'INSTALLED' ? 'text-green-600 dark:text-green-400' :
-                            plugin.installState === 'CORRUPTED' ? 'text-red-600 dark:text-red-400' :
+                            plugin.installState === 'INSTALLED' ? 'text-success-600 dark:text-success-400' :
+                            plugin.installState === 'CORRUPTED' ? 'text-danger-600 dark:text-danger-400' :
                             'text-gray-500 dark:text-gray-400'
                           }`}>
                             {plugin.installState === 'INSTALLED' ? '已安装' : plugin.installState === 'CORRUPTED' ? '损坏' : '已禁用'}
@@ -368,19 +367,19 @@ export function PluginManagerTab({ serverId }: PluginManagerTabProps) {
                         <div>
                           <span className="text-gray-400">热轨: </span>
                           <span className={`${
-                            plugin.runtimeState === 'RUNNING' ? 'text-green-600 dark:text-green-400' :
-                            plugin.runtimeState === 'LOAD_ERROR' ? 'text-red-600 dark:text-red-400' :
+                            plugin.runtimeState === 'RUNNING' ? 'text-success-600 dark:text-success-400' :
+                            plugin.runtimeState === 'LOAD_ERROR' ? 'text-danger-600 dark:text-danger-400' :
                             'text-gray-500 dark:text-gray-400'
                           }`}>
                             {plugin.runtimeState === 'RUNNING' ? '运行中' : plugin.runtimeState === 'LOAD_ERROR' ? '加载错误' : '已停止'}
                           </span>
                         </div>
                         {(plugin.dependencies || []).length > 0 && <div><span className="text-gray-400">依赖: </span><span className="text-gray-600 dark:text-gray-300">{(plugin.dependencies || []).join(', ')}</span></div>}
-                        {plugin.requiresRestart && <div><span className="text-gray-400">需要重启: </span><span className="text-yellow-600 dark:text-yellow-400">是</span></div>}
+                        {plugin.requiresRestart && <div><span className="text-gray-400">需要重启: </span><span className="text-warning-600 dark:text-warning-400">是</span></div>}
                         {(plugin.riskWarnings || []).length > 0 && (
                           <div className="col-span-2">
                             <span className="text-gray-400">风险警告: </span>
-                            <span className="text-red-600 dark:text-red-400">{(plugin.riskWarnings || []).join('; ')}</span>
+                            <span className="text-danger-600 dark:text-danger-400">{(plugin.riskWarnings || []).join('; ')}</span>
                           </div>
                         )}
                       </div>

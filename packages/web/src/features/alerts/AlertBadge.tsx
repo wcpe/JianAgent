@@ -5,9 +5,9 @@ interface Props {
 }
 
 const COLORS: Record<string, string> = {
-  INFO: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-  WARNING: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
-  CRITICAL: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  INFO: 'bg-info-100 dark:bg-info-900/30 text-info-700 dark:text-info-400',
+  WARNING: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
+  CRITICAL: 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400',
 };
 
 const AlertBadge: FC<Props> = ({ level }) => (

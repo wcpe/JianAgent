@@ -20,14 +20,14 @@ export function SnapshotCard({ serverId, snapshot }: Props) {
   }
 
   const tpsColor = snapshot.tps >= 18
-    ? 'text-green-600 dark:text-green-400'
+    ? 'text-success-600 dark:text-success-400'
     : snapshot.tps >= 15
-      ? 'text-yellow-600 dark:text-yellow-400'
-      : 'text-red-600 dark:text-red-400';
+      ? 'text-warning-600 dark:text-warning-400'
+      : 'text-danger-600 dark:text-danger-400';
 
   const memUsedMb = snapshot.totalMemoryMb - snapshot.freeMemoryMb;
   const memPercent = snapshot.totalMemoryMb > 0 ? (memUsedMb / snapshot.totalMemoryMb) * 100 : 0;
-  const memColor = memPercent >= 85 ? 'bg-red-500' : memPercent >= 70 ? 'bg-yellow-500' : 'bg-green-500';
+  const memColor = memPercent >= 85 ? 'bg-danger-500' : memPercent >= 70 ? 'bg-warning-500' : 'bg-success-500';
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded p-4 bg-white dark:bg-gray-800/50">

@@ -81,7 +81,7 @@ export default function NotificationSettingsPage() {
       </p>
 
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded text-sm">
+        <div className="p-3 bg-danger-50 dark:bg-danger-700/20 text-danger-600 dark:text-danger-400 rounded text-sm">
           {error}
         </div>
       )}
@@ -111,7 +111,7 @@ export default function NotificationSettingsPage() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${ch.enabled ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <div className={`w-2 h-2 rounded-full ${ch.enabled ? 'bg-success-500' : 'bg-gray-400'}`} />
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">{ch.name}</h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -121,7 +121,7 @@ export default function NotificationSettingsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {testResult[ch.id] && (
-                    <span className={`text-xs ${testResult[ch.id].success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`text-xs ${testResult[ch.id].success ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
                       {testResult[ch.id].message}
                     </span>
                   )}
@@ -136,7 +136,7 @@ export default function NotificationSettingsPage() {
                     onClick={() => handleToggle(ch.id, ch.enabled)}
                     className={`px-2 py-1 text-xs rounded ${
                       ch.enabled
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-success-100 text-success-700 dark:bg-success-700/30 dark:text-success-400'
                         : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                     }`}
                   >
@@ -144,7 +144,7 @@ export default function NotificationSettingsPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(ch.id)}
-                    className="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    className="p-1.5 text-danger-500 hover:text-danger-700 dark:text-danger-400 dark:hover:text-danger-200"
                     title="删除"
                   >
                     <Trash2 className="w-4 h-4" />

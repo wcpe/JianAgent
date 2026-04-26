@@ -69,7 +69,7 @@ function resolveSelectedRun(
   activeRun: LocalValidationRunDto | null,
 ): LocalValidationRunDto | null {
   if (selectedRunId) {
-    return runs.find((run) => run.id === selectedRunId) ?? activeRun;
+    return (runs ?? []).find((run) => run.id === selectedRunId) ?? activeRun;
   }
   return activeRun;
 }
@@ -95,7 +95,7 @@ export const useLocalValidationStore = create<LocalValidationState>((set, get) =
     try {
       const packs = await localValidationApi.listScenarioPacks();
       set((state) => ({
-        scenarioPacks: packs,
+        scenarioPacks: Array.isArray(packs) ? packs : [],
         loading: { ...state.loading, scenarioPacks: false },
       }));
     } catch (error) {
@@ -115,9 +115,10 @@ export const useLocalValidationStore = create<LocalValidationState>((set, get) =
 
     try {
       const runs = await localValidationApi.listRuns();
+      const safeRuns = Array.isArray(runs) ? runs : [];
       set((state) => ({
-        runs,
-        activeRun: resolveSelectedRun(state.selectedRunId, runs, state.activeRun),
+        runs: safeRuns,
+        activeRun: resolveSelectedRun(state.selectedRunId, safeRuns, state.activeRun),
         loading: { ...state.loading, runs: false },
       }));
     } catch (error) {
@@ -262,9 +263,9 @@ export const useLocalValidationStore = create<LocalValidationState>((set, get) =
         ...(state.selectedRunId !== runId || state.artifactRequestId !== requestId
           ? {}
           : {
-        stages,
-        assertions,
-        evidence,
+        stages: Array.isArray(stages) ? stages : [],
+        assertions: Array.isArray(assertions) ? assertions : [],
+        evidence: Array.isArray(evidence) ? evidence : [],
         activeRun: resolveSelectedRun(runId, state.runs, state.activeRun),
         loading: { ...state.loading, artifacts: false, activeRun: false },
           }),

@@ -87,7 +87,7 @@ export function SessionCreatePage() {
                 <option value="gather">gather</option>
               </StyledSelect>
               <input type="number" placeholder="持续(秒)" value={p.durationSec} onChange={(e) => updatePhase(i, 'durationSec', Number(e.target.value))} className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded px-2 py-1 text-sm w-24" />
-              <button type="button" onClick={() => removePhase(i)} className="text-red-400 hover:text-red-600">✕</button>
+              <button type="button" onClick={() => removePhase(i)} className="text-danger-400 hover:text-danger-600">✕</button>
             </div>
           ))}
         </div>

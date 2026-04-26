@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { javaHelperApi } from '../../api/java-helper.api.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 import type { ThreadSampleDto } from '@jian-agent/shared-domain';
 
 interface ThreadDumpPanelProps {
@@ -62,13 +63,7 @@ export function ThreadDumpPanel({ serverId, attached }: ThreadDumpPanelProps) {
         </button>
       </div>
 
-      {error && (
-        <div className="mb-3 flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-3" />}
 
       {sample && (
         <>
@@ -132,9 +127,9 @@ export function ThreadDumpPanel({ serverId, attached }: ThreadDumpPanelProps) {
                       <td className="p-2 text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{t.name}</td>
                       <td className="p-2">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          t.state === 'RUNNABLE' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' :
-                          t.state === 'BLOCKED' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' :
-                          t.state === 'WAITING' || t.state === 'TIMED_WAITING' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                          t.state === 'RUNNABLE' ? 'bg-success-100 text-success-700 dark:bg-success-700/40 dark:text-success-400' :
+                          t.state === 'BLOCKED' ? 'bg-danger-100 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400' :
+                          t.state === 'WAITING' || t.state === 'TIMED_WAITING' ? 'bg-warning-100 text-warning-700 dark:bg-warning-700/40 dark:text-warning-400' :
                           'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                         }`}>
                           {t.state}

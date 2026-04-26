@@ -1,11 +1,11 @@
 const STATE_COLORS: Record<string, string> = {
   CREATED: 'bg-gray-200 text-gray-700',
-  CONNECTING: 'bg-yellow-200 text-yellow-800',
-  SPAWNED: 'bg-green-200 text-green-800',
-  RUNNING_BEHAVIOR: 'bg-blue-200 text-blue-800',
-  DISCONNECTED: 'bg-red-200 text-red-800',
+  CONNECTING: 'bg-warning-200 text-warning-700',
+  SPAWNED: 'bg-success-200 text-success-700',
+  RUNNING_BEHAVIOR: 'bg-info-200 text-info-700',
+  DISCONNECTED: 'bg-danger-200 text-danger-700',
   STOPPED: 'bg-gray-400 text-gray-900',
-  ERROR: 'bg-red-400 text-white',
+  ERROR: 'bg-danger-400 text-white',
 };
 
 interface Props {

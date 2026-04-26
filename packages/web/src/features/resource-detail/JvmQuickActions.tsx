@@ -85,8 +85,8 @@ export function JvmQuickActions({ resourceId, helperAttached, pid }: JvmQuickAct
       {result && (
         <div className={`mb-3 p-2 rounded text-xs ${
           result.success
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+            : 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400'
         }`}>
           {result.message}
         </div>

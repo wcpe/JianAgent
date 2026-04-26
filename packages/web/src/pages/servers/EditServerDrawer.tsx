@@ -3,6 +3,8 @@ import { useServerStore } from '../../stores/server.store.js';
 import { serverApi } from '../../api/server.api.js';
 import { javaRuntimeApi } from '../../api/java-runtime.api.js';
 import type { ServerWithStatusDto, UpdateServerConfigRequest, SshAuthType } from '@jian-agent/shared-domain';
+import { DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT } from '../../constants/server-defaults.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface EditServerDrawerProps {
   readonly server: ServerWithStatusDto;
@@ -16,8 +18,8 @@ export function EditServerDrawer({ server, onClose }: EditServerDrawerProps) {
   const [name, setName] = useState(server.name);
   const [jarPath, setJarPath] = useState(server.jarPath ?? '');
   const [workDir, setWorkDir] = useState(server.workDir ?? '');
-  const [host, setHost] = useState(server.host ?? 'localhost');
-  const [port, setPort] = useState(server.port ?? 25565);
+  const [host, setHost] = useState(server.host ?? DEFAULT_SERVER_HOST);
+  const [port, setPort] = useState(server.port ?? DEFAULT_SERVER_PORT);
   const [serverGroup, setServerGroup] = useState(server.serverGroup ?? '');
   const [tagsInput, setTagsInput] = useState(server.tags?.join(', ') ?? '');
   const [description, setDescription] = useState(server.description ?? '');
@@ -132,7 +134,7 @@ export function EditServerDrawer({ server, onClose }: EditServerDrawerProps) {
               服务器运行中，修改将在下次启动时生效
             </div>
           )}
-          {error && <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded px-3 py-2">{error}</div>}
+          {error && <ErrorAlert message={error} />}
 
           <div>
             <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">名称 *</label>

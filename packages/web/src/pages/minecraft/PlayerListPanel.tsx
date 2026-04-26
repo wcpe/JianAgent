@@ -23,9 +23,9 @@ export function PlayerListPanel({ serverId: _serverId, snapshot, connected }: Pl
 
   const healthColor = (health: number, maxHealth: number) => {
     const ratio = health / maxHealth;
-    if (ratio > 0.6) return 'text-green-600 dark:text-green-400';
-    if (ratio > 0.3) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (ratio > 0.6) return 'text-success-600 dark:text-success-400';
+    if (ratio > 0.3) return 'text-warning-600 dark:text-warning-400';
+    return 'text-danger-600 dark:text-danger-400';
   };
 
   const gamemodeBadge = (mode: string) => {

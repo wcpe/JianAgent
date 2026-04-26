@@ -25,10 +25,10 @@ export function PhaseTimeline({ phases, currentPhase }: Props) {
             <div
               key={i}
               className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${
-                isCurrent ? 'bg-blue-100 border border-blue-300' : isCompleted ? 'bg-green-50' : 'bg-gray-50'
+                isCurrent ? 'bg-info-100 border border-info-200' : isCompleted ? 'bg-success-50' : 'bg-gray-50'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-blue-500' : isCompleted ? 'bg-green-500' : 'bg-gray-300'}`} />
+              <span className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-info-500' : isCompleted ? 'bg-success-500' : 'bg-gray-300'}`} />
               <span className="font-medium">{p.phase}</span>
               <span className="text-gray-500">{p.botCount} bots</span>
               <span className="text-gray-500">{p.behavior}</span>

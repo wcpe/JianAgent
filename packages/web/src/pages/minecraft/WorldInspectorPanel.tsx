@@ -107,7 +107,7 @@ function WorldDetail({
   environmentLabel: (env: string) => { label: string; color: string };
 }) {
   const env = environmentLabel(world.environment);
-  const entityEntries = Object.entries(world.entityTypes).sort((a, b) => b[1] - a[1]);
+  const entityEntries = Object.entries(world.entityTypes ?? {}).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">

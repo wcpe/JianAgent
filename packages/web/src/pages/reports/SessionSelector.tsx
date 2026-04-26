@@ -44,7 +44,7 @@ export const SessionSelector: FC<Props> = ({ onSelect, selectedId, multi }) => {
           >
             <div className="font-mono text-xs">{s.id.slice(0, 8)}</div>
             <div className="text-[11px] text-zinc-500 mt-0.5">
-              {new Date(s.startedAt ?? s.createdAt).toLocaleString('zh-CN')}
+              {new Date(s.startedAt ?? s.createdAt ?? 0).toLocaleString('zh-CN')}
             </div>
           </button>
         );

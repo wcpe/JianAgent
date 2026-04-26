@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
+import { ErrorAlert } from '../components/ui/ErrorAlert.js';
 import { useProbeStore } from '../stores/probe.store.js';
 import type { ProbeResultEntry } from '../stores/probe.store.js';
 import { ProbeStatusBadge } from '../components/ProbeStatusBadge.js';
@@ -176,14 +177,8 @@ export function DiagnosticsPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       <h1 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">插件探针诊断</h1>
 
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-      {pageError && (
-        <div className="mb-4 flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{pageError}</span>
-          <button onClick={() => setPageError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} className="mb-4" />}
+      {pageError && <ErrorAlert message={pageError} onDismiss={() => setPageError(null)} className="mb-4" />}
       {loading && <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">加载中…</p>}
 
       <section className="mb-6">
@@ -225,14 +220,14 @@ export function DiagnosticsPage() {
       {/* Java Helper Section */}
       <section className="border-t border-gray-200 dark:border-gray-700 pt-6">
         <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Java Helper 深度诊断</h2>
-        {helperError && <p className="text-red-500 text-sm mb-2">{helperError}</p>}
+        {helperError && <p className="text-danger-500 text-sm mb-2">{helperError}</p>}
 
         <div className="flex items-center gap-3 mb-4">
           <span className="text-sm text-gray-700 dark:text-gray-300">
             状态:{' '}
             <span className={`font-medium ${
-              helperStatus?.state === 'ATTACHED' ? 'text-green-600 dark:text-green-400' :
-              helperStatus?.state === 'FAILED' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
+              helperStatus?.state === 'ATTACHED' ? 'text-success-600 dark:text-success-400' :
+              helperStatus?.state === 'FAILED' ? 'text-danger-600 dark:text-danger-400' : 'text-gray-600 dark:text-gray-400'
             }`}>
               {helperStatus?.state ?? 'IDLE'}
             </span>
@@ -245,9 +240,9 @@ export function DiagnosticsPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           <button onClick={handleStart} disabled={helperLoading} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50">启动 Helper</button>
           <button onClick={handleResolve} disabled={helperLoading} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50">发现 JVM</button>
-          <button onClick={handleSampleThreads} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50">线程采样</button>
-          <button onClick={handleSampleHeap} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50">堆采样</button>
-          <button onClick={handleDetach} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 disabled:opacity-50">断开</button>
+          <button onClick={handleSampleThreads} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-warning-600 text-white rounded text-sm hover:bg-warning-700 disabled:opacity-50">线程采样</button>
+          <button onClick={handleSampleHeap} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-warning-600 text-white rounded text-sm hover:bg-warning-700 disabled:opacity-50">堆采样</button>
+          <button onClick={handleDetach} disabled={helperLoading || helperStatus?.state !== 'ATTACHED'} className="px-3 py-1 bg-danger-600 text-white rounded text-sm hover:bg-danger-700 disabled:opacity-50">断开</button>
         </div>
 
         {/* Resolve results */}
@@ -259,10 +254,10 @@ export function DiagnosticsPage() {
                 <div key={p.pid} className="flex items-center gap-2 text-sm border border-gray-200 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-800/50">
                   <span className="font-mono text-gray-700 dark:text-gray-300">{p.pid}</span>
                   <span className="text-gray-600 dark:text-gray-400 flex-1 truncate">{p.displayName}</span>
-                  {p.isMinecraft && <span className="text-green-600 dark:text-green-400 text-xs">[MC]</span>}
+                  {p.isMinecraft && <span className="text-success-600 dark:text-success-400 text-xs">[MC]</span>}
                   <button
                     onClick={() => handleAttach(p.pid)}
-                    className="px-2 py-0.5 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    className="px-2 py-0.5 bg-success-600 text-white rounded text-xs hover:bg-success-700"
                   >
                     附着
                   </button>
@@ -307,9 +302,9 @@ export function DiagnosticsPage() {
                         <td className="p-1.5 text-gray-700 dark:text-gray-300">{t.name}</td>
                         <td className="p-1.5">
                           <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${
-                            t.state === 'RUNNABLE' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' :
-                            t.state === 'BLOCKED' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' :
-                            t.state === 'WAITING' || t.state === 'TIMED_WAITING' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                            t.state === 'RUNNABLE' ? 'bg-success-100 text-success-700 dark:bg-success-700/40 dark:text-success-400' :
+                            t.state === 'BLOCKED' ? 'bg-danger-100 text-danger-700 dark:bg-danger-700/40 dark:text-danger-400' :
+                            t.state === 'WAITING' || t.state === 'TIMED_WAITING' ? 'bg-warning-100 text-warning-700 dark:bg-warning-700/40 dark:text-warning-400' :
                             'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                           }`}>{t.state}</span>
                         </td>
@@ -377,7 +372,7 @@ export function DiagnosticsPage() {
             <button onClick={handleScanJar} disabled={scanLoading || !jarPath.trim()} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50">
               扫描入口类
             </button>
-            <button onClick={handleRecommendJvm} disabled={scanLoading || !jarPath.trim()} className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50">
+            <button onClick={handleRecommendJvm} disabled={scanLoading || !jarPath.trim()} className="px-3 py-1 bg-success-600 text-white rounded text-sm hover:bg-success-700 disabled:opacity-50">
               推荐 JVM 参数
             </button>
           </div>
@@ -392,7 +387,7 @@ export function DiagnosticsPage() {
                   {scanResult.entryClasses.map((ec) => (
                     <div key={ec.className} className="flex items-center gap-2 text-sm border border-gray-200 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-800/50">
                       <span className="font-mono flex-1 text-gray-700 dark:text-gray-300">{ec.className}</span>
-                      {ec.isMainClass && <span className="text-green-600 dark:text-green-400 text-xs font-medium">[Main]</span>}
+                      {ec.isMainClass && <span className="text-success-600 dark:text-success-400 text-xs font-medium">[Main]</span>}
                       <span className="text-gray-400 dark:text-gray-500 text-xs">{ec.source}</span>
                     </div>
                   ))}

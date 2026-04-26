@@ -57,8 +57,8 @@ export function PluginOperationBanner({ serverId }: PluginOperationBannerProps) 
             key={entry.requestId}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${
               entry.success
-                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40 text-green-700 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-700 dark:text-red-400'
+                ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/40 text-success-700 dark:text-success-400'
+                : 'bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-700/40 text-danger-700 dark:text-danger-400'
             }`}
           >
             <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
@@ -72,7 +72,7 @@ export function PluginOperationBanner({ serverId }: PluginOperationBannerProps) 
             <span className="text-gray-500 dark:text-gray-400">{entry.pluginName}</span>
             <span className="flex-1 text-gray-400 dark:text-gray-500 truncate">{entry.message}</span>
             {!entry.hasConnection && entry.operation !== 'enable' && entry.operation !== 'disable' && (
-              <span className="text-yellow-600 dark:text-yellow-400 text-[10px]">无连接</span>
+              <span className="text-warning-600 dark:text-warning-400 text-[10px]">无连接</span>
             )}
             <button
               onClick={() => dismiss(entry.requestId)}

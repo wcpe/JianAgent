@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../../api/client.js';
 import { useDialogStore } from '../../stores/dialog.store.js';
 import { RefreshCw, Users, Search, Terminal, UserX, Shield, ShieldOff, MapPin } from 'lucide-react';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface PlayerListTabProps {
   readonly serverId: string;
@@ -139,9 +140,7 @@ export function PlayerListTab({ serverId }: PlayerListTabProps) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {error && (
-          <div className="text-sm text-red-500 dark:text-red-400 mb-3">{error}</div>
-        )}
+        {error && <ErrorAlert message={error} className="mb-3" />}
 
         {!error && filtered.length === 0 && (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
@@ -162,7 +161,7 @@ export function PlayerListTab({ serverId }: PlayerListTabProps) {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-success-500 shrink-0" />
                   <span className="text-sm text-gray-800 dark:text-gray-200 truncate font-medium">{name}</span>
                 </div>
 
@@ -228,9 +227,9 @@ function ActionBtn({
   readonly onClick: (e: React.MouseEvent) => void;
 }) {
   const colorMap = {
-    red: 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30',
+    red: 'text-danger-600 dark:text-danger-400 hover:bg-danger-100 dark:hover:bg-danger-700/30',
     blue: 'text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30',
-    green: 'text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30',
+    green: 'text-success-600 dark:text-success-400 hover:bg-success-100 dark:hover:bg-success-700/30',
     gray: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700',
   };
   return (

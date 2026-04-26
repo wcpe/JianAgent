@@ -1,11 +1,11 @@
 const STATE_COLORS: Record<string, string> = {
   NOT_CONFIGURED: 'bg-gray-400',
-  STOPPED: 'bg-red-500',
-  STARTING: 'bg-yellow-400 animate-pulse',
-  RUNNING: 'bg-green-500',
-  STOPPING: 'bg-yellow-400',
-  CRASHED: 'bg-red-700',
-  ATTACHED_EXTERNAL: 'bg-blue-500',
+  STOPPED: 'bg-danger-500',
+  STARTING: 'bg-warning-400 animate-pulse',
+  RUNNING: 'bg-success-500',
+  STOPPING: 'bg-warning-400',
+  CRASHED: 'bg-danger-700',
+  ATTACHED_EXTERNAL: 'bg-info-500',
   UNKNOWN: 'bg-gray-500',
 };
 

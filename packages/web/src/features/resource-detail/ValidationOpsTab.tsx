@@ -5,6 +5,7 @@ import type {
   ResourceDetailDto,
 } from '@jian-agent/shared-domain';
 import { localValidationApi } from '../../api/local-validation.api.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface ValidationOpsTabProps {
   readonly detail: ResourceDetailDto;
@@ -84,7 +85,7 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
 
   if (detail.kind !== 'SERVER') {
     return (
-      <div className="p-4 text-sm text-slate-500 dark:text-slate-400">
+      <div className="p-4 text-sm text-gray-500 dark:text-gray-400">
         当前资源类型不支持本地服务器验证。
       </div>
     );
@@ -92,16 +93,16 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-slate-950/70">
+      <div className="rounded-3xl border border-white/60 bg-white/85 p-5 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-gray-950/70">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
               Validation
             </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
               验证与治理
             </h2>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               展示该服务器最近一次本地验证结论，并提供进入本地验证运行台的统一入口。
             </p>
           </div>
@@ -114,7 +115,7 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
             </button>
             <button
               onClick={() => navigate(`/resources/${detail.id}`)}
-              className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="rounded-2xl border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
             >
               返回概览
             </button>
@@ -123,32 +124,32 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
       </div>
 
       {detail.latestValidationSummary ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             最近结论
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">状态</div>
-              <div className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-gray-500 dark:text-gray-400">状态</div>
+              <div className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {detail.latestValidationSummary.state}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">结论</div>
-              <div className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-gray-500 dark:text-gray-400">结论</div>
+              <div className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {detail.latestValidationSummary.verdict}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">完成时间</div>
-              <div className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-gray-500 dark:text-gray-400">完成时间</div>
+              <div className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {formatTime(detail.latestValidationSummary.finishedAt)}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">运行 ID</div>
-              <div className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+              <div className="text-xs text-gray-500 dark:text-gray-400">运行 ID</div>
+              <div className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {detail.latestValidationSummary.runId}
               </div>
             </div>
@@ -161,25 +162,23 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             最近运行
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             共 {runs.length} 条
           </div>
         </div>
         {loading ? (
-          <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+          <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             加载中...
           </div>
         ) : error ? (
-          <div className="py-8 text-center text-sm text-rose-600 dark:text-rose-300">
-            {error}
-          </div>
+          <ErrorAlert message={error} className="my-8" />
         ) : runs.length === 0 ? (
-          <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+          <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             当前服务器还没有关联的本地验证运行。
           </div>
         ) : (
@@ -187,18 +186,18 @@ export function ValidationOpsTab({ detail }: ValidationOpsTabProps) {
             {(latestRun ? runs : []).map((run) => (
               <div
                 key={run.id}
-                className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-800"
+                className="rounded-2xl border border-gray-200 px-4 py-3 dark:border-gray-800"
               >
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {run.name}
                     </div>
-                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {formatRunStatus(run.status)} · 完成于 {formatTime(run.finishedAt)}
                     </div>
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {run.id}
                   </div>
                 </div>

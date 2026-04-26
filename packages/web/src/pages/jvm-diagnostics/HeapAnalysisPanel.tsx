@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { javaHelperApi } from '../../api/java-helper.api.js';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 import type { HeapSampleDto } from '@jian-agent/shared-domain';
 
 interface HeapAnalysisPanelProps {
@@ -87,13 +88,7 @@ export function HeapAnalysisPanel({ serverId, attached }: HeapAnalysisPanelProps
         </button>
       </div>
 
-      {error && (
-        <div className="mb-3 flex items-start gap-2 rounded border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
-          <span>⚠</span>
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">✕</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} className="mb-3" />}
 
       {sample && (
         <>

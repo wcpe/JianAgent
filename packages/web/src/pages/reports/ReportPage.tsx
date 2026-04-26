@@ -21,19 +21,19 @@ const ReportPage: FC = () => {
   return (
     <div className="flex h-full gap-3 p-3">
       {/* Sidebar: session list */}
-      <div className="w-72 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-y-auto p-4">
+      <div className="w-72 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-xl overflow-y-auto p-4">
         <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">会话列表</h2>
         <SessionSelector onSelect={selectSession} selectedId={selectedSessionId} />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl">
+      <div className="flex-1 overflow-y-auto p-6 rounded-2xl border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-xl">
         {!selectedSessionId && (
           <p className="text-gray-500 dark:text-gray-400">请从左侧选择一个会话查看报告</p>
         )}
 
         {loading && <p className="text-zinc-400">加载中...</p>}
-        {error && <p className="text-red-400">{error}</p>}
+        {error && <p className="text-danger-400">{error}</p>}
 
         {report && (
           <>
@@ -138,8 +138,8 @@ const PhasesTab: FC<{ readonly report: SessionReportDto }> = ({ report }) => {
             const offset = ((phase.startTime - report.startTime) / totalDuration) * 100;
             const width = Math.max(((phase.endTime - phase.startTime) / totalDuration) * 100, 2);
             const color =
-              phase.status === 'completed' ? 'bg-green-500' :
-              phase.status === 'failed' ? 'bg-red-500' : 'bg-zinc-500';
+              phase.status === 'completed' ? 'bg-success-500' :
+              phase.status === 'failed' ? 'bg-danger-500' : 'bg-zinc-500';
 
             return (
               <div key={phase.phaseId} className="flex items-center gap-3">
@@ -175,7 +175,7 @@ const PhasesTab: FC<{ readonly report: SessionReportDto }> = ({ report }) => {
             {report.phases.map((p) => (
               <tr key={p.phaseId} className="border-b border-zinc-700/50">
                 <td className="py-2">{p.phaseName}</td>
-                <td className={`py-2 ${p.status === 'completed' ? 'text-green-400' : p.status === 'failed' ? 'text-red-400' : 'text-zinc-500'}`}>
+                <td className={`py-2 ${p.status === 'completed' ? 'text-success-400' : p.status === 'failed' ? 'text-danger-400' : 'text-zinc-500'}`}>
                   {p.status}
                 </td>
                 <td className="py-2">{p.botCount}</td>
@@ -212,7 +212,7 @@ const CompareTab: FC = () => {
                 {id.slice(0, 8)}
                 <button
                   onClick={() => useReportStore.getState().removeCompareSession(id)}
-                  className="text-zinc-400 hover:text-red-400"
+                  className="text-zinc-400 hover:text-danger-400"
                 >
                   ×
                 </button>
@@ -228,7 +228,7 @@ const CompareTab: FC = () => {
 };
 
 const StatCard: FC<{ readonly label: string; readonly value: string }> = ({ label, value }) => (
-  <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl border border-white/55 dark:border-primary-300/20 shadow-xl backdrop-blur-xl p-4 text-center">
+  <div className="bg-white/80 dark:bg-gray-900/60 rounded-2xl border border-white/55 dark:border-primary-300/20 shadow-xl backdrop-blur-xl p-4 text-center">
     <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</div>
     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{label}</div>
   </div>

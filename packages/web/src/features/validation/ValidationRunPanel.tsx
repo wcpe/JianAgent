@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useValidationStore } from './validation.store.js';
 import type { ValidationMetricDto } from '@jian-agent/shared-domain';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: '等待中',
@@ -12,10 +13,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-gray-500',
-  running: 'bg-blue-500 animate-pulse',
-  completed: 'bg-green-500',
-  failed: 'bg-red-500',
-  cancelled: 'bg-yellow-500',
+  running: 'bg-info-500 animate-pulse',
+  completed: 'bg-success-500',
+  failed: 'bg-danger-500',
+  cancelled: 'bg-warning-500',
 };
 
 function formatTime(iso?: string): string {
@@ -39,12 +40,12 @@ function MetricCard({ metric }: { readonly metric: ValidationMetricDto }) {
   return (
     <div className={`rounded-lg p-3 border ${
       metric.passed
-        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+        ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-700'
+        : 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-700'
     }`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-500 dark:text-gray-400">{metric.metric}</span>
-        <span className={`text-xs font-medium ${metric.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+        <span className={`text-xs font-medium ${metric.passed ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
           {metric.passed ? 'PASS' : 'FAIL'}
         </span>
       </div>
@@ -77,7 +78,7 @@ export function ValidationRunPanel() {
   const isRunning = activeRun.status === 'running' || activeRun.status === 'pending';
   const groupedMetrics = useMemo(() => {
     const groups: Record<string, ValidationMetricDto[]> = {};
-    for (const m of activeRun.metrics) {
+    for (const m of (activeRun?.metrics ?? [])) {
       if (!groups[m.phaseId]) groups[m.phaseId] = [];
       groups[m.phaseId].push(m);
     }
@@ -113,24 +114,24 @@ export function ValidationRunPanel() {
         </div>
         <div className="bg-gray-50 dark:bg-gray-900/60 rounded-lg p-3">
           <span className="text-xs text-gray-500 dark:text-gray-400">指标数</span>
-          <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{activeRun.metrics.length}</p>
+          <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{(activeRun?.metrics ?? []).length}</p>
         </div>
       </div>
 
       {/* Alerts summary from observability */}
       {observability && (
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
-            <span className="text-xs text-red-500 dark:text-red-400">Critical 告警</span>
-            <p className="text-xl font-bold text-red-600 dark:text-red-400">{observability.alertCounts.critical}</p>
+          <div className="bg-danger-50 dark:bg-danger-900/20 rounded-lg p-3 text-center">
+            <span className="text-xs text-danger-500 dark:text-danger-400">Critical 告警</span>
+            <p className="text-xl font-bold text-danger-600 dark:text-danger-400">{observability?.alertCounts?.critical ?? 0}</p>
           </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-center">
-            <span className="text-xs text-yellow-500 dark:text-yellow-400">Warning 告警</span>
-            <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">{observability.alertCounts.warning}</p>
+          <div className="bg-warning-50 dark:bg-warning-900/20 rounded-lg p-3 text-center">
+            <span className="text-xs text-warning-500 dark:text-warning-400">Warning 告警</span>
+            <p className="text-xl font-bold text-warning-600 dark:text-warning-400">{observability.alertCounts.warning}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-900/60 rounded-lg p-3 text-center">
             <span className="text-xs text-gray-500 dark:text-gray-400">异常数</span>
-            <p className="text-xl font-bold text-gray-800 dark:text-gray-200">{observability.exceptionCount}</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-200">{observability?.exceptionCount ?? 0}</p>
           </div>
         </div>
       )}
@@ -153,11 +154,7 @@ export function ValidationRunPanel() {
       )}
 
       {/* Error */}
-      {activeRun.error && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded p-3 text-sm text-red-600 dark:text-red-300">
-          {activeRun.error}
-        </div>
-      )}
+      {activeRun.error && <ErrorAlert message={activeRun.error} />}
 
       {/* Actions */}
       {isRunning && (
@@ -165,7 +162,7 @@ export function ValidationRunPanel() {
           <button
             type="button"
             onClick={() => cancelRun(activeRun.id)}
-            className="bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded px-4 py-2"
+            className="bg-warning-600 hover:bg-warning-500 text-white text-sm rounded px-4 py-2"
           >
             取消验证
           </button>

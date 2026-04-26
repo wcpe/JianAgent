@@ -138,8 +138,8 @@ vi.mock('../BotCardGrid.js', () => ({
   ),
 }));
 
-vi.mock('../CreateBotDrawer.js', () => ({
-  CreateBotDrawer: () => null,
+vi.mock('../CreateBotModal.js', () => ({
+  CreateBotModal: () => null,
 }));
 
 vi.mock('../BotChatPanel.js', () => ({

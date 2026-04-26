@@ -21,10 +21,10 @@ export function BotListPage() {
           </button>
         </div>
         {loading && <p className="text-gray-500 dark:text-gray-400">加载中…</p>}
-        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-2xl border border-white/55 dark:border-primary-300/20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/60">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-slate-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase font-semibold">
+            <tr className="border-b border-white/40 dark:border-primary-300/10 bg-white/40 dark:bg-gray-800/40 text-left text-xs text-gray-600 dark:text-gray-300 uppercase font-semibold">
               <th className="px-4 py-2">名称</th>
               <th className="px-4 py-2">状态</th>
               <th className="px-4 py-2">行为</th>
@@ -38,8 +38,8 @@ export function BotListPage() {
                   selectedBotName === bot.name 
                     ? 'bg-primary-500/20 dark:bg-primary-900/30' 
                     : bots.indexOf(bot) % 2 === 0
-                    ? 'hover:bg-white/50 dark:hover:bg-slate-800/50'
-                    : 'bg-white/20 dark:bg-slate-800/10 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                    ? 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                    : 'bg-white/20 dark:bg-gray-800/10 hover:bg-white/60 dark:hover:bg-gray-800/60'
                 }`}
                 onClick={() => selectBot(bot.name)}
               >

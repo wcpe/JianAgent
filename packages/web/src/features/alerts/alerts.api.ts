@@ -2,30 +2,44 @@ import { apiFetch } from '../../api/client.js';
 import type { AlertDto, AlertSummaryDto, AlertRuleDto, CreateAlertRuleDto, UpdateAlertRuleDto } from '@jian-agent/shared-domain';
 
 export const alertsApi = {
-  listAlerts: (limit?: number): Promise<AlertDto[]> =>
-    apiFetch<AlertDto[]>(`/metrics/alerts${limit ? `?limit=${limit}` : ''}`),
+  listAlerts: async (limit?: number): Promise<AlertDto[]> => {
+    const res = await apiFetch<{ success: boolean; data: AlertDto[] }>(`/metrics/alerts${limit ? `?limit=${limit}` : ''}`);
+    return res.data ?? [];
+  },
 
-  getSummary: (): Promise<AlertSummaryDto> =>
-    apiFetch<AlertSummaryDto>('/metrics/alerts/summary'),
+  getSummary: async (): Promise<AlertSummaryDto> => {
+    const res = await apiFetch<{ success: boolean; data: AlertSummaryDto }>('/metrics/alerts/summary');
+    return res.data;
+  },
 
-  acknowledge: (alertId: string): Promise<{ acknowledged: boolean }> =>
-    apiFetch<{ acknowledged: boolean }>(`/metrics/alerts/${alertId}/acknowledge`, { method: 'POST' }),
+  acknowledge: async (alertId: string): Promise<{ acknowledged: boolean }> => {
+    const res = await apiFetch<{ success: boolean; data: { acknowledged: boolean } }>(`/metrics/alerts/${alertId}/acknowledge`, { method: 'POST' });
+    return res.data;
+  },
 
-  listRules: (): Promise<AlertRuleDto[]> =>
-    apiFetch<AlertRuleDto[]>('/metrics/alert-rules'),
+  listRules: async (): Promise<AlertRuleDto[]> => {
+    const res = await apiFetch<{ success: boolean; data: AlertRuleDto[] }>('/metrics/alert-rules');
+    return res.data ?? [];
+  },
 
-  createRule: (dto: CreateAlertRuleDto): Promise<AlertRuleDto> =>
-    apiFetch<AlertRuleDto>('/metrics/alert-rules', {
+  createRule: async (dto: CreateAlertRuleDto): Promise<AlertRuleDto> => {
+    const res = await apiFetch<{ success: boolean; data: AlertRuleDto }>('/metrics/alert-rules', {
       method: 'POST',
       body: JSON.stringify(dto),
-    }),
+    });
+    return res.data;
+  },
 
-  updateRule: (id: string, dto: UpdateAlertRuleDto): Promise<AlertRuleDto> =>
-    apiFetch<AlertRuleDto>(`/metrics/alert-rules/${id}`, {
+  updateRule: async (id: string, dto: UpdateAlertRuleDto): Promise<AlertRuleDto> => {
+    const res = await apiFetch<{ success: boolean; data: AlertRuleDto }>(`/metrics/alert-rules/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(dto),
-    }),
+    });
+    return res.data;
+  },
 
-  deleteRule: (id: string): Promise<{ deleted: boolean }> =>
-    apiFetch<{ deleted: boolean }>(`/metrics/alert-rules/${id}`, { method: 'DELETE' }),
+  deleteRule: async (id: string): Promise<{ deleted: boolean }> => {
+    const res = await apiFetch<{ success: boolean; data: { deleted: boolean } }>(`/metrics/alert-rules/${id}`, { method: 'DELETE' });
+    return res.data;
+  },
 } as const;

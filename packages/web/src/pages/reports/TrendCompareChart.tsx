@@ -68,6 +68,7 @@ export const TrendCompareChart: FC<Props> = ({ sessionIds, metric, yLabel }) => 
 
   // Find max values for scaling
   const allPoints = seriesList.flatMap((s) => s.points);
+  if (allPoints.length === 0) return null;
   const maxMinutes = Math.max(...allPoints.map((p) => p.relativeMinutes), 1);
   const maxValue = Math.max(...allPoints.map((p) => p.value), 1);
 

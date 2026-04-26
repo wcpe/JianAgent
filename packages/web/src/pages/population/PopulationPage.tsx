@@ -182,7 +182,7 @@ export function PopulationPage() {
             type="button"
             onClick={handleCleanup}
             disabled={cleaning}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50 active:scale-95"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-danger-100 dark:bg-danger-700/30 text-danger-700 dark:text-danger-400 rounded hover:bg-danger-200 dark:hover:bg-danger-700/50 transition-colors disabled:opacity-50 active:scale-95"
           >
             <Trash2 size={12} />
             清理

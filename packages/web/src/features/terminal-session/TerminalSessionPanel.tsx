@@ -160,9 +160,9 @@ export function TerminalSessionPanel({
   const isDisconnected = snapshot.status === 'DISCONNECTED';
 
   const statusColor =
-    isConnected ? 'bg-green-400' :
-    isConnecting ? 'bg-yellow-400' :
-    isError ? 'bg-red-400' :
+    isConnected ? 'bg-success-400' :
+    isConnecting ? 'bg-warning-400' :
+    isError ? 'bg-danger-400' :
     'bg-gray-400';
 
   const statusText =
@@ -175,14 +175,14 @@ export function TerminalSessionPanel({
   return (
     <div
       data-terminal-session-panel
-      className={`flex flex-col h-full rounded-2xl overflow-hidden border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-slate-900/60 backdrop-blur-xl shadow-xl relative z-0 ${className ?? ''}`}
+      className={`flex flex-col h-full rounded-2xl overflow-hidden border border-white/55 dark:border-primary-300/20 bg-white/75 dark:bg-gray-900/60 backdrop-blur-xl shadow-xl relative z-0 ${className ?? ''}`}
     >
       {/* Status bar + toolbar */}
       {showToolbar && (
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-white/55 dark:border-primary-300/20 bg-white/65 dark:bg-slate-900/50 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-white/55 dark:border-primary-300/20 bg-white/65 dark:bg-gray-900/50 shrink-0">
           {/* Status indicator */}
           <span className={`w-2 h-2 rounded-full ${statusColor} shadow-sm`} />
-          <span className={`text-xs font-medium ${isError ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+          <span className={`text-xs font-medium ${isError ? 'text-danger-500 dark:text-danger-400' : 'text-gray-700 dark:text-gray-300'}`}>
             {statusText}
           </span>
 
@@ -197,7 +197,7 @@ export function TerminalSessionPanel({
           )}
 
           {snapshot.isReconnecting && (
-            <span className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 font-medium ml-1">
+            <span className="text-xs text-warning-500 dark:text-warning-400 flex items-center gap-1 font-medium ml-1">
               <RotateCcw className="w-3.5 h-3.5 animate-spin" />
               重连中 ({snapshot.reconnectAttempts})
             </span>
@@ -206,7 +206,7 @@ export function TerminalSessionPanel({
           {isConnected && (
             <button
               onClick={disconnect}
-              className="px-3 py-1 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 active:scale-95 transition-all shadow-sm font-medium ml-1"
+              className="px-3 py-1 text-xs bg-danger-600 text-white rounded-lg hover:bg-danger-700 active:scale-95 transition-all shadow-sm font-medium ml-1"
             >
               断开
             </button>

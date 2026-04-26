@@ -139,8 +139,8 @@ const WhitelistActionPanel: FC<Props> = ({ serverId: serverIdProp }) => {
                   <div
                     className={`mt-2 rounded p-2 text-sm ${
                       result.success
-                        ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                        : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                        ? 'bg-success-50 text-success-700 dark:bg-success-700/30 dark:text-success-200'
+                        : 'bg-danger-50 text-danger-700 dark:bg-danger-700/30 dark:text-danger-200'
                     }`}
                   >
                     {result.success ? '✔' : '✘'} {result.message}

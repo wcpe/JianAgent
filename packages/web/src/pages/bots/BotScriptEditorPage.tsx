@@ -210,7 +210,7 @@ export function BotScriptEditorPage() {
           }}
             rows={16} spellCheck={false}
             className="w-full font-mono text-sm p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 resize-y" />
-          {yamlValidation && <p className="text-xs text-red-500">{yamlValidation}</p>}
+          {yamlValidation && <p className="text-xs text-danger-500">{yamlValidation}</p>}
         </div>
       )}
 

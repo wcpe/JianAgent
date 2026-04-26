@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { serverApi } from '../../api/server.api.js';
 import type { ConditionalStopDto, ConditionType } from '@jian-agent/shared-domain';
 import { Clock, X, Play, Square, RefreshCw, ShieldAlert, Activity } from 'lucide-react';
+import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 
 interface MaintenanceTabProps {
   readonly serverId: string;
@@ -133,30 +134,26 @@ export function MaintenanceTab({ serverId }: MaintenanceTabProps) {
         定时维护
       </h2>
 
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded text-sm">
-          {error}
-        </div>
-      )}
+      {error && <ErrorAlert message={error} />}
 
       {/* Current Schedule */}
       {scheduled && (
-        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+        <div className="p-4 bg-warning-50 dark:bg-warning-700/20 border border-warning-200 dark:border-warning-700 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+              <p className="text-sm font-medium text-warning-700 dark:text-warning-200">
                 已计划 {scheduled.mode === 'force' ? '强制停止' : '优雅停止'}
               </p>
-              <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
+              <p className="text-sm text-warning-600 dark:text-warning-400 mt-1">
                 执行时间：{new Date(scheduled.stopAt).toLocaleString('zh-CN')}
               </p>
-              <p className="text-xs text-yellow-500 dark:text-yellow-500 mt-0.5">
+              <p className="text-xs text-warning-500 dark:text-warning-500 mt-0.5">
                 {formatRemaining(scheduled.stopAt)}
               </p>
             </div>
             <button
               onClick={handleCancel}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-warning-600 hover:bg-warning-700 text-white rounded transition-colors"
             >
               <X className="w-4 h-4" />
               取消
@@ -188,7 +185,7 @@ export function MaintenanceTab({ serverId }: MaintenanceTabProps) {
                 onClick={() => setMode('stop')}
                 className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded text-sm border transition-colors ${
                   mode === 'stop'
-                    ? 'bg-red-600 text-white border-red-600'
+                    ? 'bg-danger-600 text-white border-danger-600'
                     : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
@@ -272,15 +269,15 @@ export function MaintenanceTab({ serverId }: MaintenanceTabProps) {
         </h3>
 
         {condStop ? (
-          <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded">
-            <span className="text-sm text-orange-700 dark:text-orange-300">
+          <div className="flex items-center gap-3 p-3 bg-warning-50 dark:bg-warning-700/20 border border-warning-200 dark:border-warning-700 rounded">
+            <span className="text-sm text-warning-700 dark:text-warning-200">
               {condStop.type === 'no_players_for' && `无玩家 ${condStop.params['minutes'] ?? 10} 分钟后自动停服`}
               {condStop.type === 'memory_exceeds' && `内存超过 ${condStop.params['thresholdMb'] ?? 4096} MB 后自动停服`}
               {condStop.type === 'after_session' && '会话结束后自动停服'}
             </span>
             <button
               onClick={handleClearCondStop}
-              className="ml-auto flex items-center gap-1 px-2 py-1 text-xs bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800"
+              className="ml-auto flex items-center gap-1 px-2 py-1 text-xs bg-danger-100 dark:bg-danger-700/50 text-danger-700 dark:text-danger-200 rounded hover:bg-danger-200 dark:hover:bg-danger-700"
             >
               <X className="w-3.5 h-3.5" />
               清除
@@ -329,7 +326,7 @@ export function MaintenanceTab({ serverId }: MaintenanceTabProps) {
 
               <button
                 onClick={handleSetCondStop}
-                className="px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700"
+                className="px-3 py-1.5 text-sm bg-warning-600 text-white rounded hover:bg-warning-700"
               >
                 启用
               </button>
@@ -347,7 +344,7 @@ export function MaintenanceTab({ serverId }: MaintenanceTabProps) {
           </h3>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5">
-              <div className={`w-2 h-2 rounded-full ${health.unresponsive ? 'bg-red-500' : 'bg-green-500'}`} />
+              <div className={`w-2 h-2 rounded-full ${health.unresponsive ? 'bg-danger-500' : 'bg-success-500'}`} />
               <span className="text-gray-700 dark:text-gray-300">
                 {health.unresponsive ? '无响应' : '正常'}
               </span>

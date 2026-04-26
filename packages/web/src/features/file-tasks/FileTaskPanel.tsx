@@ -21,9 +21,9 @@ const KIND_LABELS: Record<string, string> = {
 
 const STATE_COLORS: Record<string, string> = {
   PENDING: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-  RUNNING: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  COMPLETED: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-  FAILED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  RUNNING: 'bg-info-100 text-info-700 dark:bg-info-900/40 dark:text-info-400',
+  COMPLETED: 'bg-success-100 text-success-700 dark:bg-success-900/40 dark:text-success-400',
+  FAILED: 'bg-danger-100 text-danger-700 dark:bg-danger-900/40 dark:text-danger-400',
   CANCELLED: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 };
 
@@ -44,12 +44,12 @@ function ProgressBar({ progress, state }: { readonly progress: number; readonly 
   const pct = Math.min(100, Math.max(0, progress));
   const colorClass =
     state === 'COMPLETED'
-      ? 'bg-green-500'
+      ? 'bg-success-500'
       : state === 'FAILED'
-        ? 'bg-red-500'
+        ? 'bg-danger-500'
         : state === 'CANCELLED'
           ? 'bg-gray-400'
-          : 'bg-blue-500';
+          : 'bg-info-500';
 
   return (
     <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -80,11 +80,11 @@ function TaskRow({
         <TaskKindIcon kind={task.kind} />
         <span className="text-xs font-medium text-gray-700 dark:text-gray-200 flex-1 truncate">
           {kindLabel}
-          {task.sourcePaths.length > 0 && (
+          {(task.sourcePaths ?? []).length > 0 && (
             <span className="font-normal text-gray-400 dark:text-gray-500 ml-1">
-              {task.sourcePaths.length === 1
-                ? task.sourcePaths[0].split('/').pop()
-                : `${task.sourcePaths.length} 个文件`}
+              {(task.sourcePaths ?? []).length === 1
+                ? (task.sourcePaths ?? [])[0]?.split('/').pop()
+                : `${(task.sourcePaths ?? []).length} 个文件`}
             </span>
           )}
         </span>
@@ -108,7 +108,7 @@ function TaskRow({
 
       {/* Error message */}
       {task.state === 'FAILED' && task.error && (
-        <div className="mt-1 text-[10px] text-red-500 dark:text-red-400 truncate">{task.error}</div>
+        <div className="mt-1 text-[10px] text-danger-500 dark:text-danger-400 truncate">{task.error}</div>
       )}
 
       {/* Actions */}
@@ -116,7 +116,7 @@ function TaskRow({
         {isActive && (
           <button
             onClick={() => onCancel(task.taskId)}
-            className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+            className="text-[10px] text-gray-400 hover:text-danger-500 transition-colors"
           >
             取消
           </button>
@@ -124,7 +124,7 @@ function TaskRow({
         {canDownload && (
           <button
             onClick={() => onDownload(task.taskId)}
-            className="text-[10px] text-blue-500 hover:text-blue-700 transition-colors"
+            className="text-[10px] text-info-500 hover:text-info-700 transition-colors"
           >
             下载结果
           </button>
@@ -156,7 +156,7 @@ export function FileTaskPanel({ serverId, compact = false }: FileTaskPanelProps)
   const badge = useMemo(() => {
     if (activeCount === 0) return null;
     return (
-      <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-blue-500 text-white text-[10px] font-medium">
+      <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-info-500 text-white text-[10px] font-medium">
         {activeCount}
       </span>
     );
