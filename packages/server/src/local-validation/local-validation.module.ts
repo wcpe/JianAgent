@@ -7,8 +7,10 @@ import { LocalValidationController } from './local-validation.controller.js';
 import { LocalValidationMapper } from './local-validation.mapper.js';
 import { LocalValidationOrchestratorService } from './local-validation-orchestrator.service.js';
 import { LocalValidationScenarioService } from './local-validation-scenario.service.js';
+import { PvpArenaService } from './pvp-arena.service.js';
 import { ScenarioAssertionService } from './scenario-assertion.service.js';
 import { ScenarioCatalogService } from './scenario-catalog.service.js';
+import { ScenarioEvidenceService } from './scenario-evidence.service.js';
 import { LocalValidationStore } from './local-validation.store.js';
 import { ValidationEvidenceService } from './validation-evidence.service.js';
 import { ValidationReportService } from './validation-report.service.js';
@@ -25,6 +27,8 @@ import { ValidationReportService } from './validation-report.service.js';
     LocalServerProvisioningService,
     ValidationEvidenceService,
     ValidationReportService,
+    PvpArenaService,
+    ScenarioEvidenceService,
     LocalValidationScenarioService,
     LocalValidationOrchestratorService,
   ],

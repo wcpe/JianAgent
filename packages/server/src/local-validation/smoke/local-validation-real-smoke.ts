@@ -91,17 +91,17 @@ async function cleanupArtifacts(input: {
   if (input.serverId && !input.keepServerRunning) {
     try {
       await input.lifecycle.stop(input.serverId, false);
-    } catch {
+    } catch (_err) {
       try {
         await input.lifecycle.stop(input.serverId, true);
-      } catch {
+      } catch (_err2) {
         // ignore cleanup errors; smoke verdict already captured
       }
     }
 
     try {
       await input.configService.delete(input.serverId);
-    } catch {
+    } catch (_err) {
       // ignore cleanup errors
     }
   }

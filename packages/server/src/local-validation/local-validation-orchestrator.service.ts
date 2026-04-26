@@ -231,7 +231,8 @@ export class LocalValidationOrchestratorService {
     try {
       await this.configService.delete(configId);
       return true;
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Best-effort cleanup of config ${configId} failed`, err);
       return false;
     }
   }
@@ -246,7 +247,8 @@ export class LocalValidationOrchestratorService {
         finishedAt: null,
       });
       return true;
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Best-effort rollback of run ${runId} to CREATED failed`, err);
       return false;
     }
   }
@@ -267,8 +269,8 @@ export class LocalValidationOrchestratorService {
         failureMessage: this.toFailureMessage(triggerError),
       });
       return true;
-    } catch {
-      // Best-effort compensation only; preserve the original triggering error.
+    } catch (err) {
+      this.logger.debug(`Best-effort persist of failure status for run ${runId} failed`, err);
       return false;
     }
   }
@@ -351,7 +353,8 @@ export class LocalValidationOrchestratorService {
 
     try {
       await this.lifecycle.stop(configId, true);
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Best-effort lifecycle stop for ${configId} failed during compensation`, err);
       if (!failedPersisted) {
         await this.persistRunFailureStatus(
           runId,

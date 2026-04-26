@@ -2,9 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LocalValidationRunDto } from '@jian-agent/shared-domain';
 import { ScenarioAssertionService } from '../scenario-assertion.service.js';
 import { LocalValidationScenarioService } from '../local-validation-scenario.service.js';
+import { PvpArenaService } from '../pvp-arena.service.js';
+import { ScenarioEvidenceService } from '../scenario-evidence.service.js';
+import { resolveBuildTarget } from '../build-target.utils.js';
 
 describe('LocalValidationScenarioService', () => {
   let service: LocalValidationScenarioService;
+  let pvpArena: PvpArenaService;
+  let scenarioEvidence: ScenarioEvidenceService;
   const originalScenarioProfile = process.env['LOCAL_VALIDATION_SCENARIO_PROFILE'];
 
   function createRun(overrides: Partial<LocalValidationRunDto> = {}): LocalValidationRunDto {
@@ -192,17 +197,27 @@ describe('LocalValidationScenarioService', () => {
       sections: [],
     });
 
+    pvpArena = new PvpArenaService(
+      botOrchestrator as never,
+      botState as never,
+      botRealtime as never,
+      processManager as never,
+    );
+    scenarioEvidence = new ScenarioEvidenceService(
+      botRealtime as never,
+    );
+
     service = new LocalValidationScenarioService(
       store as never,
       scenarioCatalog as never,
       new ScenarioAssertionService(),
       botOrchestrator as never,
       botState as never,
-      botRealtime as never,
-      processManager as never,
       validationEvidence as never,
       validationReport as never,
       eventBus as never,
+      pvpArena,
+      scenarioEvidence,
     );
   });
 
@@ -304,6 +319,7 @@ describe('LocalValidationScenarioService', () => {
       { botName: 'bot-1', event: 'RESPAWNED', message: 'respawned', timestamp: Date.now(), serverId: 'srv_1', batchId: 'batch-1', validationRunId: 'lvr_1' },
     ]);
     (service as any).sleep = vi.fn().mockResolvedValue(undefined);
+    (pvpArena as any).sleep = vi.fn().mockResolvedValue(undefined);
 
     await service.executeScenario(createRun({ requestedBotCount: 2 }));
 
@@ -336,6 +352,7 @@ describe('LocalValidationScenarioService', () => {
     ]);
     botRealtime.getRecentBotEvents.mockReturnValue([]);
     (service as any).sleep = vi.fn().mockResolvedValue(undefined);
+    (pvpArena as any).sleep = vi.fn().mockResolvedValue(undefined);
 
     await service.executeScenario(createRun({ requestedBotCount: 2 }));
 
@@ -354,7 +371,7 @@ describe('LocalValidationScenarioService', () => {
       { name: 'bot-2', state: 'SPAWNED', currentBehavior: 'attack', workerPid: 1, x: 2, y: 81, z: 0, health: 20, food: 20, latencyMs: 0, world: 'world', isDead: false, deathCount: 1, connectedAt: '', lastError: null, lastHeartbeat: Date.now() },
     ]);
 
-    const observation = (service as any).collectPvpStageObservation(
+    const observation = pvpArena.collectPvpStageObservation(
       createRun({ requestedBotCount: 2 }),
       { batchId: 'batch-1', botNames: ['bot-1', 'bot-2'] },
       new Map([
@@ -369,7 +386,7 @@ describe('LocalValidationScenarioService', () => {
   });
 
   it('prefers refilling the excavated column on the original terrain before falling back to a nearby surface', () => {
-    const target = (service as any).resolveBuildTarget(
+    const target = resolveBuildTarget(
       { x: 1.2, y: 64, z: 1.1 },
       [
         { x: 2, y: 64, z: 1, name: 'dirt' },
