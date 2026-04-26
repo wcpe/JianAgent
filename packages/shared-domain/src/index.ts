@@ -55,13 +55,23 @@ export type {
 
 export { DEFAULTS } from './constants/defaults.js';
 export { LIMITS } from './constants/limits.js';
+export type {
+  ApiResponseEnvelope,
+  ApiErrorEnvelope,
+  ApiResponseMeta,
+  ApiErrorDetail,
+  ApiResponsePayload,
+} from './dto/api-response.dto.js';
 
 // Log DTOs
-export type { LogEntryDto, LogSearchRequest, LogSearchResult, LogAnalyticsResult, LogIngestEntry, LogCollectionConfigDto, CreateLogCollectionConfigRequest, LogAlertRuleDto, CreateLogAlertRuleRequest } from './dto/log.dto.js';
+export type { LogEntryDto, LogSearchRequest, LogSearchResult, LogAnalyticsResult, LogIngestEntry, LogCollectionConfigDto, CreateLogCollectionConfigRequest, LogAlertRuleDto, CreateLogAlertRuleRequest, NodeLogEntryDto } from './dto/log.dto.js';
 export type { LogAggregateSearchEntryDto, LogAggregateSearchResponseDto } from './dto/log.dto.js';
 
 // Remote Host DTOs
 export type { RemoteHostDto, CreateRemoteHostRequest, UpdateRemoteHostRequest, SshConnectConfig } from './dto/remote-host.dto.js';
+
+// System Metrics DTOs
+export type { SystemMetricsDto, DiskInfoDto, CorrelatedTimelineDto } from './dto/system-metrics.dto.js';
 export { remoteHostToResourceSummary } from './dto/remote-host.dto.js';
 
 // Alert DTOs
@@ -239,3 +249,6 @@ export type { GovernanceActionDto, GovernanceActionType, GovernanceActionResult 
 
 // Process Metrics
 export type { ProcessMetrics, ProcessMetricsSummary } from './dto/process-metrics.dto.js';
+
+// Server Provisioning
+export type { ServerCoreType, ProvisionServerRequest, ProvisionPhase, ProvisionProgressEvent, ProvisionServerResponse, PaperVersionInfo } from './dto/server-provision.dto.js';

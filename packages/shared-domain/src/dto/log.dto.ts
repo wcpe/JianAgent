@@ -36,6 +36,7 @@ export interface LogAnalyticsResult {
   readonly levelDistribution: Readonly<Record<string, number>>;
   readonly timelineBuckets: readonly { time: string; count: number }[];
   readonly topKeywords: readonly { word: string; count: number }[];
+  readonly errorTrend?: readonly { time: string; count: number }[];
 }
 
 export interface LogAggregateSearchEntryDto {
@@ -100,4 +101,12 @@ export interface CreateLogAlertRuleRequest {
   readonly level?: string;
   readonly cooldownSec?: number;
   readonly notificationChannelId?: string;
+}
+
+export interface NodeLogEntryDto {
+  readonly timestamp: string;
+  readonly level: string;
+  readonly context: string;
+  readonly message: string;
+  readonly raw: string;
 }

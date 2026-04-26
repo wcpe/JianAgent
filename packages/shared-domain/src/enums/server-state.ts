@@ -1,4 +1,5 @@
 export const ServerState = {
+  PENDING: 'PENDING',
   NOT_CONFIGURED: 'NOT_CONFIGURED',
   STOPPED: 'STOPPED',
   STARTING: 'STARTING',
