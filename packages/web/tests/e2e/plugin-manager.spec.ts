@@ -9,7 +9,7 @@ async function login(page: any) {
   await page.evaluate(() => localStorage.clear());
   
   const responsePromise = page.waitForResponse(response => 
-    response.url().includes('/api/auth/login')
+    response.url().includes('/api/v1/auth/login')
   );
   await page.click('button[type="submit"]');
   await responsePromise;
@@ -26,7 +26,7 @@ test.describe('Task 5: Plugin Manager', () => {
     await page.goto('/servers');
     
     // Wait for the servers API to load the list
-    await page.waitForResponse(response => response.url().includes('/api/servers') && response.request().method() === 'GET');
+    await page.waitForResponse(response => response.url().includes('/api/v1/servers') && response.request().method() === 'GET');
     await page.waitForTimeout(1000);
     
     // Now pick the server from the list and navigate to plugins
@@ -70,7 +70,7 @@ test.describe('Task 5: Plugin Manager', () => {
       const hotLoadBtn = page.locator('button:has-text("热加载")').first();
       if (await hotLoadBtn.isVisible()) {
         const operationPromise = page.waitForResponse(response => 
-          response.url().includes('/api/servers/') && response.url().includes('/plugins/') && response.url().includes('/hot-load') && response.request().method() === 'POST'
+          response.url().includes('/api/v1/servers/') && response.url().includes('/plugins/') && response.url().includes('/hot-load') && response.request().method() === 'POST'
         );
         await hotLoadBtn.click();
         await operationPromise;

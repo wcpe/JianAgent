@@ -7,7 +7,7 @@ async function login(page: any) {
   await page.fill('input[type="password"]', 'admin123456');
   
   const responsePromise = page.waitForResponse(response => 
-    response.url().includes('/api/auth/login')
+    response.url().includes('/api/v1/auth/login')
   );
   await page.click('button[type="submit"]');
   await responsePromise;

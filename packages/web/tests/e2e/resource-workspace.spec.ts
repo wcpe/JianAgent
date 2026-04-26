@@ -124,9 +124,9 @@ function createWorkspacePayload(kind?: string) {
 }
 
 test('resource workspace, legacy wrappers, and validation detail entry work together', async ({ authedPage: page }) => {
-  await page.route('**/api/resources/srv-managed', async (route) => {
+  await page.route('**/api/v1/resources/srv-managed', async (route) => {
     const url = new URL(route.request().url());
-    if (!url.pathname.endsWith('/api/resources/srv-managed')) {
+    if (!url.pathname.endsWith('/api/v1/resources/srv-managed')) {
       await route.fallback();
       return;
     }
@@ -181,11 +181,11 @@ test('resource workspace, legacy wrappers, and validation detail entry work toge
     });
   });
 
-  await page.route(/.*\/api\/resources(?:\?.*)?$/, async (route) => {
+  await page.route(/.*\/api\/v1\/resources(?:\?.*)?$/, async (route) => {
     const url = new URL(route.request().url());
     const kind = url.searchParams.get('kind') ?? undefined;
 
-    if (!url.pathname.endsWith('/api/resources')) {
+    if (!url.pathname.endsWith('/api/v1/resources')) {
       await route.fallback();
       return;
     }
@@ -197,7 +197,7 @@ test('resource workspace, legacy wrappers, and validation detail entry work toge
     });
   });
 
-  await page.route('**/api/local-validation/runs', async (route) => {
+  await page.route('**/api/v1/local-validation/runs', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

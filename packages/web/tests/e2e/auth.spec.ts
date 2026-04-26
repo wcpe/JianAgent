@@ -19,7 +19,7 @@ test.describe('Task 1: Auth & Navigation', () => {
     
     // Set up response listener before clicking
     const responsePromise = page.waitForResponse(response => 
-      response.url().includes('/api/auth/login')
+      response.url().includes('/api/v1/auth/login')
     );
     await page.click('button[type="submit"]');
 

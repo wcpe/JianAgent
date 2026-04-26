@@ -1,7 +1,7 @@
 import { test, expect } from '../../e2e/fixtures.js';
 
 test('loads the local validation workspace and shows mocked stage progress', async ({ authedPage: page }) => {
-  await page.route('**/api/local-validation/scenario-packs', async (route) => {
+  await page.route('**/api/v1/local-validation/scenario-packs', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -16,7 +16,7 @@ test('loads the local validation workspace and shows mocked stage progress', asy
     });
   });
 
-  await page.route('**/api/local-validation/runs', async (route) => {
+  await page.route('**/api/v1/local-validation/runs', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -39,7 +39,7 @@ test('loads the local validation workspace and shows mocked stage progress', asy
     });
   });
 
-  await page.route('**/api/local-validation/runs/lvr_001/stages', async (route) => {
+  await page.route('**/api/v1/local-validation/runs/lvr_001/stages', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -60,7 +60,7 @@ test('loads the local validation workspace and shows mocked stage progress', asy
     });
   });
 
-  await page.route('**/api/local-validation/runs/lvr_001/assertions', async (route) => {
+  await page.route('**/api/v1/local-validation/runs/lvr_001/assertions', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -82,7 +82,7 @@ test('loads the local validation workspace and shows mocked stage progress', asy
     });
   });
 
-  await page.route('**/api/local-validation/runs/lvr_001/evidence', async (route) => {
+  await page.route('**/api/v1/local-validation/runs/lvr_001/evidence', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

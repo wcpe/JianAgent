@@ -10,7 +10,7 @@ async function login(page: any) {
   await page.evaluate(() => localStorage.clear());
   
   const responsePromise = page.waitForResponse(response => 
-    response.url().includes('/api/auth/login')
+    response.url().includes('/api/v1/auth/login')
   );
   await page.click('button[type="submit"]');
   const response = await responsePromise;
@@ -42,7 +42,7 @@ test.describe('Task 4: File Manager', () => {
 
     // Wait for the creation to complete
     const createPromise = page.waitForResponse(response => 
-      response.url().includes('/api/servers/') && response.url().includes('/files') && response.request().method() === 'POST'
+      response.url().includes('/api/v1/servers/') && response.url().includes('/files') && response.request().method() === 'POST'
     );
     await page.click('button:has-text("创建")');
     await createPromise;

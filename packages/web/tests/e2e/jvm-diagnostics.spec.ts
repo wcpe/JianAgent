@@ -5,7 +5,7 @@ async function login(page: any) {
   await page.fill('input[type="text"]', 'admin');
   await page.fill('input[type="password"]', 'admin123456');
   await page.evaluate(() => localStorage.clear());
-  const responsePromise = page.waitForResponse(response => response.url().includes('/api/auth/login'));
+  const responsePromise = page.waitForResponse(response => response.url().includes('/api/v1/auth/login'));
   await page.click('button[type="submit"]');
   await responsePromise;
   await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
@@ -18,7 +18,7 @@ test.describe('Task 6: JVM Diagnostics', () => {
 
   test('should connect to JVM helper and trigger thread dump', async ({ page }) => {
     await page.goto('/servers');
-    await page.waitForResponse(response => response.url().includes('/api/servers') && response.request().method() === 'GET');
+    await page.waitForResponse(response => response.url().includes('/api/v1/servers') && response.request().method() === 'GET');
     await page.waitForTimeout(1000);
     
     // Check if any server is STOPPED, start it
@@ -55,7 +55,7 @@ test.describe('Task 6: JVM Diagnostics', () => {
     // Trigger thread dump
     const threadBtn = page.locator('button:has-text("执行线程采样")').first();
     if (await threadBtn.isVisible() && await threadBtn.isEnabled()) {
-      const dumpPromise = page.waitForResponse(response => response.url().includes('/api/java-helper/thread-dump'));
+      const dumpPromise = page.waitForResponse(response => response.url().includes('/api/v1/java-helper/thread-dump'));
       await threadBtn.click();
       await dumpPromise;
       // Wait for results

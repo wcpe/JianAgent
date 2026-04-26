@@ -5,7 +5,7 @@ async function login(page: any) {
   await page.fill('input[type="text"]', 'admin');
   await page.fill('input[type="password"]', 'admin123456');
   await page.evaluate(() => localStorage.clear());
-  const responsePromise = page.waitForResponse(response => response.url().includes('/api/auth/login'));
+  const responsePromise = page.waitForResponse(response => response.url().includes('/api/v1/auth/login'));
   await page.click('button[type="submit"]');
   await responsePromise;
   await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
@@ -29,7 +29,7 @@ test.describe('Task 10: Validation, Audit and Governance', () => {
     await expect(page.locator('h1:has-text("审计日志")').first().or(page.locator('h1:has-text("操作审计日志")').first())).toBeVisible({ timeout: 10000 });
     
     // Wait for audit list API
-    await page.waitForResponse(response => response.url().includes('/api/audit') && response.request().method() === 'GET').catch(() => null);
+    await page.waitForResponse(response => response.url().includes('/api/v1/audit') && response.request().method() === 'GET').catch(() => null);
     
     // Check if table renders
     const hasTable = await page.locator('table').first().isVisible();
