@@ -7,7 +7,7 @@ import { ValidationPlanService } from '../validation/validation-plan.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Auditable } from '../audit/auditable.decorator';
 
-@Controller('api/sessions')
+@Controller('sessions')
 export class SessionController {
   constructor(
     private readonly sessionService: SessionService,
@@ -18,9 +18,17 @@ export class SessionController {
   ) {}
 
   @Get()
-  async list() {
-    const sessions = await this.sessionService.findAll();
-    return { success: true, data: sessions };
+  async list(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedPage = Math.max(1, parseInt(page ?? '1', 10) || 1);
+    const parsedLimit = Math.min(200, Math.max(1, parseInt(limit ?? '50', 10) || 50));
+    const all = await this.sessionService.findAll();
+    const total = all.length;
+    const start = (parsedPage - 1) * parsedLimit;
+    const data = all.slice(start, start + parsedLimit);
+    return { success: true, data, total, page: parsedPage, limit: parsedLimit };
   }
 
   @Get(':id')

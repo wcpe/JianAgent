@@ -19,7 +19,7 @@ import { RoleLevel } from '@jian-agent/shared-domain';
 import { StartTemplateService } from './start-template.service.js';
 import type { StartTemplateDto, CreateStartTemplateDto, UpdateStartTemplateDto } from '@jian-agent/shared-domain';
 
-@Controller('api/start-templates')
+@Controller('start-templates')
 @UseGuards(JwtGuard, RolesGuard)
 export class StartTemplateController {
   constructor(private readonly service: StartTemplateService) {}

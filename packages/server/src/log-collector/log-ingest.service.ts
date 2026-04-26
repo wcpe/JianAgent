@@ -123,7 +123,7 @@ export class LogIngestService {
         try {
           const regex = new RegExp(rule.pattern, 'i');
           if (!regex.test(entry.content)) continue;
-        } catch {
+        } catch (_err) {
           // Invalid regex — skip
           continue;
         }

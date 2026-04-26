@@ -36,6 +36,7 @@ export interface SshSessionLiveView {
 }
 
 class SshTerminalSessionImpl extends EventEmitter implements SshTerminalSession {
+  private readonly logger = new Logger(SshTerminalSessionImpl.name);
   private channel: ClientChannel | null = null;
   private _alive = false;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -110,7 +111,7 @@ class SshTerminalSessionImpl extends EventEmitter implements SshTerminalSession 
   close(): void {
     this._alive = false;
     if (this.idleTimer) clearTimeout(this.idleTimer);
-    try { this.channel?.close(); } catch { /* ignore */ }
+    try { this.channel?.close(); } catch (err) { this.logger.debug(`SSH channel close error: ${err}`); }
     this.channel = null;
   }
 

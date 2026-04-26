@@ -4,7 +4,7 @@ import { TenantScopeGuard } from '../../common/tenant-scope.guard.js';
 import { ApprovalService } from '../approval/approval.service.js';
 import { OperationJobService } from './operation-job.service.js';
 
-@Controller('api/control-plane/jobs')
+@Controller('control-plane/jobs')
 @UseGuards(JwtGuard, TenantScopeGuard)
 export class OperationJobController {
   constructor(

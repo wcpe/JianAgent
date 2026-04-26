@@ -6,7 +6,7 @@ import { Roles } from '../auth/roles.decorator.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/session-templates')
+@Controller('session-templates')
 @UseGuards(JwtGuard, RolesGuard)
 export class SessionTemplateController {
   constructor(private readonly templateService: SessionTemplateService) {}

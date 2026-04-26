@@ -84,7 +84,9 @@ export class SshPoolService implements OnModuleDestroy {
     if (!entries) return;
     for (const entry of entries) {
       entry.alive = false;
-      try { entry.client.end(); } catch { /* ignore */ }
+      try { entry.client.end(); } catch (err: unknown) {
+        this.logger.warn(`Error closing SSH client for ${serverId}: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
     this.pools.delete(serverId);
   }
@@ -139,9 +141,9 @@ export class SshPoolService implements OnModuleDestroy {
           connectConfig['privateKey'] = readFileSync(config.keyPath);
           const passphrase = this.crypto.decrypt(config.passphraseEncrypted);
           if (passphrase) connectConfig['passphrase'] = passphrase;
-        } catch (err: any) {
+        } catch (err: unknown) {
           clearTimeout(timer);
-          reject(new Error(`Failed to read SSH key: ${err.message}`));
+          reject(new Error(`Failed to read SSH key: ${err instanceof Error ? err.message : String(err)}`));
           return;
         }
       } else {
@@ -165,13 +167,17 @@ export class SshPoolService implements OnModuleDestroy {
       const remaining: PoolEntry[] = [];
       for (const entry of entries) {
         if (!entry.alive) {
-          try { entry.client.end(); } catch { /* ignore */ }
+          try { entry.client.end(); } catch (err: unknown) {
+            this.logger.warn(`Error closing dead SSH client for ${serverId}: ${err instanceof Error ? err.message : String(err)}`);
+          }
           continue;
         }
         // Close idle connections
         if (entry.refCount === 0 && now - entry.lastUsed > IDLE_TIMEOUT_MS) {
           entry.alive = false;
-          try { entry.client.end(); } catch { /* ignore */ }
+          try { entry.client.end(); } catch (err: unknown) {
+            this.logger.warn(`Error closing idle SSH client for ${serverId}: ${err instanceof Error ? err.message : String(err)}`);
+          }
           this.logger.debug(`Closed idle SSH connection for ${serverId}`);
           continue;
         }

@@ -53,7 +53,7 @@ export class PhaseEngineService {
       name: `Session ${sessionId}`,
       serverId,
       type: 'custom',
-      config: { phases: phases as any[] },
+      config: { phases: phases as unknown as readonly Record<string, unknown>[] },
     });
 
     const run = await this.validationRunService.create(plan.id, serverId);
@@ -72,12 +72,12 @@ export class PhaseEngineService {
       throw new Error(`Validation plan ${run.planId} not found`);
     }
 
-    const configPhases = (plan.config?.phases ?? []) as any[];
-    const phases: PhaseConfig[] = configPhases.map((p: any) => ({
-      phase: p.name ?? p.phase ?? 'default',
-      botCount: p.botCount ?? 1,
-      behavior: p.behavior ?? 'idle',
-      durationSec: p.durationSec ?? 60,
+    const configPhases = (plan.config?.phases ?? []) as Record<string, unknown>[];
+    const phases: PhaseConfig[] = configPhases.map((p) => ({
+      phase: (p.name ?? p.phase ?? 'default') as string,
+      botCount: (p.botCount ?? 1) as number,
+      behavior: (p.behavior ?? 'idle') as string,
+      durationSec: (p.durationSec ?? 60) as number,
     }));
 
     const sessionId = `sess_vr_${run.id}`;

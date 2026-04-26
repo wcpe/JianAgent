@@ -360,8 +360,8 @@ export class FileTaskService {
       const data = await readFile(task.resultArtifact);
       const filename = task.resultArtifact.split('/').pop() ?? `task-${taskId}.bin`;
       return { filename, data };
-    } catch {
-      // If artifact is not a readable file path, return null
+    } catch (err) {
+      this.logger.debug(`Failed to read artifact file for task ${taskId}`, err);
       return null;
     }
   }

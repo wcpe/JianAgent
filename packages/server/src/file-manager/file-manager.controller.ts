@@ -22,8 +22,9 @@ import { Roles } from '../auth/roles.decorator.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import { RoleLevel, FileTaskKind } from '@jian-agent/shared-domain';
 import type { FileTaskRequest } from '@jian-agent/shared-domain';
+import type { AuthenticatedRequest } from '../auth/authenticated-request.js';
 
-@Controller('api/servers/:id/files')
+@Controller('servers/:id/files')
 @UseGuards(JwtGuard, RolesGuard)
 export class FileManagerController {
   constructor(
@@ -54,11 +55,11 @@ export class FileManagerController {
   async writeFile(
     @Param('id') id: string,
     @Body() body: { path: string; content: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!body.path) throw new BadRequestException('path is required');
     await this.fileManager.writeFile(id, body.path, body.content);
-    const userId = req.user?.sub ?? '';
+    const userId = req.user.sub;
     this.fileVersion.createVersion(id, body.path, body.content, userId, 'manual');
     return { success: true };
   }
@@ -119,8 +120,10 @@ export class FileManagerController {
               task.taskId,
               body.dirPath ? `${body.dirPath}/${body.filename}` : body.filename,
             );
-          } catch (err: any) {
-            await this.fileTaskService.markFailed(task.taskId, err.message, err.stack);
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            const stack = err instanceof Error ? err.stack : undefined;
+            await this.fileTaskService.markFailed(task.taskId, message, stack);
           }
         });
         return { taskId: task.taskId };
@@ -251,12 +254,12 @@ export class FileManagerController {
   async restoreVersion(
     @Param('id') id: string,
     @Param('vid') vid: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     const v = this.fileVersion.getVersion(vid);
     if (!v) throw new BadRequestException('Version not found');
     await this.fileManager.writeFile(id, v.filePath, v.content);
-    const userId = req.user?.sub ?? '';
+    const userId = req.user.sub;
     this.fileVersion.createVersion(id, v.filePath, v.content, userId, 'manual');
     return { success: true };
   }
@@ -266,10 +269,10 @@ export class FileManagerController {
   autoSaveVersion(
     @Param('id') id: string,
     @Body() body: { path: string; content: string },
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     if (!body.path) throw new BadRequestException('path is required');
-    const userId = req.user?.sub ?? '';
+    const userId = req.user.sub;
     const versionId = this.fileVersion.createVersion(id, body.path, body.content, userId, 'auto');
     return { success: true, versionId };
   }

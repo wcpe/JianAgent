@@ -7,6 +7,8 @@ import {
   Param,
   Body,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtGuard } from '../auth/jwt.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
@@ -20,7 +22,7 @@ import type {
 import { RemoteHostService } from './remote-host.service.js';
 import { PlatformResourceService } from '../platform-resource/platform-resource.service.js';
 
-@Controller('api/remote-hosts')
+@Controller('remote-hosts')
 @UseGuards(JwtGuard, RolesGuard)
 export class RemoteHostController {
   constructor(
@@ -41,6 +43,7 @@ export class RemoteHostController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles(RoleLevel.ADMIN)
   @Auditable('remote-host:create')
   async create(@Body() body: CreateRemoteHostRequest) {
@@ -61,11 +64,11 @@ export class RemoteHostController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.ADMIN)
   @Auditable('remote-host:delete')
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id') id: string): Promise<void> {
     await this.remoteHostService.delete(id);
-    return { success: true };
   }
 
   @Post(':id/test')

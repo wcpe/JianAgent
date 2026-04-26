@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../../auth/jwt.guard.js';
 import { PolicyEngineService } from './policy-engine.service.js';
 
-@Controller('api/control-plane/policies')
+@Controller('control-plane/policies')
 @UseGuards(JwtGuard)
 export class PolicyController {
   constructor(private readonly policyEngineService: PolicyEngineService) {}

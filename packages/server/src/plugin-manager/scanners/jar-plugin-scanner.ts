@@ -40,8 +40,8 @@ export class JarPluginScanner implements PluginScanner {
     let files;
     try {
       files = await this.fileManager.listDir(serverId, PLUGINS_DIR);
-    } catch {
-      this.logger.warn(`Failed to list plugins directory for server ${serverId}`);
+    } catch (err) {
+      this.logger.warn(`Failed to list plugins directory for server ${serverId}`, err);
       return [];
     }
 
@@ -119,7 +119,8 @@ export class JarPluginScanner implements PluginScanner {
         softDepend: parsed.softdepend ?? undefined,
         website: parsed.website ?? undefined,
       };
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to read plugin descriptor from ${jarRelativePath}`, err);
       return null;
     }
   }

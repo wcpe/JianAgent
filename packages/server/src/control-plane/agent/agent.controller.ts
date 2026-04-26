@@ -3,7 +3,7 @@ import { JwtGuard } from '../../auth/jwt.guard.js';
 import { TenantScopeGuard } from '../../common/tenant-scope.guard.js';
 import { AgentGatewayService } from './agent-gateway.service.js';
 
-@Controller('api/control-plane/agents')
+@Controller('control-plane/agents')
 @UseGuards(JwtGuard, TenantScopeGuard)
 export class AgentController {
   constructor(private readonly agentGatewayService: AgentGatewayService) {}

@@ -63,8 +63,8 @@ export class JavaRuntimeDiscoveryService {
           dirs.push(fullPath);
         }
       }
-    } catch {
-      // Directory doesn't exist, skip
+    } catch (err) {
+      this.logger.debug('/usr/lib/jvm directory not accessible');
     }
 
     // ~/.sdkman/candidates/java (SDKMAN)
@@ -81,8 +81,8 @@ export class JavaRuntimeDiscoveryService {
             dirs.push(home);
           }
         }
-      } catch {
-        // Directory doesn't exist, skip
+      } catch (err) {
+        this.logger.debug('SDKMAN Java directory not accessible', err);
       }
     }
 
@@ -96,8 +96,8 @@ export class JavaRuntimeDiscoveryService {
           dirs.push(home);
         }
       }
-    } catch {
-      // Directory doesn't exist, skip
+    } catch (err) {
+      this.logger.debug('/Library/Java/JavaVirtualMachines not accessible', err);
     }
 
     // ~/Library/Java/JavaVirtualMachines (macOS user)
@@ -113,8 +113,8 @@ export class JavaRuntimeDiscoveryService {
             dirs.push(home);
           }
         }
-      } catch {
-        // Directory doesn't exist, skip
+      } catch (err) {
+        this.logger.debug('User Library Java directory not accessible', err);
       }
     }
 
@@ -125,8 +125,8 @@ export class JavaRuntimeDiscoveryService {
     const binPath = join(home, 'bin', 'java');
     try {
       await fs.access(binPath);
-    } catch {
-      // No java binary in this home
+    } catch (err) {
+      this.logger.debug(`No java binary found at ${binPath}`, err);
       return null;
     }
 
@@ -150,8 +150,8 @@ export class JavaRuntimeDiscoveryService {
     let resolvedBin = binPath;
     try {
       resolvedBin = await fs.realpath(binPath);
-    } catch {
-      // keep original
+    } catch (err) {
+      this.logger.debug(`Cannot resolve realpath for ${binPath}`, err);
     }
 
     // java binary is typically at $JAVA_HOME/bin/java
@@ -194,7 +194,8 @@ export class JavaRuntimeDiscoveryService {
       else if (/hotspot/i.test(stdout)) vendor = 'Oracle HotSpot';
 
       return { version, vendor };
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to get version info from ${javaBin}`, err);
       return null;
     }
   }
@@ -222,7 +223,8 @@ export class JavaRuntimeDiscoveryService {
         });
       });
       return stdout || null;
-    } catch {
+    } catch (err) {
+      this.logger.debug(`'which ${cmd}' failed`, err);
       return null;
     }
   }

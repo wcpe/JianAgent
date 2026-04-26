@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, OnModuleInit, NotFoundException } from '@ne
 import { DRIZZLE_TOKEN, type DrizzleDb } from '../storage/drizzle.provider.js';
 import { notificationChannels } from '../storage/schema.js';
 import { AlertEngineService } from '../metrics/alert-engine.service.js';
+import { SshCryptoService } from '../ssh/ssh-crypto.service.js';
 import type {
   NotificationChannelDto,
   NotificationChannelType,
@@ -13,6 +14,13 @@ import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { createHmac } from 'node:crypto';
 
+/** Mask a secret for API responses — never return the plaintext to clients. */
+function maskSecret(secret: string): string {
+  if (!secret) return '';
+  if (secret.length <= 4) return '****';
+  return secret.slice(0, 2) + '*'.repeat(Math.min(secret.length - 4, 8)) + secret.slice(-2);
+}
+
 @Injectable()
 export class NotificationService implements OnModuleInit {
   private readonly logger = new Logger(NotificationService.name);
@@ -20,6 +28,7 @@ export class NotificationService implements OnModuleInit {
   constructor(
     @Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb,
     private readonly alertEngine: AlertEngineService,
+    private readonly crypto: SshCryptoService,
   ) {}
 
   onModuleInit(): void {
@@ -38,7 +47,7 @@ export class NotificationService implements OnModuleInit {
       name: r.name,
       type: r.type as NotificationChannelType,
       url: r.url,
-      secret: r.secret,
+      secret: maskSecret(this.crypto.decrypt(r.secret)),
       enabled: r.enabled,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
@@ -47,12 +56,14 @@ export class NotificationService implements OnModuleInit {
 
   async createChannel(request: CreateNotificationChannelRequest): Promise<NotificationChannelDto> {
     const now = new Date().toISOString();
+    const rawSecret = request.secret ?? '';
+    const encryptedSecret = this.crypto.encrypt(rawSecret);
     const channel: NotificationChannelDto = {
       id: randomUUID(),
       name: request.name,
       type: request.type,
       url: request.url,
-      secret: request.secret ?? '',
+      secret: maskSecret(rawSecret),
       enabled: request.enabled ?? true,
       createdAt: now,
       updatedAt: now,
@@ -63,7 +74,7 @@ export class NotificationService implements OnModuleInit {
       name: channel.name,
       type: channel.type,
       url: channel.url,
-      secret: channel.secret,
+      secret: encryptedSecret,
       enabled: channel.enabled,
       createdAt: channel.createdAt,
       updatedAt: channel.updatedAt,
@@ -80,7 +91,7 @@ export class NotificationService implements OnModuleInit {
     const updates: Record<string, unknown> = { updatedAt: now };
     if (request.name !== undefined) updates['name'] = request.name;
     if (request.url !== undefined) updates['url'] = request.url;
-    if (request.secret !== undefined) updates['secret'] = request.secret;
+    if (request.secret !== undefined) updates['secret'] = this.crypto.encrypt(request.secret);
     if (request.enabled !== undefined) updates['enabled'] = request.enabled;
 
     await this.db.update(notificationChannels).set(updates).where(eq(notificationChannels.id, id));
@@ -92,7 +103,7 @@ export class NotificationService implements OnModuleInit {
       name: r.name,
       type: r.type as NotificationChannelType,
       url: r.url,
-      secret: r.secret,
+      secret: maskSecret(this.crypto.decrypt(r.secret)),
       enabled: r.enabled,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
@@ -144,12 +155,13 @@ export class NotificationService implements OnModuleInit {
   }
 
   private async sendToChannel(channel: typeof notificationChannels.$inferSelect, alert: AlertDto): Promise<void> {
+    const decryptedSecret = this.crypto.decrypt(channel.secret);
     switch (channel.type) {
       case 'webhook':
-        await this.sendWebhook(channel.url, channel.secret, alert);
+        await this.sendWebhook(channel.url, decryptedSecret, alert);
         break;
       case 'dingtalk':
-        await this.sendDingTalk(channel.url, channel.secret, alert);
+        await this.sendDingTalk(channel.url, decryptedSecret, alert);
         break;
       default:
         this.logger.warn(`Unknown channel type: ${channel.type}`);

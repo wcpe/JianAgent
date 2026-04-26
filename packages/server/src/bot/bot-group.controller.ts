@@ -21,7 +21,7 @@ import type {
   ApplyBehaviorToGroupDto,
 } from '@jian-agent/shared-domain';
 
-@Controller('api/bot/groups')
+@Controller('bot/groups')
 export class BotGroupController {
   constructor(
     private readonly groupService: BotGroupService,

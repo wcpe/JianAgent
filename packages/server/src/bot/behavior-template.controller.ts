@@ -14,7 +14,7 @@ import { BehaviorTemplateService } from './behavior-template.service.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import type { CreateBehaviorTemplateDto, UpdateBehaviorTemplateDto } from '@jian-agent/shared-domain';
 
-@Controller('api/behavior-templates')
+@Controller('behavior-templates')
 export class BehaviorTemplateController {
   constructor(private readonly templateService: BehaviorTemplateService) {}
 

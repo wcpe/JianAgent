@@ -15,7 +15,7 @@ interface EvalScriptBody {
   readonly script: string;
 }
 
-@Controller('api/plugin-bridge')
+@Controller('plugin-bridge')
 export class PluginBridgeController {
   constructor(
     private readonly bridgeService: PluginBridgeService,

@@ -3,7 +3,7 @@ import { JwtGuard } from '../../auth/jwt.guard.js';
 import { TenantScopeGuard } from '../../common/tenant-scope.guard.js';
 import { CatalogService } from './catalog.service.js';
 
-@Controller('api/control-plane/catalog')
+@Controller('control-plane/catalog')
 @UseGuards(JwtGuard, TenantScopeGuard)
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}

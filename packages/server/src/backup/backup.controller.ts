@@ -7,6 +7,8 @@ import {
   Param,
   Body,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { BackupService } from './backup.service.js';
 import { JwtGuard } from '../auth/jwt.guard.js';
@@ -16,7 +18,7 @@ import { Auditable } from '../audit/auditable.decorator.js';
 import type { CreateBackupRequest, UpdateBackupScheduleRequest } from '@jian-agent/shared-domain';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/servers/:id/backups')
+@Controller('servers/:id/backups')
 @UseGuards(JwtGuard, RolesGuard)
 export class BackupController {
   constructor(private readonly backupService: BackupService) {}
@@ -28,6 +30,7 @@ export class BackupController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles(RoleLevel.DANGER)
   @Auditable('backup:create')
   async createBackup(
@@ -48,14 +51,14 @@ export class BackupController {
   }
 
   @Delete(':backupId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.DANGER)
   @Auditable('backup:delete')
   async deleteBackup(
     @Param('id') serverId: string,
     @Param('backupId') backupId: string,
-  ) {
+  ): Promise<void> {
     await this.backupService.deleteBackup(serverId, backupId);
-    return { success: true };
   }
 
   @Get('schedule')

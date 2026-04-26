@@ -28,47 +28,7 @@ describe('Platform Model Contract', () => {
   // ───────────────────────────────────────────────
   describe('WsChannel naming convention', () => {
     const allChannels = Object.entries(WsChannel);
-
-    // Legacy aliases are prefixed with __LEGACY_ in our test grouping
-    const legacyKeys = new Set([
-      'SERVER_STATUS',
-      'SERVER_OUTPUT',
-      'SERVER_CRASHED',
-      'SERVER_HEALTH',
-      'TERMINAL_DATA',
-      'TERMINAL_RESIZE',
-      'TERMINAL_INPUT',
-      'TERMINAL_MC_CONSOLE',
-      'TERMINAL_NODE_LOG',
-      'TERMINAL_BOT_DEBUG',
-      'BOT_SUMMARY',
-      'BOT_EVENT',
-      'BOT_STATE',
-      'BOT_DEBUG',
-      'BOT_CHAT',
-      'SESSION_STATUS',
-      'SESSION_STATE',
-      'SESSION_PHASE',
-      'PHASE_STATUS',
-      'ALERT',
-      'PLUGIN_STATUS',
-      'PLUGIN_SNAPSHOT',
-      'JAVA_HELPER_STATUS',
-      'WORKER_EVENT',
-      'WORKER_STATUS',
-      'METRIC_SUMMARY',
-      'CONTROL_PLANE_AGENT_REGISTERED',
-      'CONTROL_PLANE_AGENT_HEARTBEAT',
-      'SSH_TERMINAL_DATA',
-      'SSH_TERMINAL_RESIZE',
-      'LOG_TAIL',
-      'LOG_TAIL_START',
-      'LOG_TAIL_STOP',
-    ]);
-
-    const unifiedChannels = allChannels.filter(
-      ([key]) => !legacyKeys.has(key),
-    );
+    const unifiedChannels = allChannels;
 
     it('all unified channel values start with resource:, task:, terminal-session:, or alert:', () => {
       for (const [key, value] of unifiedChannels) {
@@ -319,21 +279,10 @@ describe('Platform Model Contract', () => {
       expect(WsChannel.ALERT_FIRED).toBe('alert:fired');
     });
 
-    it('legacy aliases still resolve to their old string values', () => {
-      // Legacy aliases keep backward compat
-      expect(WsChannel.SERVER_STATUS).toBe('server:status');
-      expect(WsChannel.TERMINAL_DATA).toBe('terminal:data');
-      expect(WsChannel.BOT_STATE).toBe('bot:state');
-    });
-
-    it('new and legacy channel strings are different values', () => {
-      expect(WsChannel.RESOURCE_SERVER_STATUS).not.toBe(
-        WsChannel.SERVER_STATUS,
-      );
-      expect(WsChannel.TERMINAL_SESSION_DATA).not.toBe(
-        WsChannel.TERMINAL_DATA,
-      );
-      expect(WsChannel.RESOURCE_BOT_STATE).not.toBe(WsChannel.BOT_STATE);
+    it('legacy channel aliases are removed from WsChannel exports', () => {
+      expect('SERVER_STATUS' in WsChannel).toBe(false);
+      expect('TERMINAL_DATA' in WsChannel).toBe(false);
+      expect('BOT_STATE' in WsChannel).toBe(false);
     });
   });
 });

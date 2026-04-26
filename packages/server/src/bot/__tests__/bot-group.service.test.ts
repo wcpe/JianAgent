@@ -3,8 +3,8 @@ import { BotGroupService } from '../bot-group.service.js';
 
 function createMockDb() {
   return {
-    run: vi.fn().mockResolvedValue(undefined),
-    all: vi.fn().mockResolvedValue([]),
+    run: vi.fn().mockReturnValue(undefined),
+    all: vi.fn().mockReturnValue([]),
   };
 }
 
@@ -32,7 +32,7 @@ describe('BotGroupService', () => {
   });
 
   it('should list groups for a session', async () => {
-    mockDb.all.mockResolvedValueOnce([
+    mockDb.all.mockReturnValueOnce([
       { id: 'g1', session_id: 'sess-1', name: 'alpha', bot_names: '["b1","b2"]', created_at: '2026-01-01T00:00:00Z' },
     ]);
 

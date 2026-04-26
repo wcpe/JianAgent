@@ -21,6 +21,7 @@ import type {
   FileTaskStateChangedEvent,
   ControlPlaneAgentRegisteredEvent,
   ControlPlaneAgentHeartbeatEvent,
+  ServerProvisionProgressEvent,
 } from '../event-bus/events.js';
 
 /**
@@ -152,7 +153,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
   @OnEvent('server.output')
   handleServerOutput(event: ServerOutputEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_OUTPUT as any, event);
+    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_OUTPUT, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
   }
 
@@ -165,14 +166,14 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
   @OnEvent('server.crashed')
   handleServerCrashed(event: ServerCrashedEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_CRASHED as any, event);
+    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_CRASHED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('servers:status', payload);
   }
 
   @OnEvent('server.health')
   handleServerHealth(event: ServerHealthEvent): void {
-    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_HEALTH as any, event);
+    const payload = createWsMessage(WsChannel.RESOURCE_SERVER_HEALTH, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
   }
 
@@ -181,7 +182,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   @OnEvent('terminal.command')
   handleTerminalCommand(event: TerminalCommandEvent): void {
     // Use MC console channel for terminal command events
-    const payload = createWsMessage(WsChannel.TERMINAL_SESSION_MC_CONSOLE as any, {
+    const payload = createWsMessage(WsChannel.TERMINAL_SESSION_MC_CONSOLE, {
       type: 'terminal-command',
       ...event,
     });
@@ -192,29 +193,37 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect, O
 
   @OnEvent('file-task.created')
   handleFileTaskCreated(event: FileTaskCreatedEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_CREATED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_CREATED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('file-tasks', payload);
   }
 
   @OnEvent('file-task.state-changed')
   handleFileTaskStateChanged(event: FileTaskStateChangedEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_STATE_CHANGED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_FILE_TASK_STATE_CHANGED, event);
     this.broadcastToRoom(`server:${event.serverId}`, payload);
     this.broadcastToRoom('file-tasks', payload);
+  }
+
+  // ── Server provision events ──
+
+  @OnEvent('server.provision.progress')
+  handleServerProvisionProgress(event: ServerProvisionProgressEvent): void {
+    const payload = createWsMessage(WsChannel.TASK_SERVER_PROVISION_PROGRESS, event);
+    this.broadcastToAll(payload);
   }
 
   // ── Control plane events ──
 
   @OnEvent('control-plane.agent.registered')
   handleControlPlaneAgentRegistered(event: ControlPlaneAgentRegisteredEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_REGISTERED as any, event);
+    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_REGISTERED, event);
     this.broadcastToRoom('control-plane:agents', payload);
   }
 
   @OnEvent('control-plane.agent.heartbeat')
   handleControlPlaneAgentHeartbeat(event: ControlPlaneAgentHeartbeatEvent): void {
-    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_HEARTBEAT as any, event);
+    const payload = createWsMessage(WsChannel.TASK_CONTROL_PLANE_AGENT_HEARTBEAT, event);
     this.broadcastToRoom('control-plane:agents', payload);
   }
 

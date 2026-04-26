@@ -89,8 +89,8 @@ export class LocalLogReaderService implements OnModuleInit {
     let absPath: string;
     try {
       absPath = resolve(opts.sourceFile);
-    } catch {
-      this.logger.warn(`Cannot resolve path: ${opts.sourceFile}`);
+    } catch (err) {
+      this.logger.warn(`Cannot resolve path: ${opts.sourceFile}`, err);
       return;
     }
 
@@ -98,8 +98,8 @@ export class LocalLogReaderService implements OnModuleInit {
     try {
       const { stat } = await import('node:fs/promises');
       await stat(absPath);
-    } catch {
-      this.logger.warn(`Log file not found, will retry: ${absPath}`);
+    } catch (err) {
+      this.logger.warn(`Log file not found, will retry: ${absPath}`, err);
       // Schedule a retry after 10s
       setTimeout(() => this.watchServerLog(configId, opts), 10_000);
       return;
@@ -192,7 +192,7 @@ export class LocalLogReaderService implements OnModuleInit {
         `Failed to read ${watched.filePath}: ${err}`,
       );
       if (fh) {
-        try { await fh.close(); } catch { /* ignore */ }
+        try { await fh.close(); } catch (_err) { /* ignore */ }
       }
     }
   }

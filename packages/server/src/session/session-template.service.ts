@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { sessionTemplates } from '../storage/schema.js';
 import { DRIZZLE_TOKEN } from '../storage/drizzle.provider.js';
+import type { DrizzleDb } from '../storage/drizzle.provider.js';
 
 interface CreateTemplateInput {
   readonly name: string;
@@ -23,7 +24,7 @@ interface UpdateTemplateInput {
 export class SessionTemplateService {
   private readonly logger = new Logger(SessionTemplateService.name);
 
-  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb) {}
 
   async findAll() {
     return this.db.select().from(sessionTemplates);

@@ -5,7 +5,7 @@ import { Roles } from '../auth/roles.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 import { PlatformResourceService } from './platform-resource.service.js';
 
-@Controller('api/resources')
+@Controller('resources')
 @UseGuards(JwtGuard, RolesGuard)
 export class PlatformResourceController {
   constructor(

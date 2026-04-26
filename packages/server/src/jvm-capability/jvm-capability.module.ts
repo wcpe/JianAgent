@@ -16,6 +16,6 @@ import { ExternalAttachProvider } from './providers/external-attach.provider.js'
     ProbeCapabilityProvider,
     ExternalAttachProvider,
   ],
-  exports: [JvmCapabilityRegistry, JvmTargetResolver],
+  exports: [JvmCapabilityRegistry, JvmTargetResolver, JavaHelperCapabilityProvider, ProbeCapabilityProvider, ExternalAttachProvider],
 })
 export class JvmCapabilityModule {}

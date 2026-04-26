@@ -7,7 +7,7 @@ import { SetBehaviorDto } from './dto/set-behavior.dto';
 import { Auditable } from '../audit/auditable.decorator';
 import type { BotScript } from '@jian-agent/shared-protocol';
 
-@Controller('api/bots')
+@Controller('bots')
 export class BotController {
   constructor(
     private readonly orchestrator: BotOrchestratorService,

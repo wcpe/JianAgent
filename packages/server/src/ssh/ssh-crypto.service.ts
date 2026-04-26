@@ -38,8 +38,8 @@ export class SshCryptoService {
       const decipher = createDecipheriv(ALGORITHM, this.key, iv);
       decipher.setAuthTag(tag);
       return decipher.update(encrypted) + decipher.final('utf8');
-    } catch {
-      this.logger.warn('Failed to decrypt credential — returning empty string');
+    } catch (err) {
+      this.logger.warn('Failed to decrypt credential — returning empty string', err);
       return '';
     }
   }

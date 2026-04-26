@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -14,6 +14,8 @@ const execFileAsync = promisify(execFile);
 
 @Injectable()
 export class JfrTaskService {
+  private readonly logger = new Logger(JfrTaskService.name);
+
   constructor(@Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb) {}
 
   private mapRow(row: typeof jfrTasks.$inferSelect): JfrTaskDto {
@@ -182,8 +184,8 @@ export class JfrTaskService {
       try {
         await rm(row.filePath, { force: true });
         deletedFiles += 1;
-      } catch {
-        // best effort file cleanup
+      } catch (err) {
+        this.logger.debug(`Best-effort JFR file cleanup failed for ${row.filePath}`, err);
       }
     }
 

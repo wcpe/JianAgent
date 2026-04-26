@@ -7,6 +7,8 @@ import {
   Param,
   Body,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service.js';
 import { JwtGuard } from '../auth/jwt.guard.js';
@@ -16,7 +18,7 @@ import { Auditable } from '../audit/auditable.decorator.js';
 import type { CreateNotificationChannelRequest, UpdateNotificationChannelRequest } from '@jian-agent/shared-domain';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/notification-channels')
+@Controller('notification-channels')
 @UseGuards(JwtGuard, RolesGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
@@ -28,6 +30,7 @@ export class NotificationController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles(RoleLevel.ADMIN)
   @Auditable('notification:create')
   async createChannel(@Body() body: CreateNotificationChannelRequest) {
@@ -45,11 +48,11 @@ export class NotificationController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.ADMIN)
   @Auditable('notification:delete')
-  async deleteChannel(@Param('id') id: string) {
+  async deleteChannel(@Param('id') id: string): Promise<void> {
     await this.notificationService.deleteChannel(id);
-    return { success: true };
   }
 
   @Post(':id/test')

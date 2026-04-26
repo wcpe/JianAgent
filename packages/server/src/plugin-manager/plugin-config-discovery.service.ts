@@ -133,7 +133,7 @@ export class PluginConfigDiscoveryService {
     try {
       const stat = await this.fileManager.stat(serverId, dirPath);
       return stat.isDirectory;
-    } catch {
+    } catch (_err) {
       return false;
     }
   }

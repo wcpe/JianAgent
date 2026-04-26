@@ -16,7 +16,7 @@ interface LogIngestRequest {
   format?: string;
 }
 
-@Controller('api/log-ingest')
+@Controller('log-ingest')
 export class LogIngestController {
   private readonly logger = new Logger(LogIngestController.name);
 

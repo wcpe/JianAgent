@@ -15,7 +15,7 @@ import { Roles } from '../auth/roles.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 import type { WorkerInfoDto, RegisterWorkerDto, HeartbeatDto } from '@jian-agent/shared-domain';
 
-@Controller('api/workers')
+@Controller('workers')
 @UseGuards(JwtGuard, RolesGuard)
 export class WorkerController {
   constructor(private readonly registry: WorkerRegistryService) {}

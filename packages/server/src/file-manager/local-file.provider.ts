@@ -25,7 +25,7 @@ export class LocalFileProvider {
           modifiedAt: s.mtime.toISOString(),
           permissions: (s.mode & 0o777).toString(8),
         });
-      } catch { /* skip inaccessible files */ }
+      } catch (err) { this.logger.debug(`Skipping inaccessible file ${fullPath}: ${err}`); }
     }
 
     return entries.sort((a, b) => {
@@ -82,7 +82,7 @@ export class LocalFileProvider {
       const safePath = this.resolveSafe(rootDir, relativePath);
       await stat(safePath);
       return true;
-    } catch {
+    } catch (_err) {
       return false;
     }
   }

@@ -113,3 +113,12 @@ export interface LocalValidationEvidenceEvent {
   readonly payload: Record<string, unknown>;
   readonly timestamp: number;
 }
+
+export interface ServerProvisionProgressEvent {
+  readonly serverId: string;
+  readonly phase: string;
+  readonly progress: number;
+  readonly message: string;
+  readonly error?: string;
+  readonly timestamp: number;
+}

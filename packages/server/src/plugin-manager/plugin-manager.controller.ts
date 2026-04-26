@@ -15,7 +15,7 @@ import { Roles } from '../auth/roles.decorator.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/servers/:id/plugins')
+@Controller('servers/:id/plugins')
 @UseGuards(JwtGuard, RolesGuard)
 export class PluginManagerController {
   constructor(private readonly pluginManager: PluginManagerService) {}

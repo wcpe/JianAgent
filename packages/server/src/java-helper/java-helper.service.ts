@@ -10,7 +10,7 @@ import { createFallbackEntryClasses, parseManifestText } from './jar-scan.util.j
 type JavaHelperState = 'IDLE' | 'RESOLVING' | 'ATTACHING' | 'ATTACHED' | 'SAMPLING' | 'DETACHING' | 'FAILED';
 
 interface PendingRequest {
-  readonly resolve: (value: any) => void;
+  readonly resolve: (value: unknown) => void;
   readonly reject: (err: Error) => void;
   readonly timer: ReturnType<typeof setTimeout>;
 }
@@ -50,8 +50,8 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
           return;
         }
         this.handleResponse(msg);
-      } catch {
-        this.logger.warn(`Unparseable output: ${line}`);
+      } catch (err) {
+        this.logger.warn(`Unparseable output: ${line}`, err);
       }
     });
 
@@ -68,7 +68,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     });
   }
 
-  async sendCommand(type: string, params: Record<string, unknown> = {}): Promise<any> {
+  async sendCommand(type: string, params: Record<string, unknown> = {}): Promise<unknown> {
     if (!this.process?.stdin?.writable) {
       throw new Error('Java helper process not running');
     }
@@ -87,7 +87,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     });
   }
 
-  async resolve(): Promise<any> {
+  async resolve(): Promise<unknown> {
     this.setState('RESOLVING');
     try {
       const result = await this.sendCommand('resolve');
@@ -99,7 +99,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     }
   }
 
-  async attach(pid: string): Promise<any> {
+  async attach(pid: string): Promise<unknown> {
     this.setState('ATTACHING');
     try {
       const result = await this.sendCommand('attach', { pid });
@@ -111,7 +111,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     }
   }
 
-  async sampleThreads(): Promise<any> {
+  async sampleThreads(): Promise<unknown> {
     this.setState('SAMPLING');
     try {
       const result = await this.sendCommand('sample-threads');
@@ -123,7 +123,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     }
   }
 
-  async sampleHeap(): Promise<any> {
+  async sampleHeap(): Promise<unknown> {
     this.setState('SAMPLING');
     try {
       const result = await this.sendCommand('sample-heap');
@@ -135,7 +135,7 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     }
   }
 
-  async detach(): Promise<any> {
+  async detach(): Promise<unknown> {
     this.setState('DETACHING');
     try {
       const result = await this.sendCommand('detach');
@@ -150,9 +150,10 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
   async getStatus(): Promise<{ state: JavaHelperState; attachedPid?: string }> {
     if (!this.ready) return { state: this.state };
     try {
-      const result = await this.sendCommand('status');
-      return result.data ?? { state: this.state };
-    } catch {
+      const result = await this.sendCommand('status') as Record<string, unknown>;
+      return (result.data as { state: JavaHelperState; attachedPid?: string }) ?? { state: this.state };
+    } catch (err) {
+      this.logger.debug('Failed to get status from helper process', err);
       return { state: this.state };
     }
   }
@@ -162,13 +163,13 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     this.emit('state-change', s);
   }
 
-  private handleResponse(msg: any): void {
+  private handleResponse(msg: Record<string, unknown>): void {
     // Try to match by command field since we simplified the protocol
     for (const [id, pending] of this.pendingRequests) {
       clearTimeout(pending.timer);
       this.pendingRequests.delete(id);
       if (msg.type === 'error') {
-        pending.reject(new Error(msg.message ?? 'Unknown error'));
+        pending.reject(new Error((msg.message as string) ?? 'Unknown error'));
       } else {
         pending.resolve(msg);
       }
@@ -194,7 +195,8 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
       try {
         await stat(candidate);
         return candidate;
-      } catch {
+      } catch (err) {
+        this.logger.debug(`Candidate jar not found: ${candidate}`, err);
         continue;
       }
     }
@@ -218,10 +220,14 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     // If Java helper is running, use it for deeper scan
     if (this.ready) {
       try {
-        const result = await this.sendCommand('scan-jar', { jarPath: absPath });
-        return result.data ?? { entryClasses: [], manifest: {}, totalClasses: 0 };
-      } catch {
-        this.logger.warn('Java helper scan-jar failed, falling back to jar listing');
+        const result = await this.sendCommand('scan-jar', { jarPath: absPath }) as Record<string, unknown>;
+        return (result.data ?? { entryClasses: [], manifest: {}, totalClasses: 0 }) as {
+          readonly entryClasses: ReadonlyArray<{ className: string; isMainClass: boolean; source: string }>;
+          readonly manifest: Record<string, string>;
+          readonly totalClasses: number;
+        };
+      } catch (err) {
+        this.logger.warn('Java helper scan-jar failed, falling back to jar listing', err);
       }
     }
 

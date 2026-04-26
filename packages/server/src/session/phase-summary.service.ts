@@ -133,7 +133,8 @@ export class PhaseSummaryService {
         } as any,
       );
       return (result as unknown as PhaseSummaryRow[]) ?? [];
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to query phase summaries for session ${sessionId}`, err);
       return [];
     }
   }

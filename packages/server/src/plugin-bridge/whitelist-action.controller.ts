@@ -11,7 +11,7 @@ import { WhitelistActionService } from './whitelist-action.service.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import type { WhitelistActionRequest, WhitelistActionResult } from '@jian-agent/shared-domain';
 
-@Controller('api/plugin-bridge')
+@Controller('plugin-bridge')
 export class WhitelistActionController {
   constructor(private readonly actionService: WhitelistActionService) {}
 

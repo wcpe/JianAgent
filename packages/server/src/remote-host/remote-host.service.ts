@@ -246,9 +246,9 @@ export class RemoteHostService {
           connectConfig['privateKey'] = readFileSync(config.keyPath);
           const passphrase = this.crypto.decrypt(config.passphraseEncrypted);
           if (passphrase) connectConfig['passphrase'] = passphrase;
-        } catch (err: any) {
+        } catch (err: unknown) {
           clearTimeout(timer);
-          resolve({ success: false, message: `Failed to read SSH key: ${err.message}` });
+          resolve({ success: false, message: `Failed to read SSH key: ${err instanceof Error ? err.message : String(err)}` });
           return;
         }
       } else {

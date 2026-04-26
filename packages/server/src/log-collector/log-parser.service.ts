@@ -100,7 +100,7 @@ export class LogParserService {
           (typeof obj.msg === 'string' ? obj.msg : null) ??
           line,
       };
-    } catch {
+    } catch (_err) {
       return {
         timestamp: this.now(),
         level: 'INFO',
@@ -155,7 +155,7 @@ export class LogParserService {
       if (!isNaN(parsed.getTime())) {
         return parsed.toISOString();
       }
-    } catch {
+    } catch (_err) {
       // fall through
     }
     return this.now();

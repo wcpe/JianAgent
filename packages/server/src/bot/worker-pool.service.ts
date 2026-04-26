@@ -98,10 +98,10 @@ export class WorkerPoolService implements OnModuleDestroy {
       const child = entry.child;
       try {
         child.kill('SIGTERM');
-      } catch { /* already dead */ }
+      } catch (err) { this.logger.debug(`SIGTERM failed for worker ${pid}: ${err}`); }
       // Force-kill if still alive after 3 seconds
       const forceTimer = setTimeout(() => {
-        try { child.kill('SIGKILL'); } catch { /* already dead */ }
+        try { child.kill('SIGKILL'); } catch (err) { this.logger.debug(`SIGKILL failed for worker ${pid}: ${err}`); }
       }, 3000);
       forceTimer.unref();
       this.workers.delete(pid);

@@ -42,13 +42,9 @@ export class DebugRecorderService {
     // for debug_recordings will be added in the consolidation step
     try {
       const stmt = `INSERT INTO debug_recordings (id, session_id, server_id, started_at, stopped_at, size_bytes, event_count, status) VALUES (?, ?, ?, ?, NULL, 0, 0, 'recording')`;
-      (this.db as any).run?.(stmt, id, sessionId, serverId, now) ??
-        await this.runRawInsert(
-          'debug_recordings',
-          { id, session_id: sessionId, server_id: serverId, started_at: now, stopped_at: null, size_bytes: 0, event_count: 0, status: 'recording' },
-        );
-    } catch {
-      this.logger.warn('debug_recordings table not yet created; recording in-memory only');
+      this.db.$client.prepare(stmt).run(id, sessionId, serverId, now);
+    } catch (err) {
+      this.logger.warn('debug_recordings table not yet created; recording in-memory only', err);
     }
 
     this.activeRecordings.set(serverId, {
@@ -87,8 +83,8 @@ export class DebugRecorderService {
         { stopped_at: now, status: 'completed' },
         { id: active.recordingId },
       );
-    } catch {
-      this.logger.warn('Failed to update recording status in DB');
+    } catch (err) {
+      this.logger.warn('Failed to update recording status in DB', err);
     }
 
     this.logger.log(`Stopped recording ${active.recordingId}`);
@@ -113,7 +109,8 @@ export class DebugRecorderService {
       }
       query += ' ORDER BY started_at DESC';
       return this.runRawSelect<DebugRecordingRow>(query, params);
-    } catch {
+    } catch (err) {
+      this.logger.debug('Failed to list recordings', err);
       return [];
     }
   }
@@ -131,7 +128,8 @@ export class DebugRecorderService {
       }
       query += ' ORDER BY offset_ms ASC';
       return this.runRawSelect<DebugRecordingEventRow>(query, params);
-    } catch {
+    } catch (err) {
+      this.logger.debug('Failed to get recording events', err);
       return [];
     }
   }
@@ -140,8 +138,8 @@ export class DebugRecorderService {
     try {
       await this.runRawDelete('debug_recording_events', { recording_id: id });
       await this.runRawDelete('debug_recordings', { id });
-    } catch {
-      this.logger.warn(`Failed to delete recording ${id}`);
+    } catch (err) {
+      this.logger.warn(`Failed to delete recording ${id}`, err);
     }
   }
 
@@ -202,15 +200,9 @@ export class DebugRecorderService {
   private runRawExec(sql: string, params: unknown[]): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // Access underlying better-sqlite3 through drizzle's session
-        const session = (this.db as any).session;
-        const client = session?.client;
-        if (client?.prepare) {
-          client.prepare(sql).run(...params);
-          resolve();
-        } else {
-          reject(new Error('Cannot access raw SQLite client'));
-        }
+        const client = this.db.$client;
+        client.prepare(sql).run(...params);
+        resolve();
       } catch (err) {
         reject(err);
       }
@@ -220,14 +212,9 @@ export class DebugRecorderService {
   private runRawSelect<T>(sql: string, params: unknown[]): Promise<T[]> {
     return new Promise((resolve, reject) => {
       try {
-        const session = (this.db as any).session;
-        const client = session?.client;
-        if (client?.prepare) {
-          const rows = client.prepare(sql).all(...params);
-          resolve(rows as T[]);
-        } else {
-          reject(new Error('Cannot access raw SQLite client'));
-        }
+        const client = this.db.$client;
+        const rows = client.prepare(sql).all(...params);
+        resolve(rows as T[]);
       } catch (err) {
         reject(err);
       }

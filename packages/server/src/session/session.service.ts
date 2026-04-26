@@ -4,6 +4,7 @@ import { sessionTable } from '../db/schema/session.schema';
 import { phaseRecordTable } from '../db/schema/phase-record.schema';
 import { randomUUID } from 'crypto';
 import { DRIZZLE_TOKEN } from '../storage/drizzle.provider.js';
+import type { DrizzleDb } from '../storage/drizzle.provider.js';
 
 interface CreateSessionInput {
   readonly name: string;
@@ -21,7 +22,7 @@ interface CreateSessionInput {
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);
 
-  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_TOKEN) private readonly db: DrizzleDb) {}
 
   async create(input: CreateSessionInput) {
     const id = `sess_${randomUUID().slice(0, 8)}`;

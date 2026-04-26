@@ -10,7 +10,7 @@ function createMockDb() {
   };
 
   return {
-    session: { client: mockClient },
+    $client: mockClient,
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockResolvedValue(undefined),
     select: vi.fn().mockReturnThis(),
@@ -18,7 +18,6 @@ function createMockDb() {
     where: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
-    _client: mockClient,
   } as any;
 }
 
@@ -83,7 +82,7 @@ describe('DebugRecorderService', () => {
 
       await service.stopRecording('server-1');
       // Verify the raw client was called to insert events
-      expect(mockDb._client.prepare).toHaveBeenCalled();
+      expect(mockDb.$client.prepare).toHaveBeenCalled();
     });
   });
 

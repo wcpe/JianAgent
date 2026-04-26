@@ -175,7 +175,7 @@ export class SftpFileService {
     try {
       await this.stat(config, filePath);
       return true;
-    } catch {
+    } catch (_err) {
       return false;
     }
   }

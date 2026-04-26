@@ -6,7 +6,7 @@ import { Roles } from '../auth/roles.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 import type { AuditQueryParams } from '@jian-agent/shared-domain';
 
-@Controller('api/audit')
+@Controller('audit')
 @UseGuards(JwtGuard, RolesGuard)
 export class AuditController {
   constructor(private readonly store: AuditStoreService) {}

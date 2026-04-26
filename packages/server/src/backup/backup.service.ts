@@ -9,6 +9,7 @@ import { resolve, join, basename } from 'node:path';
 import { readdir, stat, mkdir, unlink, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import AdmZip from 'adm-zip';
+import { CronExpressionParser } from 'cron-parser';
 
 @Injectable()
 export class BackupService {
@@ -295,7 +296,8 @@ export class BackupService {
       return entries
         .filter((e) => e.isFile() && configExtensions.some((ext) => e.name.endsWith(ext)))
         .map((e) => e.name);
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Cannot list config files in ${rootDir}`, err);
       return [];
     }
   }
@@ -308,7 +310,7 @@ export class BackupService {
     // Clear existing timer
     const existing = this.scheduledTimers.get(serverId);
     if (existing) {
-      clearInterval(existing);
+      clearTimeout(existing);
       this.scheduledTimers.delete(serverId);
     }
 
@@ -317,21 +319,28 @@ export class BackupService {
       const schedule = rows[0];
       if (!schedule || !schedule.enabled) return;
 
-      const intervalMs = this.cronToIntervalMs(schedule.cronExpression);
-      if (intervalMs <= 0) return;
-
-      const timer = setInterval(() => {
-        this.logger.log(`Running scheduled backup for server ${serverId}`);
-        this.createBackup(serverId, { type: schedule.type as BackupType }).then(() => {
-          this.cleanupOldBackups(serverId, schedule.maxKeep);
-        }).catch((err) => {
-          this.logger.error(`Scheduled backup failed for ${serverId}: ${err}`);
-        });
-      }, intervalMs);
-
-      this.scheduledTimers.set(serverId, timer);
-      this.logger.log(`Scheduled backup for server ${serverId} every ${intervalMs / 3600000}h`);
+      this.scheduleNextBackup(serverId, schedule.cronExpression, schedule.type as BackupType, schedule.maxKeep);
     });
+  }
+
+  private scheduleNextBackup(serverId: string, cronExpression: string, type: BackupType, maxKeep: number): void {
+    const interval = CronExpressionParser.parse(cronExpression);
+    const next = interval.next();
+    const delayMs = next.getTime() - Date.now();
+
+    const timer = setTimeout(() => {
+      this.logger.log(`Running scheduled backup for server ${serverId}`);
+      this.createBackup(serverId, { type }).then(() => {
+        this.cleanupOldBackups(serverId, maxKeep);
+      }).catch((err) => {
+        this.logger.error(`Scheduled backup failed for ${serverId}: ${err}`);
+      }).finally(() => {
+        this.scheduleNextBackup(serverId, cronExpression, type, maxKeep);
+      });
+    }, Math.max(delayMs, 1000));
+
+    this.scheduledTimers.set(serverId, timer);
+    this.logger.log(`Next scheduled backup for server ${serverId} at ${next.toISOString()}`);
   }
 
   private async cleanupOldBackups(serverId: string, maxKeep: number): Promise<void> {
@@ -351,19 +360,4 @@ export class BackupService {
     this.logger.log(`Cleaned up ${toDelete.length} old backups for server ${serverId}`);
   }
 
-  private cronToIntervalMs(cron: string): number {
-    // Simple cron-to-interval: supports daily patterns like "0 3 * * *" → 24h
-    // For simplicity, map common patterns to intervals
-    const parts = cron.trim().split(/\s+/);
-    if (parts.length !== 5) return 86400000; // Default 24h
-
-    const [, , dayOfMonth, , dayOfWeek] = parts;
-
-    // If day-of-week is specific (not *), it's weekly
-    if (dayOfWeek !== '*') return 7 * 86400000;
-    // If day-of-month is specific (not *), it's monthly (~30 days)
-    if (dayOfMonth !== '*') return 30 * 86400000;
-    // Otherwise daily
-    return 86400000;
-  }
 }

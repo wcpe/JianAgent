@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DRIZZLE_TOKEN, type DrizzleDb } from '../storage/drizzle.provider.js';
+import { sql } from 'drizzle-orm';
 import { BotGroupService } from './bot-group.service.js';
 import { BotOrchestratorService } from './bot-orchestrator.service.js';
 import { randomUUID } from 'crypto';
@@ -24,35 +25,27 @@ export class BehaviorTemplateService {
     const id = randomUUID();
     const now = new Date().toISOString();
 
-    await this.db.run({
-      sql: `INSERT INTO behavior_templates (id, name, steps, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
-      params: [id, input.name, JSON.stringify(input.steps), now, now],
-    } as any);
+    this.db.run(sql`INSERT INTO behavior_templates (id, name, steps, created_at, updated_at) VALUES (${id}, ${input.name}, ${JSON.stringify(input.steps)}, ${now}, ${now})`);
 
     return { id, name: input.name, steps: [...input.steps], createdAt: now, updatedAt: now };
   }
 
   async findAll(): Promise<readonly BehaviorTemplateDto[]> {
     try {
-      const rows = await this.db.all({
-        sql: `SELECT id, name, steps, created_at, updated_at FROM behavior_templates ORDER BY created_at DESC`,
-        params: [],
-      } as any);
-      return ((rows as any[]) ?? []).map(this.rowToDto);
-    } catch {
+      const rows = this.db.all<Record<string, unknown>>(sql`SELECT id, name, steps, created_at, updated_at FROM behavior_templates ORDER BY created_at DESC`);
+      return (rows ?? []).map(this.rowToDto);
+    } catch (err) {
+      this.logger.debug('Failed to list behavior templates', err);
       return [];
     }
   }
 
   async findById(id: string): Promise<BehaviorTemplateDto | undefined> {
     try {
-      const rows = await this.db.all({
-        sql: `SELECT id, name, steps, created_at, updated_at FROM behavior_templates WHERE id = ? LIMIT 1`,
-        params: [id],
-      } as any);
-      const arr = rows as any[];
-      return arr.length > 0 ? this.rowToDto(arr[0]) : undefined;
-    } catch {
+      const rows = this.db.all<Record<string, unknown>>(sql`SELECT id, name, steps, created_at, updated_at FROM behavior_templates WHERE id = ${id} LIMIT 1`);
+      return rows.length > 0 ? this.rowToDto(rows[0]) : undefined;
+    } catch (err) {
+      this.logger.debug(`Failed to find behavior template ${id}`, err);
       return undefined;
     }
   }
@@ -65,19 +58,13 @@ export class BehaviorTemplateService {
     const newName = input.name ?? existing.name;
     const newSteps = input.steps ?? existing.steps;
 
-    await this.db.run({
-      sql: `UPDATE behavior_templates SET name = ?, steps = ?, updated_at = ? WHERE id = ?`,
-      params: [newName, JSON.stringify(newSteps), now, id],
-    } as any);
+    this.db.run(sql`UPDATE behavior_templates SET name = ${newName}, steps = ${JSON.stringify(newSteps)}, updated_at = ${now} WHERE id = ${id}`);
 
     return { ...existing, name: newName, steps: [...newSteps], updatedAt: now };
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.run({
-      sql: `DELETE FROM behavior_templates WHERE id = ?`,
-      params: [id],
-    } as any);
+    this.db.run(sql`DELETE FROM behavior_templates WHERE id = ${id}`);
   }
 
   async applyToGroup(templateId: string, groupId: string): Promise<void> {
@@ -106,13 +93,13 @@ export class BehaviorTemplateService {
     );
   }
 
-  private rowToDto(row: any): BehaviorTemplateDto {
+  private rowToDto(row: Record<string, unknown>): BehaviorTemplateDto {
     return {
-      id: row.id,
-      name: row.name,
-      steps: JSON.parse(row.steps ?? '[]'),
-      createdAt: row.created_at ?? row.createdAt,
-      updatedAt: row.updated_at ?? row.updatedAt,
+      id: row.id as string,
+      name: row.name as string,
+      steps: JSON.parse((row.steps as string) ?? '[]'),
+      createdAt: (row.created_at ?? row.createdAt) as string,
+      updatedAt: (row.updated_at ?? row.updatedAt) as string,
     };
   }
 }

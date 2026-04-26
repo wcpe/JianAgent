@@ -16,7 +16,7 @@ function toNumber(input: unknown): number | null {
   return null;
 }
 
-function pickNumber(obj: any, keys: readonly string[]): number | null {
+function pickNumber(obj: Record<string, unknown>, keys: readonly string[]): number | null {
   if (!obj || typeof obj !== 'object') return null;
   for (const key of keys) {
     const value = toNumber(obj[key]);
@@ -223,19 +223,24 @@ export class JvmCapabilityFacade {
       await this.javaHelper.attach(pid);
       attached = true;
 
-      let jmxRaw: any = null;
+      let jmxRaw: unknown = null;
       try {
         jmxRaw = await this.javaHelper.sendCommand('sample-jmx');
-      } catch {
+      } catch (err) {
+        this.logger.debug('sample-jmx command failed', err);
         jmxRaw = null;
       }
 
       const heapRaw = await this.javaHelper.sampleHeap();
       const threadRaw = await this.javaHelper.sampleThreads();
 
-      const payload = (jmxRaw?.data ?? jmxRaw ?? {}) as Record<string, unknown>;
-      const heapPayload = (heapRaw?.data ?? heapRaw ?? {}) as Record<string, unknown>;
-      const threadPayload = (threadRaw?.data ?? threadRaw ?? {}) as Record<string, unknown>;
+      const heapObj = (heapRaw != null && typeof heapRaw === 'object' ? heapRaw : {}) as Record<string, unknown>;
+      const threadObj = (threadRaw != null && typeof threadRaw === 'object' ? threadRaw : {}) as Record<string, unknown>;
+
+      const jmxObj = (jmxRaw != null && typeof jmxRaw === 'object' ? jmxRaw : {}) as Record<string, unknown>;
+      const payload = ((jmxObj.data ?? jmxRaw ?? {}) as Record<string, unknown>);
+      const heapPayload = (heapObj.data ?? heapRaw ?? {}) as Record<string, unknown>;
+      const threadPayload = (threadObj.data ?? threadRaw ?? {}) as Record<string, unknown>;
 
       const base: Omit<JmxMetricSnapshotDto, 'id'> = {
         timestamp: new Date().toISOString(),
@@ -259,8 +264,8 @@ export class JvmCapabilityFacade {
       if (attached) {
         try {
           await this.javaHelper.detach();
-        } catch {
-          // best effort detach
+        } catch (err) {
+          this.logger.debug('Best-effort detach after JMX collection failed', err);
         }
       }
     }

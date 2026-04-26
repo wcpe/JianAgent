@@ -189,7 +189,7 @@ export class PlatformResourceService {
     try {
       const host = await this.remoteHost.getByIdDto(id);
       return this.buildRemoteHostDetail(host);
-    } catch {
+    } catch (_err) {
       throw new NotFoundException(`Resource ${id} not found`);
     }
   }
@@ -207,7 +207,7 @@ export class PlatformResourceService {
     try {
       const host = await this.remoteHost.getByIdDto(id);
       return this.capabilityResolver.resolveForRemoteHost(host);
-    } catch {
+    } catch (_err) {
       throw new NotFoundException(`Resource ${id} not found`);
     }
   }

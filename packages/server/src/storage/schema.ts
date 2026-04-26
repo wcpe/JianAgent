@@ -535,6 +535,23 @@ export const localValidationEvidence = sqliteTable('local_validation_evidence', 
   payloadJson: text('payload_json').notNull().default('{}'),
 });
 
+export const systemMetrics = sqliteTable('system_metrics', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  timestamp: text('timestamp').notNull(),
+  cpuUsagePercent: real('cpu_usage_percent'),
+  cpuCount: integer('cpu_count'),
+  loadAvg1m: real('load_avg_1m'),
+  loadAvg5m: real('load_avg_5m'),
+  loadAvg15m: real('load_avg_15m'),
+  totalMemoryMb: real('total_memory_mb'),
+  freeMemoryMb: real('free_memory_mb'),
+  usedMemoryPercent: real('used_memory_percent'),
+  uptimeSeconds: integer('uptime_seconds'),
+  disksJson: text('disks_json'),
+  networkRxBytesPerSec: real('network_rx_bytes_per_sec'),
+  networkTxBytesPerSec: real('network_tx_bytes_per_sec'),
+});
+
 export const processMetrics = sqliteTable('process_metrics', {
   id: text('id').primaryKey(),
   serverId: text('server_id').notNull(),

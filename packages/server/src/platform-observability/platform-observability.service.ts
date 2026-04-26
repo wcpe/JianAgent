@@ -90,7 +90,7 @@ export class PlatformObservabilityService {
       let metadata: Record<string, unknown> | undefined;
       try {
         metadata = row.metadata ? JSON.parse(row.metadata) : undefined;
-      } catch {
+      } catch (_err) {
         metadata = undefined;
       }
       return {

@@ -8,7 +8,12 @@ import { Roles } from '../auth/roles.decorator.js';
 import { Auditable } from '../audit/auditable.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/java-helper')
+interface StreamReply {
+  header(name: string, value: string): this;
+  send(payload: NodeJS.ReadableStream): this;
+}
+
+@Controller('java-helper')
 @UseGuards(JwtGuard, RolesGuard)
 export class JavaHelperController {
   constructor(
@@ -128,7 +133,7 @@ export class JavaHelperController {
   @Auditable('java-helper.jfr.download-stream')
   async downloadJfrStream(
     @Query('taskId') taskId: string,
-    @Res({ passthrough: false }) reply: any,
+    @Res({ passthrough: false }) reply: StreamReply,
   ) {
     const data = await this.jvmFacade.getJfrDownloadStreamMeta(taskId);
     reply.header('Content-Type', 'application/octet-stream');
