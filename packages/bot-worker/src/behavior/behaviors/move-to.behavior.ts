@@ -1,5 +1,6 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
 import { ensurePathfinder, goals } from '../pathfinder-loader.js';
+import { safeExec } from '../../util/safe-exec.js';
 
 export class MoveToBehavior implements Behavior {
   readonly name = 'move-to';
@@ -15,7 +16,7 @@ export class MoveToBehavior implements Behavior {
       } else {
         ensurePathfinder(ctx.bot);
         const goal = new goals.GoalNear(x, y ?? ctx.bot.entity.position.y, z, 1);
-        (ctx.bot as any).pathfinder.setGoal(goal);
+        ctx.bot.pathfinder.setGoal(goal);
       }
     } catch {
       // pathfinder may fail to initialize on some server versions
@@ -42,7 +43,7 @@ export class MoveToBehavior implements Behavior {
         if (ctx.navigator) {
           ctx.navigator.stop(ctx.bot);
         } else {
-          (ctx.bot as any).pathfinder.setGoal(null);
+          ctx.bot.pathfinder.setGoal(null);
         }
       }
     } catch {
@@ -52,13 +53,13 @@ export class MoveToBehavior implements Behavior {
 
   async stop(ctx: BehaviorContext): Promise<void> {
     this.active = false;
-    try {
+    safeExec(() => {
       if (ctx.navigator) {
         ctx.navigator.stop(ctx.bot);
-      } else if ((ctx.bot as any).pathfinder) {
-        (ctx.bot as any).pathfinder.setGoal(null);
+      } else if (ctx.bot.pathfinder) {
+        ctx.bot.pathfinder.setGoal(null);
       }
       ctx.bot.setControlState('forward', false);
-    } catch { /* bot may already be disconnected */ }
+    }, undefined);
   }
 }

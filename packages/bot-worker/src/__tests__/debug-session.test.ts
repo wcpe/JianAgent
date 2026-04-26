@@ -49,7 +49,7 @@ describe('DebugSession', () => {
     const session = new DebugSession(instance, engine, outputFn);
     await session.enter();
     await session.exit();
-    expect(instance.state).toBe('CONNECTED');
+    expect(instance.state).toBe('SPAWNED');
     expect(outputFn).toHaveBeenCalledWith('test_bot', expect.stringContaining('Exited'));
   });
 

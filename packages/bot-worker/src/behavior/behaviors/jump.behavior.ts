@@ -1,4 +1,5 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
+import { safeExec } from '../../util/safe-exec.js';
 
 export class JumpBehavior implements Behavior {
   readonly name = 'jump';
@@ -16,7 +17,7 @@ export class JumpBehavior implements Behavior {
     if (ctx.bot.entity.onGround) {
       ctx.bot.setControlState('jump', true);
       setTimeout(() => {
-        try { ctx.bot.setControlState('jump', false); } catch { /* ignore */ }
+        safeExec(() => ctx.bot.setControlState('jump', false), undefined);
       }, 150);
     }
     const delay = 600 + Math.random() * 600;
@@ -31,6 +32,6 @@ export class JumpBehavior implements Behavior {
       clearTimeout(this.jumpTimeout);
       this.jumpTimeout = null;
     }
-    try { ctx.bot.setControlState('jump', false); } catch { /* ignore */ }
+    safeExec(() => ctx.bot.setControlState('jump', false), undefined);
   }
 }

@@ -130,7 +130,7 @@ export function moveBotTo(ctx: BehaviorContext, target: PlannerTarget): void {
     target.z,
     target.radius ?? 1,
   );
-  (ctx.bot as any).pathfinder.setGoal(goal);
+  ctx.bot.pathfinder.setGoal(goal);
 }
 
 export function stopBotMovement(ctx: BehaviorContext): void {
@@ -139,8 +139,8 @@ export function stopBotMovement(ctx: BehaviorContext): void {
     return;
   }
 
-  if ((ctx.bot as any).pathfinder) {
-    (ctx.bot as any).pathfinder.setGoal(null);
+  if (ctx.bot.pathfinder) {
+    ctx.bot.pathfinder.setGoal(null);
   }
 }
 
@@ -157,7 +157,7 @@ export async function planGatherTick(
   const block = ctx.bot.findBlock({
     matching: (candidate) => config.blockTypes.includes(candidate.name),
     maxDistance: config.radius,
-  }) as GatherTargetBlock | null;
+  });
 
   if (!block) {
     if (state.currentTargetKey) {
@@ -199,7 +199,7 @@ export async function planGatherTick(
   stopBotMovement(ctx);
 
   try {
-    await ctx.bot.dig(block as any);
+    await ctx.bot.dig(block);
     return createResult('completed', {
       ...resetState(),
       lastAttemptAt: Date.now(),
@@ -617,13 +617,13 @@ function resetState(): WorldActionPlannerState {
   return createWorldActionPlannerState();
 }
 
-function selectAttackTarget(ctx: BehaviorContext, target?: string): any | null {
+function selectAttackTarget(ctx: BehaviorContext, target?: string) {
   return target
     ? ctx.bot.nearestEntity((entity) => entity.username === target || entity.name === target)
     : ctx.bot.nearestEntity((entity) => (entity.type === 'mob' || entity.type === 'player') && entity.username !== ctx.bot.username);
 }
 
-function resolveEntityKey(entity: any): string {
+function resolveEntityKey(entity: { username?: string; name?: string; position: { x: number; y: number; z: number } }): string {
   return entity.username ?? entity.name ?? `${entity.position.x}:${entity.position.y}:${entity.position.z}`;
 }
 
@@ -648,7 +648,7 @@ function isReplaceableBlock(blockName: string): boolean {
 function resolvePlacementReference(
   ctx: BehaviorContext,
   action: BuildPlannerAction,
-): { readonly refBlock: any; readonly face: Vec3 } | null {
+) {
   const references = [
     { position: new Vec3(action.x, action.y - 1, action.z), face: new Vec3(0, 1, 0) },
     { position: new Vec3(action.x - 1, action.y, action.z), face: new Vec3(1, 0, 0) },

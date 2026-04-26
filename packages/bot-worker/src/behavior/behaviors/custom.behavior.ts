@@ -1,4 +1,5 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
+import { safeExec, safeExecAsync } from '../../util/safe-exec.js';
 
 interface CustomAction {
   readonly type: 'chat' | 'move' | 'look' | 'jump' | 'wait';
@@ -25,16 +26,17 @@ export class CustomBehavior implements Behavior {
       case 'jump':
         ctx.bot.setControlState('jump', true);
         setTimeout(() => {
-          try { ctx.bot.setControlState('jump', false); } catch { /* bot may be gone */ }
+          safeExec(() => ctx.bot.setControlState('jump', false), undefined);
         }, 500);
         break;
       case 'look':
-        try {
-          await ctx.bot.look(
+        await safeExecAsync(
+          () => ctx.bot.look(
             Number(action.params?.yaw ?? 0),
             Number(action.params?.pitch ?? 0),
-          );
-        } catch { /* bot may be disconnected */ }
+          ),
+          undefined,
+        );
         break;
     }
     this.currentIndex++;

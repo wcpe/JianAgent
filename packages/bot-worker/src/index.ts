@@ -9,9 +9,11 @@ import { IpcHandler } from './ipc/ipc-handler.js';
 import { createIpcSender } from './ipc/ipc-sender.js';
 import { DebugSession } from './debug/debug-session.js';
 import { ScriptExecutor } from './script/script-executor.js';
-import { IpcEvent, type IpcMessage } from '@jian-agent/shared-protocol';
+import { IpcEvent, type IpcMessage, type BotEventType } from '@jian-agent/shared-protocol';
 import { BotState } from '@jian-agent/shared-domain';
 import { createNavigator } from './navigation/pathfinder.navigator.js';
+import type { Bot } from 'mineflayer';
+import { Vec3 } from 'vec3';
 
 // Prevent worker process crash from unhandled promise rejections
 process.on('unhandledRejection', (err) => {
@@ -47,7 +49,7 @@ const eventReporter = new EventReporter((payload) => {
 
 function createBehaviorContext(
   botName: string,
-  bot: any,
+  bot: Bot,
   params: Readonly<Record<string, unknown>>,
 ) {
   return {
@@ -55,7 +57,7 @@ function createBehaviorContext(
     params,
     navigator: createNavigator(params),
     reportEvent: (
-      event: any,
+      event: BotEventType,
       message?: string,
       metadata?: Readonly<Record<string, unknown>>,
     ) => {
@@ -75,11 +77,11 @@ setInterval(() => {
         createBehaviorContext(
           name,
           info.bot,
-          info.currentBehavior ? (info as any)._behaviorParams ?? {} : {},
+          info.currentBehavior ? info._behaviorParams ?? {} : {},
         ),
       );
-      if (result && typeof (result as any).catch === 'function') {
-        (result as Promise<void>).catch(() => { /* swallow tick errors */ });
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => { /* swallow tick errors */ });
       }
     } catch {
       // swallow tick errors
@@ -93,7 +95,8 @@ const connector = new BotConnector(
   registry,
   healthChecker,
   (botName, event, message) => {
-    eventReporter.report(botName, event as any, message);
+    // Connector emits internal event names not all in BotEventType; cast is intentional
+    eventReporter.report(botName, event as BotEventType, message);
     // Auto-apply behavior template when bot spawns
     if (event === 'SPAWNED') {
       const template = pendingBehaviors.get(botName);
@@ -110,8 +113,8 @@ const connector = new BotConnector(
                 createBehaviorContext(botName, info.bot, {}),
               ).catch(() => { /* swallow */ });
               info.currentBehavior = behavior;
-              (info as any)._behaviorParams = {};
-            } catch { /* unknown behavior template */ }
+              info._behaviorParams = {};
+            } catch (err) { console.warn('[BotWorker] unknown behavior template:', err); }
           }
         }, 5000);
       }
@@ -178,8 +181,8 @@ const handler = new IpcHandler({
         createBehaviorContext(botName, info.bot, params),
       ).catch(() => { /* swallow async errors from behavior start/stop */ });
       info.currentBehavior = behavior;
-      (info as any)._behaviorParams = params;
-    } catch { /* unknown behavior name */ }
+      info._behaviorParams = params;
+    } catch (err) { console.warn('[BotWorker] unknown behavior name:', err); }
   },
   onStopBots(payload) {
     for (const name of payload.names) {
@@ -285,7 +288,7 @@ const handler = new IpcHandler({
           y: Math.round(e.position.y * 10) / 10,
           z: Math.round(e.position.z * 10) / 10,
           distance: Math.round(dist * 10) / 10,
-          health: (e as any).health ?? null,
+          health: e.health ?? null,
         };
       })
       .filter((e) => e.distance <= 48)
@@ -307,13 +310,13 @@ const handler = new IpcHandler({
           let blockName = 'air';
           for (let by = topY; by >= Math.floor(botPos.y) - 10; by--) {
             try {
-              const block = bot.blockAt({ x: bx, y: by, z: bz } as any);
+              const block = bot.blockAt(new Vec3(bx, by, bz));
               if (block && block.name !== 'air' && block.name !== 'void_air' && block.name !== 'cave_air') {
                 blockName = block.name;
                 topY = by;
                 break;
               }
-            } catch { break; }
+            } catch (err) { console.debug('[BotWorker] terrain scan interrupted:', err); break; }
           }
           if (blockName !== 'air') {
             terrain.push({ x: bx, z: bz, y: topY, name: blockName });

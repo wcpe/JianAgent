@@ -28,6 +28,12 @@ export class BotConnector {
   /** Track bots that were in DEBUGGING state before disconnect for auto-restore */
   private readonly wasDebugging = new Set<string>();
 
+  private static readonly RECONNECT_BASE_DELAY_MS = 1000;
+  private static readonly RECONNECT_MAX_DELAY_MS = 30_000;
+  private static readonly RECONNECT_BACKOFF_FACTOR = 2;
+  private static readonly RECONNECT_JITTER_MAX_MS = 3000;
+  private static readonly AUTO_RESPAWN_DELAY_MS = 3000;
+
   /** Max deaths within the window before suspending auto-respawn */
   private static readonly RAPID_DEATH_MAX = 4;
   /** Time window (ms) to count deaths */
@@ -53,11 +59,11 @@ export class BotConnector {
       try {
         existing.bot.removeAllListeners();
         // Also remove listeners from underlying protocol client to prevent stray ECONNRESET crashes
-        if ((existing.bot as any)._client) {
-          (existing.bot as any)._client.removeAllListeners();
+        if (existing.bot._client) {
+          existing.bot._client.removeAllListeners();
         }
         existing.bot.quit();
-      } catch { /* ignore */ }
+      } catch (err) { this.onEvent(name, 'CLEANUP_ERROR', `${name} cleanup error on reconnect: ${(err as Error).message ?? err}`); }
     }
     this.clearReconnectTimer(name);
 
@@ -75,12 +81,12 @@ export class BotConnector {
 
     // Enable TCP keepalive on the underlying socket to detect dead connections
     const enableKeepalive = () => {
-      const socket = (bot as any)._client?.socket;
+      const socket = bot._client?.socket;
       if (socket?.setKeepAlive) {
         socket.setKeepAlive(true, 15_000);
       }
     };
-    const client = (bot as any)._client;
+    const client = bot._client;
     if (client?.socket) {
       enableKeepalive();
     } else if (client) {
@@ -106,7 +112,7 @@ export class BotConnector {
     if (options.reconnectEnabled) {
       this.reconnectStrategies.set(
         name,
-        new ReconnectStrategy(options.reconnectMaxRetries, 1000, 30000, 2),
+        new ReconnectStrategy(options.reconnectMaxRetries, BotConnector.RECONNECT_BASE_DELAY_MS, BotConnector.RECONNECT_MAX_DELAY_MS, BotConnector.RECONNECT_BACKOFF_FACTOR),
       );
     }
 
@@ -124,11 +130,11 @@ export class BotConnector {
     if (info?.bot) {
       try {
         info.bot.removeAllListeners();
-        if ((info.bot as any)._client) {
-          (info.bot as any)._client.removeAllListeners();
+        if (info.bot._client) {
+          info.bot._client.removeAllListeners();
         }
         info.bot.quit();
-      } catch { /* ignore */ }
+      } catch (err) { this.onEvent(name, 'CLEANUP_ERROR', `${name} cleanup error on disconnect: ${(err as Error).message ?? err}`); }
       info.state = BotState.STOPPED;
     }
     this.healthChecker.remove(name);
@@ -147,14 +153,17 @@ export class BotConnector {
     const info = this.registry.get(name);
     if (!info) return;
     // If bot is connected and alive enough to send in-game respawn, do it
-    const botAlive = info.bot && (info.bot as any)._client?.socket?.writable;
+    const botAlive = info.bot && info.bot._client?.socket?.writable;
     if (botAlive) {
       try {
         info.state = BotState.SPAWNED;
         info.bot!.respawn();
         this.onEvent(name, 'FORCE_RESPAWN', `${name} force-respawned in-game`);
         return;
-      } catch { /* fall through to reconnect */ }
+      } catch (err) {
+        this.onEvent(name, 'CLEANUP_ERROR', `${name} in-game respawn failed, falling through to reconnect: ${(err as Error).message ?? err}`);
+        /* fall through to reconnect */
+      }
     }
     // Connection lost — reconnect from scratch
     const options = this.connectOptionsMap.get(name);
@@ -278,7 +287,7 @@ export class BotConnector {
     });
 
     // Catch errors on underlying protocol client to prevent unhandled 'error' event crashes
-    const client = (bot as any)._client;
+    const client = bot._client;
     if (client) {
       client.on('error', (err: Error) => {
         const info = this.registry.get(name);
@@ -337,9 +346,9 @@ export class BotConnector {
           this.onEvent(name, 'RAPID_DEATH_DISCONNECT', `${name} server-respawned but rapid death detected — disconnecting`);
           try {
             bot.removeAllListeners();
-            if ((bot as any)._client) (bot as any)._client.removeAllListeners();
+            if (bot._client) bot._client.removeAllListeners();
             bot.quit();
-          } catch { /* ignore */ }
+          } catch (err) { this.onEvent(name, 'CLEANUP_ERROR', `${name} cleanup error on rapid-death disconnect: ${(err as Error).message ?? err}`); }
           info.state = BotState.DEAD;
           return;
         }
@@ -390,7 +399,7 @@ export class BotConnector {
     strategy.recordFailure();
     const baseDelay = strategy.nextDelayMs();
     // Add random jitter (0-3s) to prevent thundering herd when many bots reconnect
-    const jitter = Math.floor(Math.random() * 3000);
+    const jitter = Math.floor(Math.random() * BotConnector.RECONNECT_JITTER_MAX_MS);
     const delay = baseDelay + jitter;
     const timer = setTimeout(() => {
       this.reconnectTimers.delete(name);
@@ -439,19 +448,22 @@ export class BotConnector {
         const current = this.registry.get(name);
         if (current?.state === BotState.DEAD) {
           // Check if bot connection is still alive for in-game respawn
-          const botAlive = current.bot && (current.bot as any)._client?.socket?.writable;
+          const botAlive = current.bot && current.bot._client?.socket?.writable;
           if (botAlive) {
             try {
               current.bot!.respawn();
               this.onEvent(name, 'AUTO_RESPAWN', `${name} auto-respawning in-game`);
               return;
-            } catch { /* fall through to reconnect */ }
+            } catch (err) {
+              this.onEvent(name, 'CLEANUP_ERROR', `${name} auto-respawn failed, falling through to reconnect: ${(err as Error).message ?? err}`);
+              /* fall through to reconnect */
+            }
           }
           // Bot connection was lost after death — reconnect
           this.onEvent(name, 'AUTO_RESPAWN', `${name} reconnecting after death`);
           this.attemptReconnect(name, options);
         }
-      }, 3000);
+      }, BotConnector.AUTO_RESPAWN_DELAY_MS);
     }
   }
 

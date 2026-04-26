@@ -1,5 +1,6 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
 import { ensurePathfinder } from '../pathfinder-loader.js';
+import { safeExec } from '../../util/safe-exec.js';
 import {
   createWorldActionPlannerState,
   planBuildTick,
@@ -71,8 +72,6 @@ export class BuildBehavior implements Behavior {
     this.active = false;
     this.working = false;
     this.plannerState = createWorldActionPlannerState();
-    try {
-      stopBotMovement(ctx);
-    } catch { /* ignore */ }
+    safeExec(() => stopBotMovement(ctx), undefined);
   }
 }

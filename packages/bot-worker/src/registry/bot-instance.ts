@@ -11,4 +11,6 @@ export interface BotInstanceInfo {
   lastError: string | null;
   lastDisconnectReason: string | null;
   deathCount: number;
+  /** Params passed to the current behavior; managed by the worker entry point */
+  _behaviorParams?: Readonly<Record<string, unknown>>;
 }

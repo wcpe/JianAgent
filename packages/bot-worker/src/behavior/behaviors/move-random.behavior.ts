@@ -3,6 +3,7 @@ import {
   buildDeterministicOffset,
   resolveExecutionProfile,
 } from '../../navigation/navigation-profile.js';
+import { safeExec } from '../../util/safe-exec.js';
 
 export class MoveRandomBehavior implements Behavior {
   readonly name = 'move-random';
@@ -49,7 +50,7 @@ export class MoveRandomBehavior implements Behavior {
       const profile = resolveExecutionProfile(ctx.params);
       const wanderRadius = profile.scenarioProfile === 'smoke' ? 4 : 7;
       const offset = buildDeterministicOffset(
-        `${(ctx.bot as any).username ?? 'bot'}:${profile.scenarioProfile}`,
+        `${ctx.bot.username ?? 'bot'}:${profile.scenarioProfile}`,
         this.step,
         wanderRadius,
         profile.determinismLevel,
@@ -77,12 +78,12 @@ export class MoveRandomBehavior implements Behavior {
   stop(ctx: BehaviorContext): void {
     this.active = false;
     this.currentTarget = null;
-    try {
+    safeExec(() => {
       ctx.navigator?.stop(ctx.bot);
       ctx.bot.setControlState('forward', false);
       ctx.bot.setControlState('sprint', false);
       ctx.bot.setControlState('jump', false);
-    } catch { /* ignore */ }
+    }, undefined);
   }
 
   private resolvePauseMs(ctx: BehaviorContext): number {

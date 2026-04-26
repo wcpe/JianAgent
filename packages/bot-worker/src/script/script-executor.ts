@@ -32,6 +32,7 @@ export class ScriptExecutor {
   constructor(
     private readonly bot: any, // mineflayer Bot
     private readonly onProgress: ProgressFn,
+    private readonly onError?: (action: string, error: unknown) => void,
   ) {}
 
   async execute(script: BotScript): Promise<void> {
@@ -89,16 +90,16 @@ export class ScriptExecutor {
 
     if (direction === 'random') {
       const yaw = Math.random() * Math.PI * 2;
-      try { this.bot.look(yaw, 0); } catch { /* ignore */ }
+      try { this.bot.look(yaw, 0); } catch (err) { this.onError?.('walk:look', err); }
     }
-    try { this.bot.setControlState('forward', true); } catch { /* ignore */ }
+    try { this.bot.setControlState('forward', true); } catch (err) { this.onError?.('walk:start', err); }
     await this.sleep(durationMs, signal);
-    try { this.bot.setControlState('forward', false); } catch { /* ignore */ }
+    try { this.bot.setControlState('forward', false); } catch (err) { this.onError?.('walk:stop', err); }
   }
 
   private async doChat(p: Readonly<Record<string, unknown>>): Promise<void> {
     const message = String(p.message ?? '');
-    try { this.bot.chat(message); } catch { /* ignore */ }
+    try { this.bot.chat(message); } catch (err) { this.onError?.('chat', err); }
   }
 
   private async doWait(p: Readonly<Record<string, unknown>>, signal: AbortSignal): Promise<void> {
@@ -113,20 +114,20 @@ export class ScriptExecutor {
     try {
       const currentYaw: number = this.bot.entity?.yaw ?? 0;
       this.bot.look(currentYaw + delta, 0);
-    } catch { /* ignore */ }
+    } catch (err) { this.onError?.('turn', err); }
   }
 
   private async doJump(signal: AbortSignal): Promise<void> {
-    try { this.bot.setControlState('jump', true); } catch { /* ignore */ }
+    try { this.bot.setControlState('jump', true); } catch (err) { this.onError?.('jump:start', err); }
     await this.sleep(300, signal);
-    try { this.bot.setControlState('jump', false); } catch { /* ignore */ }
+    try { this.bot.setControlState('jump', false); } catch (err) { this.onError?.('jump:stop', err); }
   }
 
   private async doAttack(): Promise<void> {
     try {
       const entity = this.bot.nearestEntity?.();
       if (entity) this.bot.attack(entity);
-    } catch { /* ignore */ }
+    } catch (err) { this.onError?.('attack', err); }
   }
 
   private async doLook(p: Readonly<Record<string, unknown>>): Promise<void> {
@@ -138,7 +139,7 @@ export class ScriptExecutor {
       if (entity?.position) {
         await this.bot.lookAt(entity.position.offset(0, entity.height ?? 1, 0));
       }
-    } catch { /* ignore */ }
+    } catch (err) { this.onError?.('look', err); }
   }
 
   private async doMoveTo(p: Readonly<Record<string, unknown>>, signal: AbortSignal): Promise<void> {
@@ -162,11 +163,11 @@ export class ScriptExecutor {
       this.bot.setControlState('forward', true);
       await this.sleep(Math.min((dist - distance) * 250, 5000), signal);
       this.bot.setControlState('forward', false);
-    } catch { /* ignore */ }
+    } catch (err) { this.onError?.('move_to', err); }
   }
 
   private async doUseItem(): Promise<void> {
-    try { this.bot.activateItem(); } catch { /* ignore */ }
+    try { this.bot.activateItem(); } catch (err) { this.onError?.('use_item', err); }
   }
 
   /* ---- helpers ---- */

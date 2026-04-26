@@ -27,7 +27,7 @@ export class PathfinderNavigator implements Navigator {
       target.z,
       radius,
     );
-    (bot as any).pathfinder.setGoal(goal);
+    bot.pathfinder.setGoal(goal);
   }
 
   hasReached(bot: Bot, target: NavigationTarget): boolean {
@@ -40,8 +40,8 @@ export class PathfinderNavigator implements Navigator {
   }
 
   stop(bot: Bot): void {
-    if ((bot as any).pathfinder) {
-      (bot as any).pathfinder.setGoal(null);
+    if (bot.pathfinder) {
+      bot.pathfinder.setGoal(null);
     }
   }
 }

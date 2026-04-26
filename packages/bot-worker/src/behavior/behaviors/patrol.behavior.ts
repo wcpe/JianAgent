@@ -1,5 +1,6 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
 import { ensurePathfinder, goals } from '../pathfinder-loader.js';
+import { safeExec } from '../../util/safe-exec.js';
 
 interface Waypoint {
   readonly x: number;
@@ -65,7 +66,7 @@ export class PatrolBehavior implements Behavior {
           ctx.navigator.moveTo(ctx.bot, wp);
         } else {
           const goal = new goals.GoalNear(wp.x, wp.y, wp.z, 1.5);
-          (ctx.bot as any).pathfinder.setGoal(goal);
+          ctx.bot.pathfinder.setGoal(goal);
         }
         this.goalSet = true;
       }
@@ -85,7 +86,7 @@ export class PatrolBehavior implements Behavior {
         if (ctx.navigator) {
           ctx.navigator.stop(ctx.bot);
         } else {
-          (ctx.bot as any).pathfinder.setGoal(null);
+          ctx.bot.pathfinder.setGoal(null);
         }
 
         if (wp.waitMs && wp.waitMs > 0) {
@@ -114,12 +115,12 @@ export class PatrolBehavior implements Behavior {
   async stop(ctx: BehaviorContext): Promise<void> {
     this.active = false;
     this.goalSet = false;
-    try {
+    safeExec(() => {
       if (ctx.navigator) {
         ctx.navigator.stop(ctx.bot);
-      } else if ((ctx.bot as any).pathfinder) {
-        (ctx.bot as any).pathfinder.setGoal(null);
+      } else if (ctx.bot.pathfinder) {
+        ctx.bot.pathfinder.setGoal(null);
       }
-    } catch { /* ignore */ }
+    }, undefined);
   }
 }

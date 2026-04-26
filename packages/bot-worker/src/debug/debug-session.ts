@@ -3,6 +3,7 @@ import type { BehaviorEngine } from '../behavior/behavior-engine.js';
 import type { BehaviorContext } from '../behavior/behavior.interface.js';
 import { BehaviorFactory } from '../behavior/behavior-factory.js';
 import { executeDebugCommand } from './debug-command.js';
+import { BotState } from '@jian-agent/shared-domain';
 
 export class DebugSession {
   private previousBehaviorName: string | null = null;
@@ -23,7 +24,7 @@ export class DebugSession {
     if (bot) {
       await this.engine.stopCurrent({ bot, params: {} });
     }
-    this.botInstance.state = 'DEBUGGING' as any;
+    this.botInstance.state = BotState.DEBUGGING;
     this.onOutput(this.botName, 'Entered debug mode for ' + this.botName + '\r\n');
   }
 
@@ -49,7 +50,7 @@ export class DebugSession {
         // behavior restore failed, that's ok
       }
     }
-    this.botInstance.state = 'CONNECTED' as any;
+    this.botInstance.state = BotState.SPAWNED;
     this.onOutput(this.botName, 'Exited debug mode\r\n');
     this.previousBehaviorName = null;
   }

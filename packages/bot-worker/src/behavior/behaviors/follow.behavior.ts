@@ -1,5 +1,6 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
 import { ensurePathfinder, goals } from '../pathfinder-loader.js';
+import { safeExec } from '../../util/safe-exec.js';
 
 /**
  * Follow a specific player or nearest entity.
@@ -37,12 +38,12 @@ export class FollowBehavior implements Behavior {
         : ctx.bot.nearestEntity((e) => e.type === 'player' && e.username !== ctx.bot.username);
 
       if (!entity) {
-        (ctx.bot as any).pathfinder.setGoal(null);
+        ctx.bot.pathfinder.setGoal(null);
         return;
       }
 
       const goal = new goals.GoalFollow(entity, followDist);
-      (ctx.bot as any).pathfinder.setGoal(goal, true); // dynamic = true
+      ctx.bot.pathfinder.setGoal(goal, true); // dynamic = true
     } catch {
       // entity or pathfinder unavailable
     }
@@ -50,10 +51,10 @@ export class FollowBehavior implements Behavior {
 
   async stop(ctx: BehaviorContext): Promise<void> {
     this.active = false;
-    try {
-      if ((ctx.bot as any).pathfinder) {
-        (ctx.bot as any).pathfinder.setGoal(null);
+    safeExec(() => {
+      if (ctx.bot.pathfinder) {
+        ctx.bot.pathfinder.setGoal(null);
       }
-    } catch { /* ignore */ }
+    }, undefined);
   }
 }

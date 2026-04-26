@@ -1,5 +1,6 @@
 import type { Behavior, BehaviorContext } from '../behavior.interface.js';
 import { ensurePathfinder } from '../pathfinder-loader.js';
+import { safeExec, safeExecAsync } from '../../util/safe-exec.js';
 import {
   createWorldActionPlannerState,
   planAttackTick,
@@ -90,8 +91,6 @@ export class AttackBehavior implements Behavior {
   async stop(ctx: BehaviorContext): Promise<void> {
     this.active = false;
     this.plannerState = createWorldActionPlannerState();
-    try {
-      stopBotMovement(ctx);
-    } catch { /* ignore */ }
+    safeExec(() => stopBotMovement(ctx), undefined);
   }
 }

@@ -8,7 +8,7 @@ const { pathfinder, Movements, goals } = pkg;
  * Safe to call multiple times — only loads once.
  */
 export function ensurePathfinder(bot: Bot): void {
-  if (!(bot as any).pathfinder) {
+  if (!bot.pathfinder) {
     bot.loadPlugin(pathfinder);
   }
   // Apply default movements (updates each call to reflect world changes)
@@ -18,7 +18,7 @@ export function ensurePathfinder(bot: Bot): void {
   movements.allowFreeMotion = false;
   movements.allowParkour = true;
   movements.allowSprinting = true;
-  (bot as any).pathfinder.setMovements(movements);
+  bot.pathfinder.setMovements(movements);
 }
 
 export { goals, Movements };

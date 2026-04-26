@@ -31,21 +31,21 @@ export class StateReporter {
       return {
         name: info.name,
         state: info.state,
-        currentBehavior: info.currentBehavior?.name ?? null,
+        currentBehavior: info.currentBehavior?.name ?? '',
         connectedAt: info.connectedAt,
         lastError: info.lastError,
         x: pos?.x ?? 0,
         y: pos?.y ?? 0,
         z: pos?.z ?? 0,
-        health: (info.bot as any)?.health ?? 0,
-        food: (info.bot as any)?.food ?? 0,
-        latencyMs: (info.bot as any)?.player?.ping ?? 0,
-        world: (info.bot as any)?.game?.dimension ?? '',
+        health: info.bot?.health ?? 0,
+        food: info.bot?.food ?? 0,
+        latencyMs: info.bot?.player?.ping ?? 0,
+        world: info.bot?.game?.dimension ?? '',
         isDead: info.state === BotState.DEAD,
         deathCount: info.deathCount,
         lastHeartbeat: Date.now(),
       };
     });
-    this.send({ bots: bots as any });
+    this.send({ bots });
   }
 }

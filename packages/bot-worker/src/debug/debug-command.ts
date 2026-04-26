@@ -1,4 +1,5 @@
 import type { Bot } from 'mineflayer';
+import { safeExec } from '../util/safe-exec.js';
 
 export interface CommandResult {
   readonly output: string;
@@ -39,25 +40,25 @@ const COMMANDS: Record<string, (bot: Bot, args: string[]) => CommandResult> = {
   '.forward': (bot, args) => {
     const durationMs = args[0] ? parseInt(args[0], 10) : 1000;
     bot.setControlState('forward', true);
-    setTimeout(() => { try { bot.setControlState('forward', false); } catch { /* bot may be gone */ } }, durationMs);
+    setTimeout(() => { safeExec(() => bot.setControlState('forward', false), undefined); }, durationMs);
     return { output: `Moving forward for ${durationMs}ms`, success: true };
   },
   '.back': (bot, args) => {
     const durationMs = args[0] ? parseInt(args[0], 10) : 1000;
     bot.setControlState('back', true);
-    setTimeout(() => { try { bot.setControlState('back', false); } catch { /* bot may be gone */ } }, durationMs);
+    setTimeout(() => { safeExec(() => bot.setControlState('back', false), undefined); }, durationMs);
     return { output: `Moving backward for ${durationMs}ms`, success: true };
   },
   '.left': (bot, args) => {
     const durationMs = args[0] ? parseInt(args[0], 10) : 1000;
     bot.setControlState('left', true);
-    setTimeout(() => { try { bot.setControlState('left', false); } catch { /* bot may be gone */ } }, durationMs);
+    setTimeout(() => { safeExec(() => bot.setControlState('left', false), undefined); }, durationMs);
     return { output: `Moving left for ${durationMs}ms`, success: true };
   },
   '.right': (bot, args) => {
     const durationMs = args[0] ? parseInt(args[0], 10) : 1000;
     bot.setControlState('right', true);
-    setTimeout(() => { try { bot.setControlState('right', false); } catch { /* bot may be gone */ } }, durationMs);
+    setTimeout(() => { safeExec(() => bot.setControlState('right', false), undefined); }, durationMs);
     return { output: `Moving right for ${durationMs}ms`, success: true };
   },
   '.stop': (bot) => {
@@ -76,11 +77,7 @@ const COMMANDS: Record<string, (bot: Bot, args: string[]) => CommandResult> = {
   },
   '.respawn': (bot) => {
     try {
-      (bot as any).respawn?.();
-      // Fallback: send client status with respawn action (protocol-level respawn)
-      if (!(bot as any).respawn && (bot as any)._client) {
-        (bot as any)._client.write('client_command', { payload: '/respawn', signedPreview: false });
-      }
+      bot.respawn();
       return { output: 'Respawn requested', success: true };
     } catch (err: unknown) {
       return { output: `Respawn failed: ${err instanceof Error ? err.message : String(err)}`, success: false };
