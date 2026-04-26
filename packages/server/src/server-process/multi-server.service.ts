@@ -38,7 +38,8 @@ export class MultiServerService implements OnModuleInit, OnModuleDestroy {
       try {
         const result = await this.mcPing.ping(ext.host, ext.port);
         this.externalPings.set(ext.id, result);
-      } catch {
+      } catch (err) {
+        this.logger.debug(`Failed to ping external server ${ext.id}`, err);
         this.externalPings.set(ext.id, { online: false, motd: undefined, onlinePlayers: undefined, maxPlayers: undefined, version: undefined });
       }
     }
@@ -50,7 +51,8 @@ export class MultiServerService implements OnModuleInit, OnModuleDestroy {
         try {
           const result = await this.mcPing.ping(srv.host, srv.port);
           this.managedPings.set(srv.id, result);
-        } catch {
+        } catch (err) {
+          this.logger.debug(`Failed to ping managed server ${srv.id}`, err);
           this.managedPings.delete(srv.id);
         }
       } else {
@@ -67,7 +69,8 @@ export class MultiServerService implements OnModuleInit, OnModuleDestroy {
       const result = await this.mcPing.ping(row.host, row.port);
       this.externalPings.set(serverId, result);
       return result;
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to ping external server ${serverId}`, err);
       return { online: false, motd: undefined, onlinePlayers: undefined, maxPlayers: undefined, version: undefined };
     }
   }

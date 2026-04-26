@@ -14,7 +14,7 @@ export class StartValidatorService {
     if (config.jarPath) {
       try {
         await access(config.jarPath, 4);
-      } catch {
+      } catch (_err) {
         errors.push({ field: 'jarPath', message: `jarPath ${config.jarPath} 不存在或无读权限`, severity: 'error' });
       }
     } else {
@@ -26,7 +26,7 @@ export class StartValidatorService {
       try {
         await mkdir(config.workDir, { recursive: true });
         await access(config.workDir, 2);
-      } catch {
+      } catch (_err) {
         errors.push({ field: 'workDir', message: `workDir ${config.workDir} 不可写`, severity: 'error' });
       }
     } else {
@@ -38,11 +38,11 @@ export class StartValidatorService {
     try {
       const { execFileSync } = await import('node:child_process');
       execFileSync(javaPath, ['--version'], { timeout: 5000, stdio: 'pipe' });
-    } catch {
+    } catch (_err) {
       try {
         const { execFileSync } = await import('node:child_process');
         execFileSync(javaPath, ['-version'], { timeout: 5000, stdio: 'pipe' });
-      } catch {
+      } catch (_err2) {
         errors.push({ field: 'javaPath', message: `javaPath ${javaPath} 不可执行`, severity: 'error' });
       }
     }

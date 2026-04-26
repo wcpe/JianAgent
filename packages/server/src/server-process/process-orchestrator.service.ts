@@ -6,6 +6,7 @@ import { ScheduledStopService } from './scheduled-stop.service.js';
 import { ConditionalStopService } from './conditional-stop.service.js';
 import { HealthMonitorService, type HealthEvent } from './health-monitor.service.js';
 import { ServerConfigService } from './server-config.service.js';
+import { ServerLifecycleEngine } from './lifecycle/lifecycle-engine.service.js';
 import { SnapshotService } from '../plugin-bridge/snapshot.service.js';
 import { AlertEngineService } from '../metrics/alert-engine.service.js';
 import { ServerState } from '@jian-agent/shared-domain';
@@ -17,7 +18,7 @@ import type { ServerCrashedEvent, ServerStateChangedEvent } from '../event-bus/e
  * - State changes → HealthMonitor start/stop monitoring
  * - Snapshots → AlertEngine + ConditionalStop + HealthMonitor
  * - Health events → AlertEngine alerts
- * - Conditional stop → ProcessManager.stop()
+ * - Conditional stop → ServerLifecycleEngine.stop()
  */
 @Injectable()
 export class ProcessOrchestratorService implements OnModuleInit {
@@ -32,6 +33,7 @@ export class ProcessOrchestratorService implements OnModuleInit {
     private readonly conditionalStop: ConditionalStopService,
     private readonly healthMonitor: HealthMonitorService,
     private readonly configService: ServerConfigService,
+    private readonly lifecycleEngine: ServerLifecycleEngine,
     private readonly snapshotService: SnapshotService,
     private readonly alertEngine: AlertEngineService,
   ) {}
@@ -44,13 +46,21 @@ export class ProcessOrchestratorService implements OnModuleInit {
         this.logger.error(`Cannot auto-restart server ${serverId}: config not found`);
         return;
       }
-      await this.processManager.start(config, serverId);
+      await this.lifecycleEngine.start(
+        serverId,
+        config,
+        { idempotencyKey: `crash-restart:${serverId}` },
+      );
     });
 
     // Wire ConditionalStopService stop callback
     this.conditionalStop.setStopCallback((serverId: string, reason: string) => {
       this.logger.warn(`Conditional stop triggered for ${serverId}: ${reason}`);
-      this.processManager.stop(serverId, false).catch((err) => {
+      this.lifecycleEngine.stop(
+        serverId,
+        false,
+        { idempotencyKey: `conditional-stop:${serverId}:${reason}` },
+      ).catch((err) => {
         this.logger.error(`Conditional stop failed for ${serverId}: ${err}`);
       });
     });
@@ -98,32 +108,51 @@ export class ProcessOrchestratorService implements OnModuleInit {
 
   /** Handle scheduled-restart-stop events — stop then restart the server */
   @OnEvent('scheduled-restart-stop')
-  async onScheduledRestartStop(event: { serverId: string }): Promise<void> {
-    const { serverId } = event;
+  async onScheduledRestartStop(event: { serverId: string; executionId?: string }): Promise<void> {
+    const { serverId, executionId } = event;
+    const operationId = executionId ?? `scheduled-restart-stop:${serverId}`;
     this.logger.log(`Scheduled restart triggered for ${serverId}, stopping first...`);
     try {
-      await this.processManager.stop(serverId, false);
+      await this.lifecycleEngine.stop(
+        serverId,
+        false,
+        { idempotencyKey: `${operationId}::stop` },
+      );
     } catch (err) {
       this.logger.error(`Stop failed during scheduled restart for ${serverId}: ${err}`);
-    }
-    // Wait for process to fully stop
-    let waited = 0;
-    while (this.processManager.getState(serverId) !== ServerState.STOPPED && waited < 30_000) {
-      await new Promise((r) => setTimeout(r, 500));
-      waited += 500;
     }
     // Now restart
     try {
       const config = await this.configService.getById(serverId);
       if (config) {
         this.logger.log(`Restarting server ${serverId} after scheduled stop`);
-        await this.processManager.start(config, serverId);
+        await this.lifecycleEngine.start(
+          serverId,
+          config,
+          { idempotencyKey: `${operationId}::start` },
+        );
       } else {
         this.logger.error(`Cannot restart server ${serverId}: config not found`);
       }
     } catch (err) {
       this.logger.error(`Scheduled restart failed for ${serverId}: ${err}`);
     }
+  }
+
+  /** Handle manual graceful stop requests */
+  @OnEvent('graceful-stop-requested')
+  async onGracefulStopRequested(event: { serverId: string; executionId?: string }): Promise<void> {
+    const { serverId, executionId } = event;
+    const operationId = executionId ?? `graceful-stop:${serverId}`;
+    await this.lifecycleEngine.stop(serverId, false, { idempotencyKey: operationId });
+  }
+
+  /** Handle manual force stop requests */
+  @OnEvent('force-stop-requested')
+  async onForceStopRequested(event: { serverId: string; executionId?: string }): Promise<void> {
+    const { serverId, executionId } = event;
+    const operationId = executionId ?? `force-stop:${serverId}`;
+    await this.lifecycleEngine.stop(serverId, true, { idempotencyKey: operationId });
   }
 
   /** Handle server.state-changed events — manage health monitoring lifecycle */

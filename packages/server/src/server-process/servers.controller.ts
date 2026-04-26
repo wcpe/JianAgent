@@ -10,6 +10,10 @@ import {
   UseGuards,
   NotFoundException,
   BadRequestException,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { ProcessManagerService } from './process-manager.service.js';
 import { ServerConfigService } from './server-config.service.js';
@@ -31,6 +35,7 @@ import { StartValidatorService } from './lifecycle/start-validator.service.js';
 import { ProcessResourceMonitor } from './monitor/process-resource-monitor.service.js';
 import { ProcessMetricsStore } from './monitor/process-metrics.store.js';
 import { ConfigSnapshotService } from './snapshot/config-snapshot.service.js';
+import { ServerProvisionService } from './server-provision.service.js';
 import { JwtGuard } from '../auth/jwt.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
@@ -43,11 +48,14 @@ import type {
   ConditionalStopDto,
   CreateStartTemplateDto,
   UpdateStartTemplateDto,
+  ProvisionServerRequest,
 } from '@jian-agent/shared-domain';
 
-@Controller('api/servers')
+@Controller('servers')
 @UseGuards(JwtGuard, RolesGuard)
 export class ServersController {
+  private readonly logger = new Logger(ServersController.name);
+
   constructor(
     private readonly processManager: ProcessManagerService,
     private readonly configService: ServerConfigService,
@@ -69,14 +77,60 @@ export class ServersController {
     private readonly processResourceMonitor: ProcessResourceMonitor,
     private readonly metricsStore: ProcessMetricsStore,
     private readonly configSnapshotService: ConfigSnapshotService,
+    private readonly provisionService: ServerProvisionService,
   ) {}
 
   // ── Config + Status CRUD ──
 
   @Get()
   @Roles(RoleLevel.VIEWER)
-  async listServers(): Promise<readonly ServerWithStatusDto[]> {
-    return this.multiServer.listServers();
+  async listServers(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ): Promise<{ data: readonly ServerWithStatusDto[]; total: number; page: number; limit: number }> {
+    let servers: readonly ServerWithStatusDto[] = await this.multiServer.listServers();
+
+    // Filter by runtime status
+    if (status) {
+      servers = servers.filter(s => s.runtimeStatus === status);
+    }
+
+    // Search by name (case-insensitive contains)
+    if (search) {
+      const lower = search.toLowerCase();
+      servers = servers.filter(s => s.name.toLowerCase().includes(lower));
+    }
+
+    // Sort
+    const allowedSortFields: Record<string, (s: ServerWithStatusDto) => string | number> = {
+      name: s => s.name,
+      createdAt: s => s.createdAt ?? '',
+      updatedAt: s => s.updatedAt ?? '',
+      status: s => s.runtimeStatus,
+      runtimeStatus: s => s.runtimeStatus,
+      host: s => s.host,
+      port: s => s.port,
+      serverType: s => s.serverType,
+      restartCount: s => s.restartCount,
+    };
+    const accessor = allowedSortFields[sort ?? 'name'] ?? allowedSortFields['name']!;
+    const sortOrder = order === 'desc' ? -1 : 1;
+    const sorted = [...servers].sort((a, b) => {
+      const aVal = accessor(a);
+      const bVal = accessor(b);
+      return aVal < bVal ? -sortOrder : aVal > bVal ? sortOrder : 0;
+    });
+
+    // Paginate
+    const total = sorted.length;
+    const parsedPage = Math.max(1, parseInt(page ?? '1', 10) || 1);
+    const parsedLimit = Math.min(200, Math.max(1, parseInt(limit ?? '50', 10) || 50));
+    const data = sorted.slice((parsedPage - 1) * parsedLimit, parsedPage * parsedLimit);
+    return { data, total, page: parsedPage, limit: parsedLimit };
   }
 
   // ── List running Java processes (must be before :id) ──
@@ -114,7 +168,8 @@ export class ServersController {
       }
 
       return { success: true, data: processes };
-    } catch {
+    } catch (err) {
+      this.logger.debug('Failed to list Java processes', err);
       return { success: true, data: [] };
     }
   }
@@ -156,11 +211,14 @@ export class ServersController {
   @Post('batch')
   @Roles(RoleLevel.DANGER)
   @Auditable('server.batch')
-  async batchOperation(@Body() body: {
-    action: 'start' | 'stop' | 'restart' | 'delete';
-    serverIds: string[];
-    stopMode?: 'graceful' | 'force';
-  }) {
+  async batchOperation(
+    @Body() body: {
+      action: 'start' | 'stop' | 'restart' | 'delete';
+      serverIds: string[];
+      stopMode?: 'graceful' | 'force';
+    },
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
     if (!body.serverIds?.length) throw new BadRequestException('serverIds is required');
     const results: Array<{ serverId: string; success: boolean; error?: string }> = [];
 
@@ -170,14 +228,14 @@ export class ServersController {
           case 'start': {
             const config = await this.configService.getById(serverId);
             if (!config) throw new Error('Config not found');
-            await this.lifecycleEngine.start(serverId, config);
+            await this.lifecycleEngine.start(serverId, config, { idempotencyKey });
             break;
           }
           case 'stop':
-            await this.lifecycleEngine.stop(serverId, body.stopMode === 'force');
+            await this.lifecycleEngine.stop(serverId, body.stopMode === 'force', { idempotencyKey });
             break;
           case 'restart':
-            await this.lifecycleEngine.restart(serverId);
+            await this.lifecycleEngine.restart(serverId, { idempotencyKey });
             break;
           case 'delete':
             await this.deleteServer(serverId);
@@ -186,12 +244,26 @@ export class ServersController {
             throw new Error(`Unknown action: ${body.action}`);
         }
         results.push({ serverId, success: true });
-      } catch (err: any) {
-        results.push({ serverId, success: false, error: err.message });
+      } catch (err: unknown) {
+        results.push({ serverId, success: false, error: err instanceof Error ? err.message : String(err) });
       }
     }
 
     return { results };
+  }
+
+  @Post('provision')
+  @HttpCode(HttpStatus.CREATED)
+  @Roles(RoleLevel.DANGER)
+  @Auditable('server.provision')
+  async provisionServer(@Body() body: ProvisionServerRequest) {
+    return this.provisionService.provision(body);
+  }
+
+  @Get('paper-versions')
+  @Roles(RoleLevel.VIEWER)
+  async listPaperVersions() {
+    return this.provisionService.listPaperVersions();
   }
 
   @Get(':id')
@@ -201,10 +273,15 @@ export class ServersController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles(RoleLevel.DANGER)
   @Auditable('server.create')
   async createServer(@Body() body: CreateServerConfigRequest) {
-    return this.configService.create(body);
+    return this.configService.create({
+      ...body,
+      sshPassword: body.sshPassword ? this.sshCrypto.encrypt(body.sshPassword) : '',
+      sshPassphrase: body.sshPassphrase ? this.sshCrypto.encrypt(body.sshPassphrase) : '',
+    });
   }
 
   @Post('preflight-preview')
@@ -265,13 +342,22 @@ export class ServersController {
     if (oldConfig) {
       await this.configSnapshotService.create(id, oldConfig);
     }
-    return this.configService.update(id, body);
+    return this.configService.update(id, {
+      ...body,
+      ...(body.sshPassword !== undefined && {
+        sshPassword: body.sshPassword ? this.sshCrypto.encrypt(body.sshPassword) : '',
+      }),
+      ...(body.sshPassphrase !== undefined && {
+        sshPassphrase: body.sshPassphrase ? this.sshCrypto.encrypt(body.sshPassphrase) : '',
+      }),
+    });
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.ADMIN)
   @Auditable('server.delete')
-  async deleteServer(@Param('id') id: string) {
+  async deleteServer(@Param('id') id: string): Promise<void> {
     const server = await this.multiServer.getServer(id);
     if (!server) throw new NotFoundException(`Server ${id} not found`);
     if (server.serverType !== 'external') {
@@ -280,7 +366,7 @@ export class ServersController {
         throw new BadRequestException(`Cannot delete server ${id}: currently ${state}. Stop it first.`);
       }
     }
-    return this.configService.delete(id);
+    await this.configService.delete(id);
   }
 
   // ── Lifecycle operations ──
@@ -288,36 +374,48 @@ export class ServersController {
   @Post(':id/start')
   @Roles(RoleLevel.DANGER)
   @Auditable('server.start')
-  async startServer(@Param('id') id: string) {
+  async startServer(
+    @Param('id') id: string,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
     const config = await this.configService.getById(id);
     if (!config) throw new NotFoundException(`Server config ${id} not found`);
-    await this.lifecycleEngine.start(id, config);
+    await this.lifecycleEngine.start(id, config, { idempotencyKey });
     return { success: true, pid: this.processManager.getStatus(id).pid };
   }
 
   @Post(':id/stop')
   @Roles(RoleLevel.DANGER)
   @Auditable('server.stop')
-  async stopServer(@Param('id') id: string) {
-    await this.lifecycleEngine.stop(id, false);
+  async stopServer(
+    @Param('id') id: string,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
+    await this.lifecycleEngine.stop(id, false, { idempotencyKey });
     return { success: true };
   }
 
   @Post(':id/interrupt')
   @Roles(RoleLevel.DANGER)
   @Auditable('server.interrupt')
-  async interruptServer(@Param('id') id: string) {
-    await this.lifecycleEngine.stop(id, true);
+  async interruptServer(
+    @Param('id') id: string,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
+    await this.lifecycleEngine.stop(id, true, { idempotencyKey });
     return { success: true };
   }
 
   @Post(':id/restart')
   @Roles(RoleLevel.DANGER)
   @Auditable('server.restart')
-  async restartServer(@Param('id') id: string) {
+  async restartServer(
+    @Param('id') id: string,
+    @Headers('x-idempotency-key') idempotencyKey?: string,
+  ) {
     const config = await this.configService.getById(id);
     if (!config) throw new NotFoundException(`Server config ${id} not found`);
-    await this.lifecycleEngine.restart(id);
+    await this.lifecycleEngine.restart(id, { idempotencyKey });
     return { success: true };
   }
 
@@ -462,15 +560,15 @@ export class ServersController {
   }
 
   @Delete(':id/ssh/disconnect')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.DANGER)
   @Auditable('server.ssh.disconnect')
-  sshDisconnect(@Param('id') id: string, @Query('sessionId') sessionId?: string) {
+  sshDisconnect(@Param('id') id: string, @Query('sessionId') sessionId?: string): void {
     if (sessionId) {
       this.sshTerminal.closeSession(sessionId);
     } else {
       this.sshTerminal.closeAllForServer(id);
     }
-    return { success: true };
   }
 
   @Post(':id/ssh/test')
@@ -484,8 +582,8 @@ export class ServersController {
       const client = await this.sshPool.getConnection(sshConfig);
       this.sshPool.release(config.id, client);
       return { success: true, message: 'SSH connection successful' };
-    } catch (err: any) {
-      return { success: false, message: err.message ?? 'Connection failed' };
+    } catch (err: unknown) {
+      return { success: false, message: err instanceof Error ? err.message : 'Connection failed' };
     }
   }
 
@@ -515,11 +613,12 @@ export class ServersController {
   async scheduleStop(
     @Param('id') id: string,
     @Body() body: { stopAt: string; mode?: 'graceful' | 'force' },
+    @Headers('x-idempotency-key') idempotencyKey?: string,
   ) {
     if (!body.stopAt) throw new BadRequestException('stopAt is required');
     const stopAt = new Date(body.stopAt);
     if (isNaN(stopAt.getTime())) throw new BadRequestException('Invalid stopAt date');
-    this.scheduledStop.schedule(id, stopAt, body.mode ?? 'graceful');
+    this.scheduledStop.schedule(id, stopAt, body.mode ?? 'graceful', 'manual', idempotencyKey);
     return { success: true, stopAt: stopAt.toISOString(), mode: body.mode ?? 'graceful' };
   }
 
@@ -529,13 +628,14 @@ export class ServersController {
   async scheduleRestart(
     @Param('id') id: string,
     @Body() body: { restartAt: string },
+    @Headers('x-idempotency-key') idempotencyKey?: string,
   ) {
     if (!body.restartAt) throw new BadRequestException('restartAt is required');
     const restartAt = new Date(body.restartAt);
     if (isNaN(restartAt.getTime())) throw new BadRequestException('Invalid restartAt date');
     const config = await this.configService.getById(id);
     if (!config) throw new NotFoundException(`Server config ${id} not found`);
-    this.scheduledStop.schedule(id, restartAt, 'graceful', 'scheduled-restart');
+    this.scheduledStop.schedule(id, restartAt, 'graceful', 'scheduled-restart', idempotencyKey);
     return { success: true, restartAt: restartAt.toISOString() };
   }
 
@@ -546,11 +646,11 @@ export class ServersController {
   }
 
   @Delete(':id/scheduled-stop')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.DANGER)
   @Auditable('server.cancel-scheduled-stop')
-  cancelScheduledStop(@Param('id') id: string) {
-    const cancelled = this.scheduledStop.cancel(id);
-    return { success: cancelled };
+  cancelScheduledStop(@Param('id') id: string): void {
+    this.scheduledStop.cancel(id);
   }
 
   // ── Conditional Stop ──
@@ -580,11 +680,11 @@ export class ServersController {
   }
 
   @Delete(':id/conditional-stop')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleLevel.DANGER)
   @Auditable('server.clear-conditional-stop')
-  clearConditionalStop(@Param('id') id: string) {
+  clearConditionalStop(@Param('id') id: string): void {
     this.conditionalStop.clearCondition(id);
-    return { success: true };
   }
 
   // ── Health Status ──

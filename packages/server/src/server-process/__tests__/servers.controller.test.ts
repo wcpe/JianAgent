@@ -1,10 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ServersController } from '../servers.controller.js';
 
-describe('ServersController SSH observability endpoints', () => {
+describe('ServersController endpoints', () => {
   function buildController() {
     const sshPool = {
       isConnected: vi.fn().mockReturnValue(true),
+    };
+    const configService = {
+      getById: vi.fn().mockResolvedValue({
+        id: 'srv-1',
+        name: 'srv-1',
+      }),
+      serverConfigToSshConfig: vi.fn(),
+    };
+    const scheduledStop = {
+      schedule: vi.fn(),
+      getScheduled: vi.fn(),
+      cancel: vi.fn(),
     };
     const sshTerminal = {
       getObservabilitySnapshot: vi.fn().mockReturnValue({
@@ -30,10 +42,10 @@ describe('ServersController SSH observability endpoints', () => {
 
     const controller = new ServersController(
       {} as any,
+      configService as any,
       {} as any,
       {} as any,
-      {} as any,
-      {} as any,
+      scheduledStop as any,
       {} as any,
       {} as any,
       {} as any,
@@ -44,9 +56,20 @@ describe('ServersController SSH observability endpoints', () => {
       sshPool as any,
       {} as any,
       {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
     );
 
-    return { controller, sshPool, sshTerminal };
+    return {
+      controller,
+      sshPool,
+      sshTerminal,
+      configService,
+      scheduledStop,
+    };
   }
 
   it('returns ssh status with observability snapshot', () => {
@@ -69,5 +92,36 @@ describe('ServersController SSH observability endpoints', () => {
     expect(sshTerminal.listActiveSessions).toHaveBeenCalledWith('srv-1');
     expect(res.sessions).toHaveLength(1);
     expect(res.sessions[0]?.sessionBriefId).toBe('ssh-srv-1...1111');
+  });
+
+  it('should pass idempotency key to scheduled stop', async () => {
+    const { controller, scheduledStop } = buildController();
+    const now = new Date(Date.now() + 60_000).toISOString();
+
+    await controller.scheduleStop('srv-1', { stopAt: now, mode: 'force' }, 'idem-stop');
+
+    expect(scheduledStop.schedule).toHaveBeenCalledWith(
+      'srv-1',
+      expect.any(Date),
+      'force',
+      'manual',
+      'idem-stop',
+    );
+  });
+
+  it('should pass idempotency key to scheduled restart', async () => {
+    const { controller, scheduledStop, configService } = buildController();
+    const now = new Date(Date.now() + 60_000).toISOString();
+
+    await controller.scheduleRestart('srv-1', { restartAt: now }, 'idem-restart');
+
+    expect(configService.getById).toHaveBeenCalledWith('srv-1');
+    expect(scheduledStop.schedule).toHaveBeenCalledWith(
+      'srv-1',
+      expect.any(Date),
+      'graceful',
+      'scheduled-restart',
+      'idem-restart',
+    );
   });
 });

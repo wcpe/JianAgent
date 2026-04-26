@@ -147,7 +147,7 @@ export class HealthMonitorService implements OnModuleInit, OnModuleDestroy {
     try {
       process.kill(pid, 0);
       return true;
-    } catch {
+    } catch (_err) {
       return false;
     }
   }

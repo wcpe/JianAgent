@@ -22,6 +22,8 @@ import { ServerLifecycleEngine } from './lifecycle/lifecycle-engine.service.js';
 import { StartValidatorService } from './lifecycle/start-validator.service.js';
 import { ShellHookExecutor } from './lifecycle/shell-hook-executor.service.js';
 import { StartReadyDetector } from './lifecycle/start-ready-detector.service.js';
+import { ServerProvisionService } from './server-provision.service.js';
+import { PaperReleaseService } from '../local-validation/paper-release.service.js';
 import { PopulationController } from './population.controller.js';
 import { MetricsModule } from '../metrics/metrics.module.js';
 import { PluginBridgeModule } from '../plugin-bridge/plugin-bridge.module.js';
@@ -58,7 +60,9 @@ import { JavaHelperModule } from '../java-helper/java-helper.module.js';
     StartValidatorService,
     ShellHookExecutor,
     StartReadyDetector,
+    ServerProvisionService,
+    PaperReleaseService,
   ],
-  exports: [ProcessManagerService, ProcessMonitorService, ServerConfigService, ScheduledStopService, HealthMonitorService, MultiServerService, ProcessAttachService, PopulationTrackerService, ConditionalStopService, CrashRestartService, StartTemplateService, ServerLifecycleEngine, ProcessResourceMonitor, ConfigSnapshotService],
+  exports: [ProcessManagerService, ProcessMonitorService, ServerConfigService, ScheduledStopService, HealthMonitorService, MultiServerService, ProcessAttachService, PopulationTrackerService, ConditionalStopService, CrashRestartService, StartTemplateService, ServerLifecycleEngine, ProcessResourceMonitor, ConfigSnapshotService, ServerProvisionService],
 })
 export class ServerProcessModule {}

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ServerState } from '@jian-agent/shared-domain';
@@ -16,6 +16,7 @@ import { SessionType } from '../terminal-session/terminal-session.types.js';
 import type { UnifiedTerminalSession } from '../terminal-session/terminal-session.service.js';
 import { JavaRuntimeService } from '../java-runtime/java-runtime.service.js';
 import * as iconv from 'iconv-lite';
+import { readStartReadyConfig } from '../common/network-config.js';
 
 /** Detect Windows system encoding (GBK/CP936 for CJK systems) */
 const IS_WINDOWS = process.platform === 'win32';
@@ -37,9 +38,10 @@ interface ManagedProcess {
 }
 
 @Injectable()
-export class ProcessManagerService {
+export class ProcessManagerService implements OnModuleDestroy {
   private readonly logger = new Logger(ProcessManagerService.name);
   private readonly processes = new Map<string, ManagedProcess>();
+  private readonly stopLocks = new Map<string, Promise<void>>();
   /** Ring buffer per server for recent output lines */
   private readonly outputBuffers = new Map<string, string[]>();
 
@@ -49,6 +51,19 @@ export class ProcessManagerService {
     private readonly terminalSessionService: TerminalSessionService,
     private readonly javaRuntimeService: JavaRuntimeService,
   ) {}
+
+  onModuleDestroy(): void {
+    for (const serverId of this.processes.keys()) {
+      const managed = this.processes.get(serverId);
+      if (!managed) continue;
+
+      if (managed.process) {
+        void this.stop(serverId, true);
+      } else {
+        this.closeTerminalSession(managed, managed.lastExitCode);
+      }
+    }
+  }
 
   /** Backwards-compatible: get state for a server (default = 'default') */
   getState(serverId = 'default'): ServerState {
@@ -108,6 +123,27 @@ export class ProcessManagerService {
     }
   }
 
+  private createPendingManagedProcess(serverId: string, existing?: ManagedProcess): ManagedProcess {
+    if (existing) {
+      return {
+        ...existing,
+        state: ServerState.PENDING,
+      };
+    }
+
+    return {
+      serverId,
+      state: ServerState.PENDING,
+      process: null,
+      pid: undefined,
+      startTime: undefined,
+      lastExitCode: undefined,
+      lastExitTime: undefined,
+      restartCount: 0,
+      mcSession: null,
+    };
+  }
+
   async start(config: ServerConfig, serverId?: string): Promise<void> {
     const sid = serverId ?? config.id ?? 'default';
 
@@ -116,23 +152,19 @@ export class ProcessManagerService {
     }
 
     const existing = this.processes.get(sid);
-    if (existing && (existing.state === ServerState.RUNNING || existing.state === ServerState.STARTING)) {
+    this.recoverOrphanedProcess(existing);
+    if (existing && (existing.state === ServerState.RUNNING || existing.state === ServerState.STARTING || existing.state === ServerState.PENDING || existing.state === ServerState.STOPPING)) {
       throw new Error(`Cannot start server ${sid}: already ${existing.state}`);
     }
 
-    const managed: ManagedProcess = {
-      serverId: sid,
-      state: ServerState.STARTING,
-      process: null,
-      pid: undefined,
-      startTime: undefined,
-      lastExitCode: existing?.lastExitCode,
-      lastExitTime: existing?.lastExitTime,
-      restartCount: existing?.restartCount ?? 0,
-      mcSession: null,
-    };
+    const managed = this.createPendingManagedProcess(sid, existing);
+
+    if (managed.mcSession) {
+      this.closeTerminalSession(managed, managed.lastExitCode);
+    }
     this.processes.set(sid, managed);
-    this.emitState(managed, ServerState.STARTING);
+    this.setManagedState(managed, ServerState.PENDING);
+    this.setManagedState(managed, ServerState.STARTING);
 
     // Create unified MC console session
     const mcSession = this.terminalSessionService.create({
@@ -147,8 +179,8 @@ export class ProcessManagerService {
       const normalized = command.replace(/\r\n?/g, '\n');
       try {
         this.writeStdin(sid, normalized);
-      } catch {
-        this.logger.warn(`Cannot write to server ${sid}: process not running`);
+      } catch (err) {
+        this.logger.warn(`Cannot write to server ${sid}: process not running`, err);
       }
     });
 
@@ -162,8 +194,8 @@ export class ProcessManagerService {
     // Inject probe plugin before starting the server
     try {
       await this.probeInjector.inject(config.workDir, sid);
-    } catch (err: any) {
-      this.logger.warn(`Probe injection failed (non-fatal): ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.warn(`Probe injection failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`);
     }
 
     const args = [...config.jvmArgs, '-jar', config.jarPath, ...config.serverArgs];
@@ -172,8 +204,8 @@ export class ProcessManagerService {
     // Auto-create workDir if it doesn't exist
     try {
       await import('fs/promises').then(fs => fs.mkdir(config.workDir, { recursive: true }));
-    } catch (err: any) {
-      this.logger.warn(`Could not create workDir ${config.workDir}: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.warn(`Could not create workDir ${config.workDir}: ${err instanceof Error ? err.message : String(err)}`);
     }
 
     // Resolve actual Java path: prefer runtimeId, fallback to config.javaPath
@@ -183,15 +215,23 @@ export class ProcessManagerService {
       if (selection.resolvedJavaPath) {
         javaPath = selection.resolvedJavaPath;
       }
-    } catch {
-      this.logger.warn(`Failed to resolve runtimeId ${config.runtimeId}, falling back to javaPath`);
+    } catch (err) {
+      this.logger.warn(`Failed to resolve runtimeId ${config.runtimeId}, falling back to javaPath`, err);
     }
 
-    const child: ChildProcess = spawn(javaPath, args, {
-      cwd: config.workDir,
-      env,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    let child: ChildProcess;
+    try {
+      child = spawn(javaPath, args, {
+        cwd: config.workDir,
+        env,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+    } catch (err: unknown) {
+      this.logger.error(`Server ${sid} failed to spawn process: ${err instanceof Error ? err.message : String(err)}`);
+      this.setManagedState(managed, ServerState.STOPPED);
+      this.closeTerminalSession(managed, managed.lastExitCode);
+      throw err;
+    }
 
     managed.process = child;
     managed.pid = child.pid;
@@ -276,9 +316,37 @@ export class ProcessManagerService {
       forceKill = forceOrServerId ?? false;
     }
 
-    const managed = this.processes.get(sid);
-    if (!managed?.process) {
-      throw new Error(`No server process to stop for ${sid}`);
+    const previous = (this.stopLocks.get(sid) ?? Promise.resolve()).catch(() => undefined);
+    const current = previous.then(() => this.stopUnsafe(sid, forceKill));
+    this.stopLocks.set(sid, current.finally(() => {
+      if (this.stopLocks.get(sid) === current) {
+        this.stopLocks.delete(sid);
+      }
+    }));
+    return current;
+  }
+
+  private async stopUnsafe(serverId: string, forceKill: boolean): Promise<void> {
+    const managed = this.processes.get(serverId);
+    if (!managed) {
+      this.logger.warn(`No server process to stop for ${serverId}`);
+      return;
+    }
+
+    if (!managed.process) {
+      if (managed.state !== ServerState.STOPPED && managed.state !== ServerState.CRASHED) {
+        this.setManagedState(managed, ServerState.STOPPED);
+      }
+      this.closeTerminalSession(managed, managed.lastExitCode);
+      return;
+    }
+
+    if (managed.state === ServerState.STOPPING) {
+      const stopped = await this.awaitProcessStop(serverId, managed, readStartReadyConfig().stopTimeoutMs);
+      if (!stopped) {
+        throw new Error(`Stop for ${serverId} timed out`);
+      }
+      return;
     }
 
     this.setManagedState(managed, ServerState.STOPPING);
@@ -286,13 +354,56 @@ export class ProcessManagerService {
     if (forceKill) {
       managed.process.kill('SIGKILL');
     } else {
-      managed.process.stdin?.write('stop\n');
-      setTimeout(() => {
-        if (managed.process && managed.state === ServerState.STOPPING) {
-          this.logger.warn(`Server ${sid}: graceful stop timed out, force killing`);
-          managed.process.kill('SIGKILL');
-        }
-      }, 30000);
+      if (managed.process.stdin && managed.process.stdin.writable) {
+        managed.process.stdin.write('stop\n');
+      } else {
+        managed.process.kill('SIGKILL');
+      }
+    }
+
+    const stopTimeoutMs = readStartReadyConfig().stopTimeoutMs;
+    const stopped = await this.awaitProcessStop(serverId, managed, stopTimeoutMs);
+    if (stopped) {
+      return;
+    }
+
+    if (!forceKill) {
+      this.logger.warn(`Server ${serverId}: graceful stop timed out, force killing`);
+      managed.process.kill('SIGKILL');
+      const forceStopped = await this.awaitProcessStop(
+        serverId,
+        managed,
+        Math.max(5_000, Math.min(stopTimeoutMs, 5_000)),
+      );
+      if (forceStopped) {
+        return;
+      }
+    }
+
+    this.recoverOrphanedProcess(managed);
+    this.closeTerminalSession(managed, managed.lastExitCode);
+    this.setManagedState(managed, ServerState.STOPPED);
+    throw new Error(`Stop for ${serverId} timed out`);
+  }
+
+  private recoverOrphanedProcess(managed: ManagedProcess | undefined): void {
+    if (!managed) return;
+    if (!managed.process) {
+      if (
+        managed.state !== ServerState.STOPPED
+        && managed.state !== ServerState.CRASHED
+      ) {
+        this.setManagedState(managed, ServerState.STOPPED);
+      }
+      return;
+    }
+
+    if (managed.process.killed) {
+      managed.process = null;
+      managed.pid = undefined;
+      managed.startTime = undefined;
+      this.setManagedState(managed, ServerState.STOPPED);
+      return;
     }
   }
 
@@ -329,6 +440,8 @@ export class ProcessManagerService {
   }
 
   private setManagedState(managed: ManagedProcess, newState: ServerState): void {
+    if (managed.state === newState) return;
+
     const prev = managed.state;
     managed.state = newState;
     const event: ServerStateChangedEvent = {
@@ -341,15 +454,39 @@ export class ProcessManagerService {
     this.eventBus.emit('server.state-changed', event);
   }
 
-  private emitState(managed: ManagedProcess, state: ServerState): void {
-    managed.state = state;
-    const event: ServerStateChangedEvent = {
-      serverId: managed.serverId,
-      oldState: ServerState.STOPPED,
-      newState: state,
-      pid: managed.pid,
-      timestamp: Date.now(),
-    };
-    this.eventBus.emit('server.state-changed', event);
+  private async stopWithTimeout(
+    managed: ManagedProcess,
+    stopTimeoutMs: number,
+  ): Promise<boolean> {
+    const deadline = Date.now() + stopTimeoutMs;
+    while (Date.now() < deadline) {
+      if (!managed.process || managed.state === ServerState.STOPPED || managed.state === ServerState.CRASHED) {
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return !managed.process || managed.state === ServerState.STOPPED || managed.state === ServerState.CRASHED;
+  }
+
+  private async awaitProcessStop(serverId: string, managed: ManagedProcess, stopTimeoutMs: number): Promise<boolean> {
+    const stopped = await this.stopWithTimeout(managed, stopTimeoutMs);
+    if (!stopped && managed.process) {
+      const stillAlive = !managed.process.killed;
+      if (!stillAlive) {
+        return true;
+      }
+      this.logger.warn(`Server ${serverId} still running after stop wait window`);
+    }
+    return stopped;
+  }
+
+  private closeTerminalSession(managed: ManagedProcess, exitCode?: number): void {
+    if (!managed.mcSession) {
+      return;
+    }
+
+    managed.mcSession.emitExit({ exitCode: exitCode ?? 0 });
+    this.terminalSessionService.close(managed.mcSession.sessionId);
+    managed.mcSession = null;
   }
 }

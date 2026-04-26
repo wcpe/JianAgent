@@ -140,7 +140,8 @@ describe('PopulationTrackerService', () => {
     const allFn = vi.fn().mockReturnValue(records);
     const limitFn = vi.fn().mockReturnValue({ all: allFn });
     const orderByFn = vi.fn().mockReturnValue({ limit: limitFn });
-    const fromFn = vi.fn().mockReturnValue({ orderBy: orderByFn });
+    const whereFn = vi.fn().mockReturnValue({ orderBy: orderByFn });
+    const fromFn = vi.fn().mockReturnValue({ where: whereFn });
     mockDb.select.mockReturnValue({ from: fromFn });
 
     const result = service.getHistory({});
@@ -152,7 +153,8 @@ describe('PopulationTrackerService', () => {
     const allFn = vi.fn().mockReturnValue([]);
     const limitFn = vi.fn().mockReturnValue({ all: allFn });
     const orderByFn = vi.fn().mockReturnValue({ limit: limitFn });
-    const fromFn = vi.fn().mockReturnValue({ orderBy: orderByFn });
+    const whereFn = vi.fn().mockReturnValue({ orderBy: orderByFn });
+    const fromFn = vi.fn().mockReturnValue({ where: whereFn });
     mockDb.select.mockReturnValue({ from: fromFn });
 
     service.getHistory({ limit: 100 });

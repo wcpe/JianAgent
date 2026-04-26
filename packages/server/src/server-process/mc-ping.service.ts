@@ -32,7 +32,8 @@ export class McPingService {
           const handshake = this.buildHandshakePacket(host, port);
           socket.write(handshake);
           socket.write(Buffer.from([0x01, 0x00])); // Status request
-        } catch {
+        } catch (err) {
+          this.logger.debug('Failed to write handshake packet', err);
           finish({ online: false });
         }
       });
@@ -44,7 +45,7 @@ export class McPingService {
         try {
           const result = this.parseStatusResponse(dataBuffer);
           if (result) finish({ ...result, latencyMs: Date.now() - startTime });
-        } catch {
+        } catch (_err) {
           // Wait for more data
         }
       });
@@ -158,7 +159,8 @@ export class McPingService {
         favicon,
         version: data.version?.name,
       };
-    } catch {
+    } catch (err) {
+      this.logger.debug('Failed to parse MC ping JSON response', err);
       return { online: true }; // Server responded but JSON was invalid
     }
   }

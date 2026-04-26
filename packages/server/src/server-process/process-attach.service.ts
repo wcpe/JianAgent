@@ -19,7 +19,8 @@ export class ProcessAttachService {
       this.attachedPids.set(serverId, pid);
       this.logger.log(`Attached to external process server=${serverId} PID=${pid}`);
       return { success: true, state: ServerState.ATTACHED_EXTERNAL };
-    } catch {
+    } catch (err) {
+      this.logger.debug(`PID ${pid} is not alive`, err);
       return { success: false, state: ServerState.UNKNOWN };
     }
   }

@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ProcessManagerService } from './process-manager.service.js';
 
 interface ScheduledStop {
   readonly serverId: string;
@@ -9,6 +8,7 @@ interface ScheduledStop {
   readonly reason: 'manual' | 'scheduled-restart';
   readonly timer: NodeJS.Timeout;
   readonly warningTimers: readonly NodeJS.Timeout[];
+  readonly executionId: string;
 }
 
 @Injectable()
@@ -18,7 +18,6 @@ export class ScheduledStopService {
   private readonly logger = new Logger(ScheduledStopService.name);
 
   constructor(
-    private readonly processManager: ProcessManagerService,
     private readonly eventBus: EventEmitter2,
   ) {}
 
@@ -27,14 +26,17 @@ export class ScheduledStopService {
     stopAt: Date,
     mode: 'graceful' | 'force',
     reason: 'manual' | 'scheduled-restart' = 'manual',
+    idempotencyKey?: string,
   ): void {
     this.cancel(serverId);
 
     const now = Date.now();
     const stopDelay = stopAt.getTime() - now;
+    const executionId = this.buildExecutionId(serverId, reason, mode, stopAt, idempotencyKey);
+
     if (stopDelay <= 0) {
       this.logger.warn(`Scheduled stop time is in the past for server ${serverId}, stopping immediately`);
-      this.executeStop(serverId, mode, reason);
+      this.executeStop(serverId, mode, reason, executionId);
       return;
     }
 
@@ -63,7 +65,7 @@ export class ScheduledStopService {
     }
 
     const timer = setTimeout(() => {
-      this.executeStop(serverId, mode, reason);
+      this.executeStop(serverId, mode, reason, executionId);
       this.scheduled.delete(serverId);
     }, stopDelay);
 
@@ -74,6 +76,7 @@ export class ScheduledStopService {
       reason,
       timer,
       warningTimers,
+      executionId,
     });
 
     this.logger.log(`Scheduled ${mode} stop for server ${serverId} at ${stopAt.toISOString()} (reason: ${reason})`);
@@ -106,15 +109,35 @@ export class ScheduledStopService {
     return this.lastStopReason.get(serverId) ?? null;
   }
 
-  private executeStop(serverId: string, mode: 'graceful' | 'force', reason: 'manual' | 'scheduled-restart'): void {
+  private buildExecutionId(
+    serverId: string,
+    reason: 'manual' | 'scheduled-restart',
+    mode: 'graceful' | 'force',
+    stopAt: Date,
+    idempotencyKey?: string,
+  ): string {
+    const normalizedKey = idempotencyKey?.trim();
+    if (!normalizedKey) {
+      return `${serverId}::${reason}::${mode}::${stopAt.getTime()}`;
+    }
+
+    return `${serverId}::${reason}::${mode}::${stopAt.getTime()}::${normalizedKey}`;
+  }
+
+  private executeStop(
+    serverId: string,
+    mode: 'graceful' | 'force',
+    reason: 'manual' | 'scheduled-restart',
+    executionId: string,
+  ): void {
     this.logger.log(`Executing ${mode} stop for server ${serverId} (reason: ${reason})`);
     this.lastStopReason.set(serverId, reason);
     if (reason === 'scheduled-restart') {
-      this.eventBus.emit('scheduled-restart-stop', { serverId });
+      this.eventBus.emit('scheduled-restart-stop', { serverId, executionId });
     } else if (mode === 'force') {
-      this.eventBus.emit('force-stop-requested', { serverId });
+      this.eventBus.emit('force-stop-requested', { serverId, executionId });
     } else {
-      this.eventBus.emit('graceful-stop-requested', { serverId });
+      this.eventBus.emit('graceful-stop-requested', { serverId, executionId });
     }
   }
 }

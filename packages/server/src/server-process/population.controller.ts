@@ -5,7 +5,7 @@ import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { RoleLevel } from '@jian-agent/shared-domain';
 
-@Controller('api/population')
+@Controller('population')
 @UseGuards(JwtGuard, RolesGuard)
 export class PopulationController {
   constructor(private readonly populationTracker: PopulationTrackerService) {}

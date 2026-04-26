@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ScheduledStopService } from '../scheduled-stop.service.js';
 
-function createMockProcessManager() {
-  return {};
-}
-
 function createMockEventBus() {
   return {
     emit: vi.fn(),
@@ -14,14 +10,12 @@ function createMockEventBus() {
 
 describe('ScheduledStopService', () => {
   let service: ScheduledStopService;
-  let mockPM: ReturnType<typeof createMockProcessManager>;
   let mockEventBus: ReturnType<typeof createMockEventBus>;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    mockPM = createMockProcessManager();
     mockEventBus = createMockEventBus();
-    service = new ScheduledStopService(mockPM as any, mockEventBus as any);
+    service = new ScheduledStopService(mockEventBus as any);
   });
 
   afterEach(() => {
@@ -73,5 +67,43 @@ describe('ScheduledStopService', () => {
     const info = service.getScheduled('srv-1');
     expect(info!.mode).toBe('force');
     expect(info!.stopAt).toBe(future2.toISOString());
+  });
+
+  it('should include idempotency key in stop execution id', () => {
+    const future = new Date(Date.now() + 50);
+    service.schedule('srv-1', future, 'graceful', 'manual', 'idem-1');
+
+    vi.advanceTimersByTime(50);
+    expect(mockEventBus.emit).toHaveBeenCalledWith(
+      'graceful-stop-requested',
+      expect.objectContaining({
+        serverId: 'srv-1',
+        executionId: expect.stringContaining('idem-1'),
+      }),
+    );
+  });
+
+  it('should emit scheduled-restart-stop event with idempotency key', () => {
+    service.schedule('srv-1', new Date(Date.now()), 'force', 'scheduled-restart', 'idem-scheduled');
+
+    expect(mockEventBus.emit).toHaveBeenCalledWith(
+      'scheduled-restart-stop',
+      expect.objectContaining({
+        serverId: 'srv-1',
+        executionId: expect.stringContaining('idem-scheduled'),
+      }),
+    );
+  });
+
+  it('should emit force-stop-requested event with idempotency key', () => {
+    service.schedule('srv-1', new Date(Date.now()), 'force', 'manual', 'idem-force');
+
+    expect(mockEventBus.emit).toHaveBeenCalledWith(
+      'force-stop-requested',
+      expect.objectContaining({
+        serverId: 'srv-1',
+        executionId: expect.stringContaining('idem-force'),
+      }),
+    );
   });
 });

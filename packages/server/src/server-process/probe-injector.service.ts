@@ -32,10 +32,11 @@ export class ProbeInjectorService {
     // 1. Verify source jar exists
     try {
       await stat(this.probeJarPath);
-    } catch {
+    } catch (err) {
       this.logger.warn(
         `Probe plugin jar not found at ${this.probeJarPath}. ` +
         'Skipping injection — build the probe-plugin first.',
+        err,
       );
       return;
     }
@@ -47,8 +48,8 @@ export class ProbeInjectorService {
     try {
       await copyFile(this.probeJarPath, destJar);
       this.logger.log(`Probe plugin jar copied to ${destJar}`);
-    } catch (err: any) {
-      this.logger.error(`Failed to copy probe jar: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.error(`Failed to copy probe jar: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
 

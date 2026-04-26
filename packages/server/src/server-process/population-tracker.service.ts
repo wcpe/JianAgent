@@ -65,7 +65,6 @@ export class PopulationTrackerService implements OnModuleInit, OnModuleDestroy {
     readonly endTime?: string;
     readonly limit?: number;
   }): readonly PopulationRecord[] {
-    let query = this.db.select().from(playerPopulations);
     const conditions = [];
 
     if (params.serverId) {
@@ -78,11 +77,10 @@ export class PopulationTrackerService implements OnModuleInit, OnModuleDestroy {
       conditions.push(lte(playerPopulations.timestamp, params.endTime));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    return (query as any)
+    return this.db
+      .select()
+      .from(playerPopulations)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(playerPopulations.timestamp))
       .limit(params.limit ?? 1440)
       .all();

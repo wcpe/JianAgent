@@ -69,7 +69,8 @@ export class ProcessResourceMonitor implements OnModuleInit, OnModuleDestroy {
         threadCount: undefined,
         fdCount: undefined,
       };
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to collect pidusage for pid ${pid}`, err);
       return null;
     }
   }
