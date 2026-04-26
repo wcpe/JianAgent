@@ -3,7 +3,6 @@ import { readdir, readFile, stat, open } from 'node:fs/promises';
 import { createReadStream, watch, type FSWatcher } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { createGunzip } from 'node:zlib';
-import { createInterface } from 'node:readline';
 import * as iconv from 'iconv-lite';
 import { ServerConfigService } from '../server-process/server-config.service.js';
 import type { ServerConfig } from '@jian-agent/shared-domain';
@@ -29,6 +28,7 @@ export interface RecentLogQueryInput {
   readonly serverIds?: readonly string[];
   readonly linesPerServer?: number;
   readonly maxTotal?: number;
+  readonly fields?: readonly ('content' | 'file')[];
 }
 
 export interface LogSearchOptions {
@@ -43,7 +43,25 @@ export interface TailHandle {
 
 @Injectable()
 export class LogFileService {
+  private static readonly MAX_SERVER_IDS = 200;
   private readonly logger = new Logger(LogFileService.name);
+
+  /** Extract the log level from a raw log line */
+  static extractLevel(line: string): string {
+    // MC format: [HH:MM:SS LEVEL]: message
+    const mcMatch = line.match(/\[\d{2}:\d{2}:\d{2}\s+(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)]:/);
+    if (mcMatch) return mcMatch[1];
+    // NestJS format
+    const nestMatch = line.match(/\s{2,}(LOG|ERROR|WARN|DEBUG|VERBOSE|FATAL)\s+\[/);
+    if (nestMatch) {
+      const map: Record<string, string> = { LOG: 'INFO', VERBOSE: 'DEBUG' };
+      return map[nestMatch[1]] ?? nestMatch[1];
+    }
+    // Keyword fallback
+    if (line.includes('ERROR') || line.includes('SEVERE')) return 'ERROR';
+    if (line.includes('WARN')) return 'WARN';
+    return 'INFO';
+  }
 
   constructor(private readonly configService: ServerConfigService) {}
 
@@ -53,7 +71,8 @@ export class LogFileService {
     let names: string[];
     try {
       names = await readdir(logsDir);
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Cannot read logs directory for server ${serverId}`, err);
       return [];
     }
 
@@ -70,7 +89,7 @@ export class LogFileService {
           modifiedAt: s.mtime.toISOString(),
           isGzipped: name.endsWith('.gz'),
         });
-      } catch { /* skip inaccessible */ }
+      } catch (err) { this.logger.debug(`Skipping inaccessible log file: ${name}`, err); }
     }
 
     return entries.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
@@ -165,8 +184,8 @@ export class LogFileService {
             results.push({ file: filename, line: i + 1, content: lines[i] });
           }
         }
-      } catch {
-        // Skip files that can't be read
+      } catch (err) {
+        this.logger.debug(`Skipping unreadable log file: ${filename}`, err);
       }
     }
 
@@ -188,13 +207,17 @@ export class LogFileService {
 
     const maxPerServer = Math.min(500, Math.max(1, input.maxPerServer ?? 200));
     const maxTotal = Math.min(2000, Math.max(1, input.maxTotal ?? 500));
+    const outputFields = this.normalizeFields(input.fields);
 
-    const requestedIds = (input.serverIds ?? []).map((id) => id.trim()).filter(Boolean);
+    const requestedIds = Array.from(
+      new Set((input.serverIds ?? []).map((id) => id.trim()).filter(Boolean)),
+    ).slice(0, LogFileService.MAX_SERVER_IDS);
     const serverIds = requestedIds.length > 0
       ? requestedIds
-      : (await this.configService.getAll()).map((item) => item.id);
+      : (await this.configService.getAll()).map((item) => item.id).slice(0, LogFileService.MAX_SERVER_IDS);
 
     const merged: LogAggregateSearchResult[] = [];
+    const seenKeys = new Set<string>();
 
     const concurrency = 4;
     for (let index = 0; index < serverIds.length && merged.length < maxTotal; index += concurrency) {
@@ -205,7 +228,9 @@ export class LogFileService {
 
       for (const { serverId, rows } of batchResults) {
         for (const item of rows) {
-          merged.push({ ...item, serverId });
+          const row = { ...item, serverId };
+          if (!this.isFirstOccurrence(row, seenKeys)) continue;
+          merged.push(this.projectFields(row, outputFields));
           if (merged.length >= maxTotal) break;
         }
         if (merged.length >= maxTotal) break;
@@ -218,10 +243,14 @@ export class LogFileService {
   async getRecentEntries(input: RecentLogQueryInput = {}): Promise<readonly LogAggregateSearchResult[]> {
     const linesPerServer = Math.min(500, Math.max(1, input.linesPerServer ?? 100));
     const maxTotal = Math.min(2000, Math.max(1, input.maxTotal ?? 500));
-    const requestedIds = (input.serverIds ?? []).map((id) => id.trim()).filter(Boolean);
+    const outputFields = this.normalizeFields(input.fields);
+    const seenKeys = new Set<string>();
+    const requestedIds = Array.from(
+      new Set((input.serverIds ?? []).map((id) => id.trim()).filter(Boolean)),
+    ).slice(0, LogFileService.MAX_SERVER_IDS);
     const serverIds = requestedIds.length > 0
       ? requestedIds
-      : (await this.configService.getAll()).map((item) => item.id);
+      : (await this.configService.getAll()).map((item) => item.id).slice(0, LogFileService.MAX_SERVER_IDS);
 
     const merged: LogAggregateSearchResult[] = [];
 
@@ -231,7 +260,8 @@ export class LogFileService {
       let files: readonly LogFileEntry[] = [];
       try {
         files = await this.listLogFiles(serverId);
-      } catch {
+      } catch (err) {
+        this.logger.debug(`Cannot list log files for server ${serverId}`, err);
         continue;
       }
       const latest = files[0];
@@ -244,18 +274,24 @@ export class LogFileService {
           .map((line) => line.trimEnd())
           .filter(Boolean)
           .slice(-linesPerServer)
+          .map((line) => line.trimEnd())
+          .filter((line) => line.length > 0)
+          .filter((line, index, list) => index === 0 || list[index - 1] !== line)
           .reverse();
 
         lines.forEach((line, index) => {
           if (merged.length >= maxTotal) return;
-          merged.push({
+          const rawEntry = {
             serverId,
             file: latest.name,
             line: index + 1,
             content: line,
-          });
+          };
+          if (!this.isFirstOccurrence(rawEntry, seenKeys)) return;
+          merged.push(this.projectFields(rawEntry, outputFields));
         });
-      } catch {
+      } catch (err) {
+        this.logger.debug(`Cannot tail log file ${latest.name} for server ${serverId}`, err);
         continue;
       }
     }
@@ -277,7 +313,8 @@ export class LogFileService {
     let files: readonly LogFileEntry[] = [];
     try {
       files = await this.listLogFiles(serverId);
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Cannot list log files for server ${serverId} during search`, err);
       return { serverId, rows: [] };
     }
 
@@ -303,6 +340,43 @@ export class LogFileService {
   private matchQuery(target: string, query: string, caseSensitive = false): boolean {
     if (caseSensitive) return target.includes(query);
     return target.toLowerCase().includes(query.toLowerCase());
+  }
+
+  private normalizeFields(fields?: readonly ('content' | 'file')[]): readonly ('content' | 'file')[] | undefined {
+    if (!fields || fields.length === 0) return undefined;
+    const next: ('content' | 'file')[] = [];
+    for (const field of fields) {
+      if (field === 'content' || field === 'file') {
+        if (!next.includes(field)) next.push(field);
+      }
+    }
+    return next;
+  }
+
+  private projectFields(
+    entry: LogAggregateSearchResult,
+    fields?: readonly ('content' | 'file')[],
+  ): LogAggregateSearchResult {
+    if (!fields || fields.length === 0) {
+      return entry;
+    }
+    return {
+      ...entry,
+      file: fields.includes('file') ? entry.file : '',
+      content: fields.includes('content') ? entry.content : '',
+    };
+  }
+
+  private isFirstOccurrence(
+    entry: LogAggregateSearchResult,
+    seenKeys: Set<string>,
+  ): boolean {
+    const key = `${entry.serverId}|${entry.file}|${entry.line}|${entry.content}`;
+    if (seenKeys.has(key)) {
+      return false;
+    }
+    seenKeys.add(key);
+    return true;
   }
 
   private filterFilesByModifiedTime(
@@ -337,7 +411,8 @@ export class LogFileService {
       try {
         const s = await stat(filePath);
         offset = s.size;
-      } catch {
+      } catch (err) {
+        this.logger.debug(`Failed to get initial file size for tail: ${filePath}`, err);
         offset = 0;
       }
 
@@ -366,8 +441,8 @@ export class LogFileService {
               await fh.close();
             }
           }
-        } catch {
-          // File may be temporarily locked
+        } catch (err) {
+          this.logger.debug(`File may be temporarily locked during tail: ${filePath}`, err);
         }
       });
     };
@@ -406,7 +481,8 @@ export class LogFileService {
 
     try {
       await stat(filePath);
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Log file not found: ${filename}`, err);
       throw new NotFoundException(`日志文件不存在: ${filename}`);
     }
 
@@ -463,7 +539,8 @@ export class LogFileService {
     if (utf8.includes('\uFFFD')) {
       try {
         return iconv.decode(buf, 'gbk');
-      } catch {
+      } catch (err) {
+        this.logger.debug('GBK decode fallback failed', err);
         return utf8;
       }
     }

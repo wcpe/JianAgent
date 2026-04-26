@@ -19,7 +19,12 @@ export interface AggregateLogSearchInput {
 
 export interface LogQueryBackend {
   search(input: AggregateLogSearchInput): Promise<readonly LogAggregateSearchEntryDto[]>;
-  recent(input: { serverIds?: readonly string[]; linesPerServer?: number; maxTotal?: number }): Promise<readonly LogAggregateSearchEntryDto[]>;
+  recent(input: {
+    serverIds?: readonly string[];
+    linesPerServer?: number;
+    maxTotal?: number;
+    fields?: readonly ('content' | 'file')[];
+  }): Promise<readonly LogAggregateSearchEntryDto[]>;
 }
 
 export interface LogQueryStrategyOptions {
@@ -36,7 +41,12 @@ export class LocalFileLogQueryBackend implements LogQueryBackend {
     return this.logFileService.aggregateSearch(input);
   }
 
-  async recent(input: { serverIds?: readonly string[]; linesPerServer?: number; maxTotal?: number }): Promise<readonly LogAggregateSearchEntryDto[]> {
+  async recent(input: {
+    serverIds?: readonly string[];
+    linesPerServer?: number;
+    maxTotal?: number;
+    fields?: readonly ('content' | 'file')[];
+  }): Promise<readonly LogAggregateSearchEntryDto[]> {
     return this.logFileService.getRecentEntries(input);
   }
 }
@@ -55,7 +65,12 @@ export class LokiLogQueryBackend implements LogQueryBackend {
     throw new Error('LOKI_UNAVAILABLE');
   }
 
-  async recent(_input: { serverIds?: readonly string[]; linesPerServer?: number; maxTotal?: number }): Promise<readonly LogAggregateSearchEntryDto[]> {
+  async recent(_input: {
+    serverIds?: readonly string[];
+    linesPerServer?: number;
+    maxTotal?: number;
+    fields?: readonly ('content' | 'file')[];
+  }): Promise<readonly LogAggregateSearchEntryDto[]> {
     throw new Error('LOKI_UNAVAILABLE');
   }
 }
@@ -74,7 +89,7 @@ export class LogQueryStrategyService {
     const requestedBackend = this.resolveMode();
     if (requestedBackend === 'local-file') {
       return {
-        entries: await this.localBackend.search(input),
+        entries: (await this.localBackend.search(input)) ?? [],
         backend: 'local-file',
         degraded: false,
         requestedBackend,
@@ -84,7 +99,7 @@ export class LogQueryStrategyService {
     try {
       const entries = await this.lokiBackend.search(input);
       return {
-        entries,
+        entries: entries ?? [],
         backend: requestedBackend,
         degraded: false,
         requestedBackend,
@@ -92,7 +107,7 @@ export class LogQueryStrategyService {
     } catch (error) {
       const degradationReason = this.normalizeFallbackReason(error);
       return {
-        entries: await this.localBackend.search(input),
+        entries: (await this.localBackend.search(input)) ?? [],
         backend: 'local-file',
         degraded: true,
         requestedBackend,
@@ -101,11 +116,16 @@ export class LogQueryStrategyService {
     }
   }
 
-  async recentLogs(input: { serverIds?: readonly string[]; linesPerServer?: number; maxTotal?: number }): Promise<LogAggregateSearchResponseDto> {
+  async recentLogs(input: {
+    serverIds?: readonly string[];
+    linesPerServer?: number;
+    maxTotal?: number;
+    fields?: readonly ('content' | 'file')[];
+  }): Promise<LogAggregateSearchResponseDto> {
     const requestedBackend = this.resolveMode();
     if (requestedBackend === 'local-file') {
       return {
-        entries: await this.localBackend.recent(input),
+        entries: (await this.localBackend.recent(input)) ?? [],
         backend: 'local-file',
         degraded: false,
         requestedBackend,
@@ -115,14 +135,14 @@ export class LogQueryStrategyService {
     try {
       const entries = await this.lokiBackend.recent(input);
       return {
-        entries,
+        entries: entries ?? [],
         backend: requestedBackend,
         degraded: false,
         requestedBackend,
       };
     } catch (error) {
       return {
-        entries: await this.localBackend.recent(input),
+        entries: (await this.localBackend.recent(input)) ?? [],
         backend: 'local-file',
         degraded: true,
         requestedBackend,

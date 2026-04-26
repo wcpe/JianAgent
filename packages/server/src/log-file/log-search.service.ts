@@ -8,6 +8,20 @@ import type {
   LogAnalyticsResult,
 } from '@jian-agent/shared-domain';
 
+interface FtsSearchRow {
+  id: number;
+  host_id: string;
+  host_name: string;
+  host_type: string;
+  source_file: string;
+  line_number: number;
+  timestamp: string;
+  level: string;
+  content: string;
+  raw_line: string;
+  snippet_content?: string;
+}
+
 @Injectable()
 export class LogSearchService {
   private readonly logger = new Logger(LogSearchService.name);
@@ -76,8 +90,8 @@ export class LogSearchService {
     try {
       const countRow = client.prepare(countSql).get(...params) as { cnt: number } | undefined;
       total = countRow?.cnt ?? 0;
-    } catch (err: any) {
-      this.logger.warn(`FTS5 count query failed: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.warn(`FTS5 count query failed: ${err instanceof Error ? err.message : String(err)}`);
       return { entries: [], total: 0, page, limit, highlightMap: new Map() };
     }
 
@@ -106,11 +120,11 @@ export class LogSearchService {
       LIMIT ? OFFSET ?
     `;
 
-    let rows: any[];
+    let rows: FtsSearchRow[];
     try {
-      rows = client.prepare(dataSql).all(...params, limit, offset) as any[];
-    } catch (err: any) {
-      this.logger.warn(`FTS5 data query failed: ${err.message}`);
+      rows = client.prepare(dataSql).all(...params, limit, offset) as FtsSearchRow[];
+    } catch (err: unknown) {
+      this.logger.warn(`FTS5 data query failed: ${err instanceof Error ? err.message : String(err)}`);
       return { entries: [], total: 0, page, limit, highlightMap: new Map() };
     }
 
@@ -172,7 +186,8 @@ export class LogSearchService {
     let levelRows: Array<{ level: string; cnt: number }>;
     try {
       levelRows = client.prepare(levelSql).all(...params) as any[];
-    } catch {
+    } catch (err) {
+      this.logger.debug('Level distribution query failed', err);
       levelRows = [];
     }
 
@@ -196,7 +211,8 @@ export class LogSearchService {
     let timelineRows: Array<{ bucket: string; cnt: number }>;
     try {
       timelineRows = client.prepare(timelineSql).all(...params, bucketCount) as any[];
-    } catch {
+    } catch (err) {
+      this.logger.debug('Timeline bucket query failed', err);
       timelineRows = [];
     }
 
@@ -222,10 +238,92 @@ export class LogSearchService {
         .filter((r) => r.term.length > 2 && !stopwords.has(r.term))
         .slice(0, 10)
         .map((r) => ({ word: r.term, count: r.doc }));
-    } catch (err: any) {
-      this.logger.debug(`FTS5 vocab query skipped: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.debug(`FTS5 vocab query skipped: ${err instanceof Error ? err.message : String(err)}`);
     }
 
-    return { levelDistribution, timelineBuckets, topKeywords };
+    // 4. Error trend (hourly buckets for ERROR-level entries)
+    let errorTrend: Array<{ time: string; count: number }> = [];
+    try {
+      const errorConditions: string[] = ["level = 'ERROR'"];
+      const errorParams: unknown[] = [];
+      if (opts.startTime) {
+        errorConditions.push('timestamp >= ?');
+        errorParams.push(opts.startTime);
+      }
+      if (opts.endTime) {
+        errorConditions.push('timestamp <= ?');
+        errorParams.push(opts.endTime);
+      }
+      const errorWhere = `WHERE ${errorConditions.join(' AND ')}`;
+      const errorTrendSql = `
+        SELECT substr(timestamp, 1, 13) as bucket, COUNT(*) as cnt
+        FROM log_entries_new
+        ${errorWhere}
+        GROUP BY bucket
+        ORDER BY bucket
+        LIMIT 168
+      `;
+      const errorRows = client.prepare(errorTrendSql).all(...errorParams) as Array<{ bucket: string; cnt: number }>;
+      errorTrend = errorRows.map((r) => ({ time: r.bucket, count: r.cnt }));
+    } catch (err: unknown) {
+      this.logger.debug(`Error trend query failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+
+    return { levelDistribution, timelineBuckets, topKeywords, errorTrend };
+  }
+
+  /** Query ERROR/FATAL/SEVERE log entries in a time range for correlated timeline */
+  getErrorsInRange(
+    startTime: string,
+    endTime: string,
+    hosts?: string[],
+    limit = 200,
+  ): { timestamp: string; level: string; content: string; hostName: string }[] {
+    const client = this.rawSqlite;
+    if (!client) {
+      this.logger.error('Cannot access raw SQLite client for error range query');
+      return [];
+    }
+
+    const conditions: string[] = [
+      "level IN ('ERROR', 'FATAL', 'SEVERE')",
+      'timestamp >= ?',
+      'timestamp <= ?',
+    ];
+    const params: unknown[] = [startTime, endTime];
+
+    if (hosts?.length) {
+      const placeholders = hosts.map(() => '?').join(',');
+      conditions.push(`host_id IN (${placeholders})`);
+      params.push(...hosts);
+    }
+
+    const whereClause = conditions.join(' AND ');
+    const sql = `
+      SELECT timestamp, level, content, host_name
+      FROM log_entries_new
+      WHERE ${whereClause}
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `;
+
+    try {
+      const rows = client.prepare(sql).all(...params, limit) as Array<{
+        timestamp: string;
+        level: string;
+        content: string;
+        host_name: string;
+      }>;
+      return rows.map((r) => ({
+        timestamp: r.timestamp,
+        level: r.level,
+        content: r.content,
+        hostName: r.host_name,
+      }));
+    } catch (err: unknown) {
+      this.logger.warn(`Error range query failed: ${err instanceof Error ? err.message : String(err)}`);
+      return [];
+    }
   }
 }

@@ -3,6 +3,7 @@ import { LogFileController } from './log-file.controller.js';
 import { LogQueryController } from './log-query.controller.js';
 import { LogSearchController } from './log-search.controller.js';
 import { LogAnalyticsController } from './log-analytics.controller.js';
+import { LogExportController } from './log-export.controller.js';
 import { LogFileService } from './log-file.service.js';
 import { LogSearchService } from './log-search.service.js';
 import {
@@ -15,7 +16,7 @@ import { ServerProcessModule } from '../server-process/server-process.module.js'
 
 @Module({
   imports: [forwardRef(() => ServerProcessModule)],
-  controllers: [LogFileController, LogQueryController, LogSearchController, LogAnalyticsController],
+  controllers: [LogFileController, LogQueryController, LogSearchController, LogAnalyticsController, LogExportController],
   providers: [
     LogFileService,
     LogSearchService,
