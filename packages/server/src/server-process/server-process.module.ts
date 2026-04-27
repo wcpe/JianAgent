@@ -23,6 +23,8 @@ import { StartValidatorService } from './lifecycle/start-validator.service.js';
 import { ShellHookExecutor } from './lifecycle/shell-hook-executor.service.js';
 import { StartReadyDetector } from './lifecycle/start-ready-detector.service.js';
 import { ServerProvisionService } from './server-provision.service.js';
+import { ResourceWorkspaceService } from './resource-workspace.service.js';
+import { ResourceWorkspaceController } from './resource-workspace.controller.js';
 import { PaperReleaseService } from '../local-validation/paper-release.service.js';
 import { PopulationController } from './population.controller.js';
 import { MetricsModule } from '../metrics/metrics.module.js';
@@ -35,7 +37,7 @@ import { JavaHelperModule } from '../java-helper/java-helper.module.js';
 
 @Module({
   imports: [MetricsModule, SshModule, PluginBridgeModule, forwardRef(() => PlatformResourceModule), JavaRuntimeModule, JavaHelperModule],
-  controllers: [ServersController, PopulationController],
+  controllers: [ServersController, PopulationController, ResourceWorkspaceController],
   providers: [
     ServerConfigService,
     ProcessManagerService,
@@ -61,6 +63,7 @@ import { JavaHelperModule } from '../java-helper/java-helper.module.js';
     ShellHookExecutor,
     StartReadyDetector,
     ServerProvisionService,
+    ResourceWorkspaceService,
     PaperReleaseService,
   ],
   exports: [ProcessManagerService, ProcessMonitorService, ServerConfigService, ScheduledStopService, HealthMonitorService, MultiServerService, ProcessAttachService, PopulationTrackerService, ConditionalStopService, CrashRestartService, StartTemplateService, ServerLifecycleEngine, ProcessResourceMonitor, ConfigSnapshotService, ServerProvisionService],

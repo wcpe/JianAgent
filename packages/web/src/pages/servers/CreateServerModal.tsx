@@ -4,7 +4,8 @@ import { useDialogStore } from '../../stores/dialog.store.js';
 import { serverApi } from '../../api/server.api.js';
 import { javaRuntimeApi } from '../../api/java-runtime.api.js';
 import { startTemplateApi } from '../../api/start-template.api.js';
-import type { CreateServerConfigRequest, ServerType, SshAuthType } from '@jian-agent/shared-domain';
+import { resourceWorkspaceApi } from '../../api/resource-workspace.api.js';
+import type { CreateServerConfigRequest, ServerType, SshAuthType, ResourceWorkspaceConfig } from '@jian-agent/shared-domain';
 import type { StartTemplateDto } from '@jian-agent/shared-domain';
 import { DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT } from '../../constants/server-defaults.js';
 import { Modal } from '../../components/ui/Modal.js';
@@ -74,6 +75,10 @@ export function CreateServerModal({
   // Templates state
   const [templates, setTemplates] = useState<readonly StartTemplateDto[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  // Resource workspaces state
+  const [workspaces, setWorkspaces] = useState<readonly ResourceWorkspaceConfig[]>([]);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('');
+  const [loadingWorkspaces, setLoadingWorkspaces] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -87,6 +92,11 @@ export function CreateServerModal({
       .then(setTemplates)
       .catch(() => setTemplates([]))
       .finally(() => setLoadingTemplates(false));
+    setLoadingWorkspaces(true);
+    resourceWorkspaceApi.findAll()
+      .then(setWorkspaces)
+      .catch(() => setWorkspaces([]))
+      .finally(() => setLoadingWorkspaces(false));
   }, [open]);
 
   const handleTemplateImport = (templateId: string) => {
@@ -198,6 +208,37 @@ export function CreateServerModal({
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Resource workspace selector */}
+        {!isExternal && workspaces.length > 0 && (
+          <div>
+            <label className={labelClass}>资源工作台</label>
+            <select
+              value={selectedWorkspaceId}
+              onChange={(e) => {
+                setSelectedWorkspaceId(e.target.value);
+                if (e.target.value) {
+                  const ws = workspaces.find((w) => w.id === e.target.value);
+                  if (ws) {
+                    setWorkDir(ws.basePath);
+                  }
+                }
+              }}
+              className={inputClass}
+              disabled={loadingWorkspaces}
+            >
+              <option value="">-- 手动指定路径 --</option>
+              {workspaces.map((ws) => (
+                <option key={ws.id} value={ws.id}>
+                  {ws.name} ({ws.basePath})
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              选择工作台后，服务器将在该目录下创建
+            </p>
           </div>
         )}
 

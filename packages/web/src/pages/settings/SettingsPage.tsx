@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { RotateCcw, Trash2 } from 'lucide-react';
+import { RotateCcw, Trash2, Settings as SettingsIcon, FolderTree } from 'lucide-react';
 import { useThemeStore } from '../../stores/theme.store.js';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_NAV_ORDER, getOrderedNavGroups, getOrderedItems } from '../../components/layout/nav-config.js';
+import { ResourceWorkspaceSettings } from './ResourceWorkspaceSettings.js';
 
 const JIANAGENT_PREFIX = 'jianagent-';
 
@@ -25,6 +26,7 @@ export function SettingsPage() {
   const resetNavGroupOrder = useThemeStore((s) => s.resetNavGroupOrder);
   const clearAllCache = useThemeStore((s) => s.clearAllCache);
 
+  const [activeTab, setActiveTab] = useState<'general' | 'workspace'>('general');
   const [cacheEntries, setCacheEntries] = useState(getCacheEntries);
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -44,8 +46,47 @@ export function SettingsPage() {
     <div className="p-6 max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">{t('nav.settings')}</h1>
 
-      {/* Navigation Order */}
-      <section className="mb-8">
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('general')}
+          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+            activeTab === 'general'
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <SettingsIcon size={16} />
+            常规设置
+          </div>
+          {activeTab === 'general' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('workspace')}
+          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+            activeTab === 'workspace'
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <FolderTree size={16} />
+            资源工作台
+          </div>
+          {activeTab === 'workspace' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+          )}
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'general' ? (
+        <>
+          {/* Navigation Order */}
+          <section className="mb-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">导航排序</h2>
         <div className="bg-white/80 dark:bg-gray-900/60 rounded-2xl border border-white/55 dark:border-primary-300/20 shadow-xl backdrop-blur-xl p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -149,6 +190,10 @@ export function SettingsPage() {
           )}
         </div>
       </section>
+        </>
+      ) : (
+        <ResourceWorkspaceSettings />
+      )}
     </div>
   );
 }

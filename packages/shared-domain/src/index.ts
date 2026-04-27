@@ -252,3 +252,4 @@ export type { ProcessMetrics, ProcessMetricsSummary } from './dto/process-metric
 
 // Server Provisioning
 export type { ServerCoreType, ProvisionServerRequest, ProvisionPhase, ProvisionProgressEvent, ProvisionServerResponse, PaperVersionInfo } from './dto/server-provision.dto.js';
+export type { ResourceWorkspaceConfig, CreateResourceWorkspaceRequest, UpdateResourceWorkspaceRequest, QuickProvisionRequest } from './dto/resource-workspace-config.dto.js';
