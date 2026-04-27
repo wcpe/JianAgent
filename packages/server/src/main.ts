@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module.js';
 import { RealtimeGateway } from './realtime/realtime.gateway.js';
+import { MonitoringGateway } from './monitoring/monitoring.gateway.js';
 import { Logger, RequestMethod } from '@nestjs/common';
 import { readServerConfig, readCorsConfig } from './common/network-config.js';
 import { validateEnv } from './common/env-validation.js';
@@ -66,8 +67,26 @@ async function bootstrap() {
   await app.listen(port, host);
 
   const httpServer = app.getHttpAdapter().getHttpServer();
+  
   const realtimeGateway = app.get(RealtimeGateway);
+  const monitoringGateway = app.get(MonitoringGateway);
+  
+  // Attach gateways to server
   realtimeGateway.attachToServer(httpServer);
+  monitoringGateway.attachToServer(httpServer);
+  
+  // Manual WebSocket upgrade routing for multiple WebSocket servers
+  httpServer.on('upgrade', (request: any, socket: any, head: any) => {
+    const pathname = new URL(request.url || '', 'ws://localhost').pathname;
+    
+    if (pathname === '/ws/realtime') {
+      realtimeGateway.handleUpgrade(request, socket, head);
+    } else if (pathname === '/ws/monitoring') {
+      monitoringGateway.handleUpgrade(request, socket, head);
+    } else {
+      socket.destroy();
+    }
+  });
 
   logger.log(`Server running on http://${host}:${port}`);
 }

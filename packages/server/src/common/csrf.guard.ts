@@ -52,6 +52,6 @@ export class CsrfGuard implements CanActivate {
       return true;
     }
 
-    throw new ForbiddenException('Invalid origin');
+    throw new ForbiddenException('禁止访问：无效的来源');
   }
 }

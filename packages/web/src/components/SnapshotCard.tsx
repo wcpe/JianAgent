@@ -6,6 +6,7 @@ interface Props {
 }
 
 function formatMb(mb: number): string {
+  if (mb == null || isNaN(mb)) return '0 MB';
   return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`;
 }
 
@@ -41,11 +42,11 @@ export function SnapshotCard({ serverId, snapshot }: Props) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">TPS</p>
-          <p className={`text-lg font-mono font-bold ${tpsColor}`}>{snapshot.tps.toFixed(1)}</p>
+          <p className={`text-lg font-mono font-bold ${tpsColor}`}>{snapshot.tps != null ? snapshot.tps.toFixed(1) : '—'}</p>
         </div>
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">MSPT</p>
-          <p className="text-lg font-mono font-bold text-gray-700 dark:text-gray-300">{snapshot.mspt.toFixed(1)}</p>
+          <p className="text-lg font-mono font-bold text-gray-700 dark:text-gray-300">{snapshot.mspt != null ? snapshot.mspt.toFixed(1) : '—'}</p>
         </div>
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">玩家</p>

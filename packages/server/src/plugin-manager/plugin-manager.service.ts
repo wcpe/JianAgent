@@ -37,7 +37,7 @@ export class PluginManagerService {
    */
   async uploadPlugin(serverId: string, data: Buffer, filename: string): Promise<void> {
     if (!filename.endsWith('.jar')) {
-      throw new BadRequestException('Only .jar files can be uploaded as plugins');
+      throw new BadRequestException('只能上传 .jar 文件作为插件');
     }
     await this.fileManager.uploadFile(serverId, 'plugins', data, filename);
     this.logger.log(`Plugin uploaded: ${filename} to server ${serverId}`);

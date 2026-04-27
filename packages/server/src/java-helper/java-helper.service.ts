@@ -32,11 +32,19 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     return this.ready;
   }
 
+  get helperPid(): number | undefined {
+    return this.process?.pid;
+  }
+
   async start(): Promise<void> {
     if (this.process) return;
 
     const jarPath = await this.resolveJarPath();
-    this.process = spawn('java', ['-jar', jarPath], {
+    this.process = spawn('java', [
+      '--add-exports', 'jdk.attach/sun.tools.attach=ALL-UNNAMED',
+      '-jar',
+      jarPath
+    ], {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -155,6 +163,121 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
     } catch (err) {
       this.logger.debug('Failed to get status from helper process', err);
       return { state: this.state };
+    }
+  }
+
+  async generateHeapDump(outputPath: string, liveObjectsOnly = true): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('heap-dump', { outputPath, liveObjectsOnly });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async generateThreadDump(outputPath: string, includeLockedMonitors = true, includeLockedSynchronizers = true): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('thread-dump', { 
+        outputPath, 
+        includeLockedMonitors, 
+        includeLockedSynchronizers 
+      });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async checkDiskSpace(path: string): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('check-disk-space', { path });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async estimateHeapSize(): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('estimate-heap-size');
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async startJfrRecording(options: { name?: string; durationSeconds?: number; maxSize?: number; maxAge?: number }): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('jfr-start', options);
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async stopJfrRecording(recordingId: number, outputPath: string): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('jfr-stop', { recordingId, outputPath });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getJfrStatus(recordingId: number): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('jfr-status', { recordingId });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getJvmFlags(): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('jvm-flags');
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getClassLoadingInfo(): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('class-loading');
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getGcInfo(): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('gc-info');
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async startCpuSampling(options: { durationSeconds?: number; intervalMs?: number }): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('cpu-sampling', options);
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async shutdown(graceful: boolean, timeoutSeconds?: number): Promise<unknown> {
+    try {
+      const result = await this.sendCommand('shutdown', { 
+        graceful, 
+        timeoutSeconds: timeoutSeconds ?? 30 
+      });
+      return result;
+    } catch (e) {
+      throw e;
     }
   }
 

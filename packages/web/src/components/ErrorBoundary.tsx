@@ -30,16 +30,62 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({ hasError: false, error: null });
   };
 
+  private isNetworkError(error: Error | null): boolean {
+    if (!error) return false;
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('failed to fetch') ||
+      message.includes('network error') ||
+      message.includes('dynamically imported module') ||
+      message.includes('load failed') ||
+      message.includes('loading chunk') ||
+      error.name === 'ChunkLoadError'
+    );
+  }
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      const isNetworkError = this.isNetworkError(this.state.error);
       const errorText = this.state.error
         ? `Error: ${this.state.error.message}\n\n${this.state.error.stack ?? ''}`
         : 'No error object';
 
+      // 网络错误或模块加载失败 - 显示未连接提示
+      if (isNetworkError) {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center mb-4">
+              <span className="text-2xl">🔌</span>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              无法连接到服务器
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-md">
+              后端服务器未启动或网络连接中断，请检查服务器状态后重试。
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 text-sm transition-colors"
+              >
+                重新加载
+              </button>
+              <button
+                onClick={this.handleReset}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 text-sm transition-colors"
+              >
+                返回
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // 其他错误 - 显示详细错误信息
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
           <div className="w-14 h-14 rounded-2xl bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center mb-4">

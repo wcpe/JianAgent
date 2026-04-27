@@ -35,6 +35,7 @@ import { LocalValidationModule } from './local-validation/local-validation.modul
 import { PlatformRuntimeModule } from './platform-runtime/platform-runtime.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PortModule } from './port/port.module.js';
+import { MonitoringModule } from './monitoring/monitoring.module.js';
 import { RequestContextInterceptor } from './common/request-context.interceptor.js';
 import { ApiResponseInterceptor } from './common/api-response.interceptor.js';
 import { ApiExceptionFilter } from './common/api-exception.filter.js';
@@ -76,6 +77,7 @@ import { CsrfGuard } from './common/csrf.guard.js';
     PlatformRuntimeModule,
     HealthModule,
     PortModule,
+    MonitoringModule,
   ],
   providers: [
     RequestContextInterceptor,

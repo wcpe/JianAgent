@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { hostname as resolveHostname } from 'os';
 import { JvmTargetResolver } from '../jvm-capability/jvm-target.resolver.js';
 import type { PortUsageDto } from './dto/port-usage.dto.js';
 
@@ -34,6 +35,9 @@ export class PortService {
         rawPorts = await this.getPortsLinux();
       }
 
+      const host = resolveHostname();
+      const collectedAt = new Date().toISOString();
+
       // Enrich with JVM information
       const enriched = await Promise.all(
         rawPorts.map(async (raw) => {
@@ -49,7 +53,10 @@ export class PortService {
             commandLine,
             isJvm,
             jvmMainClass,
-            status: raw.status,
+            status: raw.status ?? 'LISTEN',
+            hostId: host,
+            hostname: host,
+            timestamp: collectedAt,
           };
         }),
       );
@@ -59,6 +66,42 @@ export class PortService {
       this.logger.error(`Failed to get port usage: ${error}`);
       throw error;
     }
+  }
+
+  async getPortDetail(port: number): Promise<PortUsageDto | null> {
+    const list = await this.getPortUsage();
+    return list.find((entry) => entry.port === port) ?? null;
+  }
+
+  async closePort(port: number): Promise<{ attempted: number; closed: number; details: string[] }> {
+    const entries = await this.getPortUsage();
+    const targets = entries.filter((entry) => entry.port === port);
+    const uniquePids = [...new Set(targets.map((entry) => entry.pid).filter((pid) => Number.isInteger(pid) && pid > 0))]
+      .filter((pid) => pid !== process.pid);
+
+    const details: string[] = [];
+    let closed = 0;
+
+    for (const pid of uniquePids) {
+      try {
+        if (process.platform === 'win32') {
+          await execAsync(`taskkill /PID ${pid} /F`);
+        } else {
+          process.kill(pid, 'SIGTERM');
+        }
+        closed += 1;
+        details.push(`PID ${pid} closed`);
+      } catch (error: any) {
+        const reason = error?.message ?? String(error);
+        details.push(`PID ${pid} failed: ${reason}`);
+      }
+    }
+
+    return {
+      attempted: uniquePids.length,
+      closed,
+      details,
+    };
   }
 
   private async getPortsWindows(): Promise<RawPortInfo[]> {

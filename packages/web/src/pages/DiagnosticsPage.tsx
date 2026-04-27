@@ -343,16 +343,20 @@ export function DiagnosticsPage() {
               <div className="border border-gray-200 dark:border-gray-700 rounded p-3 bg-white dark:bg-gray-800/50">
                 <p className="text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">堆内存</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded h-4 mb-1">
-                  <div className="bg-blue-600 h-4 rounded" style={{ width: `${Math.min(lastHeapSample.heapUsage.usagePercent, 100)}%` }} />
+                  <div className="bg-blue-600 h-4 rounded" style={{ width: `${Math.min(lastHeapSample.heapUsage.usagePercent ?? 0, 100)}%` }} />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{(lastHeapSample.heapUsage.used / 1024 / 1024).toFixed(0)} MB / {(lastHeapSample.heapUsage.max / 1024 / 1024).toFixed(0)} MB ({lastHeapSample.heapUsage.usagePercent.toFixed(1)}%)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {lastHeapSample.heapUsage.used != null ? (lastHeapSample.heapUsage.used / 1024 / 1024).toFixed(0) : '—'} MB / {lastHeapSample.heapUsage.max != null ? (lastHeapSample.heapUsage.max / 1024 / 1024).toFixed(0) : '—'} MB ({lastHeapSample.heapUsage.usagePercent != null ? lastHeapSample.heapUsage.usagePercent.toFixed(1) : '—'}%)
+                </p>
               </div>
               <div className="border border-gray-200 dark:border-gray-700 rounded p-3 bg-white dark:bg-gray-800/50">
                 <p className="text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">非堆内存</p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded h-4 mb-1">
-                  <div className="bg-purple-600 h-4 rounded" style={{ width: `${Math.min(lastHeapSample.nonHeapUsage.usagePercent, 100)}%` }} />
+                  <div className="bg-purple-600 h-4 rounded" style={{ width: `${Math.min(lastHeapSample.nonHeapUsage.usagePercent ?? 0, 100)}%` }} />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{(lastHeapSample.nonHeapUsage.used / 1024 / 1024).toFixed(0)} MB / {(lastHeapSample.nonHeapUsage.max / 1024 / 1024).toFixed(0)} MB</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {lastHeapSample.nonHeapUsage.used != null ? (lastHeapSample.nonHeapUsage.used / 1024 / 1024).toFixed(0) : '—'} MB / {lastHeapSample.nonHeapUsage.max != null ? (lastHeapSample.nonHeapUsage.max / 1024 / 1024).toFixed(0) : '—'} MB
+                </p>
               </div>
             </div>
           </div>

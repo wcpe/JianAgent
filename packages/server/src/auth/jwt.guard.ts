@@ -9,7 +9,7 @@ export class JwtGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing authorization header');
+      throw new UnauthorizedException('缺少授权头');
     }
 
     const token = authHeader.slice(7);

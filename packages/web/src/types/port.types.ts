@@ -1,12 +1,15 @@
 export interface PortUsage {
   port: number;
   protocol: string;
-  processName: string;
+  processName?: string;
   pid: number;
-  status: string;
-  hostId: string;
-  hostname: string;
-  timestamp: string;
+  status?: string;
+  hostId?: string;
+  hostname?: string;
+  timestamp?: string;
+  commandLine?: string;
+  isJvm?: boolean;
+  jvmMainClass?: string;
 }
 
 export interface PortUsageResponse {

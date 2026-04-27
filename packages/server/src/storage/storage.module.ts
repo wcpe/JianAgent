@@ -19,6 +19,6 @@ import { ArchiverService } from './archiver.service.js';
     MetricStoreService,
     ArchiverService,
   ],
-  exports: [DRIZZLE_TOKEN, ConfigStoreService, AuditStoreService, MetricStoreService, ArchiverService],
+  exports: [DRIZZLE_TOKEN, DrizzleProvider, ConfigStoreService, AuditStoreService, MetricStoreService, ArchiverService],
 })
 export class StorageModule {}

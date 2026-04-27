@@ -31,7 +31,7 @@ export class PluginManagerController {
   @Auditable('plugin:upload')
   async uploadPlugin(@Param('id') id: string, @Body() body: { filename: string; data: string }) {
     if (!body.filename || !body.data) {
-      throw new BadRequestException('filename and data (base64) are required');
+      throw new BadRequestException('需要提供 filename 和 data (base64)');
     }
     const buf = Buffer.from(body.data, 'base64');
     await this.pluginManager.uploadPlugin(id, buf, body.filename);
@@ -90,7 +90,7 @@ export class PluginManagerController {
     @Body() body: { filename: string; data: string; hotSwap?: boolean },
   ) {
     if (!body.filename || !body.data) {
-      throw new BadRequestException('filename and data (base64) are required');
+      throw new BadRequestException('需要提供 filename 和 data (base64)');
     }
     const buf = Buffer.from(body.data, 'base64');
     return this.pluginManager.replacePluginVersion(id, name, buf, body.filename, body.hotSwap ?? true);

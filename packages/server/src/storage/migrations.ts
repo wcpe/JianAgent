@@ -589,6 +589,21 @@ export function getControlPlaneSchemaSql(): string {
 
 export function getAuxiliarySchemaSql(): string {
   return `
+      CREATE TABLE IF NOT EXISTS diagnostic_files (
+        id TEXT PRIMARY KEY,
+        pid INTEGER NOT NULL,
+        process_name TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT ''
+      );
+
+      CREATE INDEX IF NOT EXISTS diagnostic_files_pid_idx ON diagnostic_files(pid);
+      CREATE INDEX IF NOT EXISTS diagnostic_files_file_type_idx ON diagnostic_files(file_type);
+      CREATE INDEX IF NOT EXISTS diagnostic_files_created_at_idx ON diagnostic_files(created_at);
+
       CREATE TABLE IF NOT EXISTS file_versions (
         id TEXT PRIMARY KEY,
         server_id TEXT NOT NULL,

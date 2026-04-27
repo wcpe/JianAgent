@@ -8,6 +8,7 @@ interface ProcessMetricsPanelProps {
 }
 
 function formatBytes(bytes: number): string {
+  if (bytes == null || isNaN(bytes)) return '0B';
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
@@ -41,7 +42,7 @@ export function ProcessMetricsPanel({ serverId }: ProcessMetricsPanelProps) {
             <Cpu className="w-4 h-4" /> CPU
           </div>
           <div className="text-2xl font-mono">{latest?.cpuPercent?.toFixed(1) ?? '—'}%</div>
-          {summary && <div className="text-xs text-gray-400">峰值 {summary.peak.cpuPercent.toFixed(1)}%</div>}
+          {summary && summary.peak?.cpuPercent != null && <div className="text-xs text-gray-400">峰值 {summary.peak.cpuPercent.toFixed(1)}%</div>}
         </div>
         <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
@@ -65,8 +66,8 @@ export function ProcessMetricsPanel({ serverId }: ProcessMetricsPanelProps) {
             <div
               key={i}
               className="flex-1 bg-blue-500 rounded-t min-h-[2px]"
-              style={{ height: `${Math.min(m.cpuPercent, 100)}%` }}
-              title={`${m.cpuPercent.toFixed(1)}%`}
+              style={{ height: `${Math.min(m.cpuPercent ?? 0, 100)}%` }}
+              title={m.cpuPercent != null ? `${m.cpuPercent.toFixed(1)}%` : '—'}
             />
           ))}
         </div>

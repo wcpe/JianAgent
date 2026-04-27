@@ -1,12 +1,12 @@
 export interface JvmProcess {
   pid: number;
-  name: string;
-  mainClass: string;
-  javaVersion: string;
-  jvmVersion: string;
-  startTime: string;
+  name?: string;
+  mainClass?: string;
+  javaVersion?: string;
+  jvmVersion?: string;
+  startTime?: string;
   uptime: number;
-  user: string;
+  user?: string;
   commandLine: string;
 }
 

@@ -37,6 +37,7 @@ export function ResourceListView({
   onAction,
 }: ResourceListViewProps) {
   const navigate = useNavigate();
+  const openDetail = (id: string) => navigate(`/resources/${id}`);
 
   if (loading) {
     return (
@@ -77,16 +78,22 @@ export function ResourceListView({
             return (
               <article
                 key={item.summary.id}
-                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+                role="button"
+                tabIndex={0}
+                onClick={() => openDetail(item.summary.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openDetail(item.summary.id);
+                  }
+                }}
+                className="rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:border-primary-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary-700"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <button
-                      onClick={() => navigate(`/resources/${item.summary.id}`)}
-                      className="text-left text-lg font-semibold text-gray-900 hover:text-primary-600 dark:text-gray-100 dark:hover:text-primary-300"
-                    >
+                    <div className="text-left text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {item.summary.name}
-                    </button>
+                    </div>
                     <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {formatKind(item)}
                     </div>
@@ -94,6 +101,7 @@ export function ResourceListView({
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(item.summary.id)}
+                    onClick={(event) => event.stopPropagation()}
                     onChange={() => onToggleSelected(item.summary.id)}
                     className="mt-1 rounded"
                   />
@@ -154,7 +162,10 @@ export function ResourceListView({
                   {(item.availableActions ?? []).slice(0, 4).map((action) => (
                     <button
                       key={action.key}
-                      onClick={() => onAction(item, action)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onAction(item, action);
+                      }}
                       disabled={!action.enabled}
                       className="rounded-xl border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                       title={action.reason ?? action.label}

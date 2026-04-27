@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/login/LoginPage.js';
 import { AuthGuard } from './components/auth/AuthGuard.js';
 import { AppLayout } from './components/layout/AppLayout.js';
+import { ErrorBoundary } from './components/ErrorBoundary.js';
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded page components (code-split per route)
@@ -50,17 +51,32 @@ const SettingsPage = lazy(() => import('./pages/settings/SettingsPage.js').then(
 const LocalValidationPage = lazy(() => import('./features/local-validation/LocalValidationPage.js').then(m => ({ default: m.LocalValidationPage })));
 const PortListPage = lazy(() => import('./pages/port/PortListPage.js'));
 const JvmListPage = lazy(() => import('./pages/jvm/JvmListPage.js'));
+const JvmMonitoringPage = lazy(() => import('./pages/jvm/JvmMonitoringPage.js').then(m => ({ default: m.JvmMonitoringPage })));
+const FileCenterPage = lazy(() => import('./pages/files/FileCenterPage.js').then(m => ({ default: m.FileCenterPage })));
 
 // ---------------------------------------------------------------------------
 // Suspense helpers
 // ---------------------------------------------------------------------------
 
 function LoadingFallback() {
-  return <div className="flex items-center justify-center h-full"><span>Loading...</span></div>;
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+        <span className="text-sm text-gray-500 dark:text-gray-400">加载中...</span>
+      </div>
+    </div>
+  );
 }
 
 function Lazy({ Component, ...props }: { Component: React.LazyExoticComponent<React.ComponentType<any>>; [key: string]: any }) {
-  return <Suspense fallback={<LoadingFallback />}><Component {...props} /></Suspense>;
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>
+        <Component {...props} />
+      </Suspense>
+    </ErrorBoundary>
+  );
 }
 
 export function AppRouter() {
@@ -98,6 +114,7 @@ export function AppRouter() {
           <Route path="/diagnostics" element={<Lazy Component={DiagnosticsPage} />} />
           <Route path="/logs" element={<Navigate to="/log-center" replace />} />
           <Route path="/log-center" element={<Lazy Component={LogCenterPage} />} />
+          <Route path="/files" element={<Lazy Component={FileCenterPage} />} />
           <Route path="/alerts" element={<Lazy Component={AlertListPage} />} />
           <Route path="/alert-rules" element={<Lazy Component={AlertRulePage} />} />
           <Route path="/notifications" element={<Lazy Component={NotificationSettingsPage} />} />
@@ -127,6 +144,7 @@ export function AppRouter() {
           <Route path="/settings" element={<Lazy Component={SettingsPage} />} />
           <Route path="/ports" element={<Lazy Component={PortListPage} />} />
           <Route path="/jvm" element={<Lazy Component={JvmListPage} />} />
+          <Route path="/jvm/:pid/monitoring" element={<Lazy Component={JvmMonitoringPage} />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -72,26 +72,10 @@ export class RealtimeGateway implements OnModuleInit, OnModuleDestroy {
 
   attachToServer(httpServer: HttpServer): void {
     this.wss = new WebSocketServer({
-      server: httpServer,
-      path: '/ws/realtime',
+      noServer: true,
       perMessageDeflate: {
         zlibDeflateOptions: { level: 6 },
         threshold: 1024, // Only compress messages > 1KB
-      },
-      verifyClient: (info, cb) => {
-        try {
-          const requestUrl = new URL(info.req.url ?? '', 'ws://localhost');
-          const token = requestUrl.searchParams.get('token');
-          if (!token) {
-            cb(false, 401, 'Unauthorized');
-            return;
-          }
-          this.authService.verifyToken(token);
-          cb(true);
-        } catch (err) {
-          this.logger.debug('WebSocket verifyClient auth failed', err);
-          cb(false, 401, 'Unauthorized');
-        }
       },
     });
     this.wss.on('connection', (ws: WebSocket, req) => {
@@ -173,6 +157,27 @@ export class RealtimeGateway implements OnModuleInit, OnModuleDestroy {
         }
       }
     }, this.config.dedupCleanupIntervalMs);
+  }
+
+  handleUpgrade(request: any, socket: any, head: any): void {
+    try {
+      const requestUrl = new URL(request.url ?? '', 'ws://localhost');
+      const token = requestUrl.searchParams.get('token');
+      if (!token) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+      this.authService.verifyToken(token);
+
+      this.wss!.handleUpgrade(request, socket, head, (ws) => {
+        this.wss!.emit('connection', ws, request);
+      });
+    } catch (err) {
+      this.logger.debug('WebSocket upgrade auth failed', err);
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+    }
   }
 
   // ── Log tail handlers ──

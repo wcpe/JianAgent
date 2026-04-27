@@ -47,6 +47,7 @@
     "@types/adm-zip": "^0.5.8",
     "@types/bcrypt": "^5.0.0",
     "@types/better-sqlite3": "^7.6.0",
+    "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/pidusage": "^2.0.5",

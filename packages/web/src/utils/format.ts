@@ -1,5 +1,5 @@
 export const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
+  if (bytes == null || isNaN(bytes) || bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -7,6 +7,7 @@ export const formatBytes = (bytes: number): string => {
 };
 
 export const formatUptime = (seconds: number): string => {
+  if (seconds == null || isNaN(seconds) || seconds < 0) return '0分钟';
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);

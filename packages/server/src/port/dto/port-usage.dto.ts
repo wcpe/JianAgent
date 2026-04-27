@@ -7,6 +7,14 @@ export class PortUsageDto {
 
   processName?: string;
 
+  status?: string;
+
+  hostId?: string;
+
+  hostname?: string;
+
+  timestamp?: string;
+
   commandLine?: string;
 
   isJvm!: boolean;

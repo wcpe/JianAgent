@@ -38,7 +38,7 @@ function PlayerCard({ player }: { player: PlayerOnlineDto }) {
         </div>
       </div>
       <div className="text-xs text-gray-500 dark:text-gray-400">
-        ❤️ {player.health.toFixed(0)}
+        ❤️ {player.health != null ? player.health.toFixed(0) : '—'}
       </div>
     </div>
   );
