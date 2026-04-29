@@ -39,7 +39,15 @@ export class JavaHelperService extends EventEmitter implements OnModuleDestroy {
   async start(): Promise<void> {
     if (this.process) return;
 
-    const jarPath = await this.resolveJarPath();
+    let jarPath: string;
+    try {
+      jarPath = await this.resolveJarPath();
+    } catch (err) {
+      this.logger.warn('Java helper jar not found, service will not be available');
+      this.state = 'FAILED';
+      return;
+    }
+
     this.process = spawn('java', [
       '--add-exports', 'jdk.attach/sun.tools.attach=ALL-UNNAMED',
       '-jar',

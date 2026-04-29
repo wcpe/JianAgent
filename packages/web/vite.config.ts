@@ -9,6 +9,9 @@ const wsTarget = process.env['VITE_WS_TARGET'] ?? apiTarget.replace(/^http/i, 'w
 export default defineConfig({
   plugins: [react()],
   test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
     exclude: [...configDefaults.exclude, 'e2e/**', 'tests/e2e/**'],
   },
   server: {

@@ -36,6 +36,7 @@ import { PlatformRuntimeModule } from './platform-runtime/platform-runtime.modul
 import { HealthModule } from './health/health.module.js';
 import { PortModule } from './port/port.module.js';
 import { MonitoringModule } from './monitoring/monitoring.module.js';
+import { ArthasAdapterModule } from './arthas-adapter/arthas-adapter.module.js';
 import { RequestContextInterceptor } from './common/request-context.interceptor.js';
 import { ApiResponseInterceptor } from './common/api-response.interceptor.js';
 import { ApiExceptionFilter } from './common/api-exception.filter.js';
@@ -78,6 +79,7 @@ import { CsrfGuard } from './common/csrf.guard.js';
     HealthModule,
     PortModule,
     MonitoringModule,
+    ArthasAdapterModule,
   ],
   providers: [
     RequestContextInterceptor,

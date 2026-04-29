@@ -19,16 +19,30 @@ class WsClient {
       return;
     }
 
+    // Don't try to connect without a token
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      return;
+    }
+
     this.intentionalClose = false;
     this.connectionFailed = false;
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = sessionStorage.getItem('token');
-    const query = token ? `?token=${encodeURIComponent(token)}` : '';
+    const query = `?token=${encodeURIComponent(token)}`;
     const url = `${protocol}//${location.host}/ws/realtime${query}`;
 
     const ws = new WebSocket(url);
+    
+    // Set a connection timeout
+    const connectionTimeout = setTimeout(() => {
+      if (ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+        this.scheduleReconnect();
+      }
+    }, 5000); // 5 second timeout
 
     ws.onopen = () => {
+      clearTimeout(connectionTimeout);
       this.reconnectAttempts = 0;
       // Send queued messages
       const msgs = this.pendingMessages;
@@ -50,6 +64,7 @@ class WsClient {
     };
 
     ws.onclose = () => {
+      clearTimeout(connectionTimeout);
       this.ws = null;
       if (!this.intentionalClose) {
         this.scheduleReconnect();
@@ -57,6 +72,7 @@ class WsClient {
     };
 
     ws.onerror = () => {
+      clearTimeout(connectionTimeout);
       // onclose will fire after onerror
     };
 

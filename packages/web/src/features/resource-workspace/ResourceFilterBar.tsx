@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { LayoutGrid, List, Search } from 'lucide-react';
 import { ErrorAlert } from '../../components/ui/ErrorAlert.js';
 import type { ServerType } from '@jian-agent/shared-domain';
+import { useDebounce } from '../../hooks/useDebounce.js';
 import type {
   ResourceWorkspaceFilters,
   ResourceWorkspaceViewMode,
@@ -27,6 +29,48 @@ export function ResourceFilterBar({
   onBatchAction,
   onClearSelection,
 }: ResourceFilterBarProps) {
+  // 本地状态用于即时更新 UI
+  const [localQ, setLocalQ] = useState(filters.q ?? '');
+  const [localGroup, setLocalGroup] = useState(filters.group ?? '');
+  const [localTag, setLocalTag] = useState(filters.tag ?? '');
+
+  // 防抖后的值
+  const debouncedQ = useDebounce(localQ, 400);
+  const debouncedGroup = useDebounce(localGroup, 400);
+  const debouncedTag = useDebounce(localTag, 400);
+
+  // 当防抖后的值变化时，触发外部更新
+  useEffect(() => {
+    if (debouncedQ !== (filters.q ?? '')) {
+      onSetFilters({ q: debouncedQ || undefined });
+    }
+  }, [debouncedQ]);
+
+  useEffect(() => {
+    if (debouncedGroup !== (filters.group ?? '')) {
+      onSetFilters({ group: debouncedGroup || undefined });
+    }
+  }, [debouncedGroup]);
+
+  useEffect(() => {
+    if (debouncedTag !== (filters.tag ?? '')) {
+      onSetFilters({ tag: debouncedTag || undefined });
+    }
+  }, [debouncedTag]);
+
+  // 当外部 filters 变化时，同步到本地状态（避免循环）
+  useEffect(() => {
+    setLocalQ(filters.q ?? '');
+  }, [filters.q]);
+
+  useEffect(() => {
+    setLocalGroup(filters.group ?? '');
+  }, [filters.group]);
+
+  useEffect(() => {
+    setLocalTag(filters.tag ?? '');
+  }, [filters.tag]);
+
   return (
     <section className="rounded-3xl border border-white/60 bg-white/85 p-4 shadow-xl backdrop-blur-xl dark:border-primary-300/20 dark:bg-gray-950/70">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -34,8 +78,8 @@ export function ResourceFilterBar({
           <label className="relative min-w-[220px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
-              value={filters.q ?? ''}
-              onChange={(event) => onSetFilters({ q: event.target.value || undefined })}
+              value={localQ}
+              onChange={(event) => setLocalQ(event.target.value)}
               placeholder="搜索名称、地址、标签、描述..."
               className="w-full rounded-2xl border border-gray-200 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition focus:border-primary-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
             />
@@ -91,14 +135,14 @@ export function ResourceFilterBar({
             <option value="error">异常</option>
           </select>
           <input
-            value={filters.group ?? ''}
-            onChange={(event) => onSetFilters({ group: event.target.value || undefined })}
+            value={localGroup}
+            onChange={(event) => setLocalGroup(event.target.value)}
             placeholder="分组"
             className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
           />
           <input
-            value={filters.tag ?? ''}
-            onChange={(event) => onSetFilters({ tag: event.target.value || undefined })}
+            value={localTag}
+            onChange={(event) => setLocalTag(event.target.value)}
             placeholder="标签"
             className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
           />

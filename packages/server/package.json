@@ -28,6 +28,8 @@
     "adm-zip": "^0.5.17",
     "bcrypt": "^5.1.0",
     "better-sqlite3": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "cron-parser": "^5.5.0",
     "drizzle-orm": "^0.38.0",
     "iconv-lite": "^0.7.2",

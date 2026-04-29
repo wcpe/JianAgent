@@ -9,6 +9,7 @@ import { WsStatusBanner } from './WsStatusBanner.js';
 import { ToastContainer } from '../ui/ToastContainer.js';
 import { ConfirmDialog } from '../ui/ConfirmDialog.js';
 import { useThemeStore } from '../../stores/theme.store.js';
+import { useServerStore } from '../../stores/server.store.js';
 import { applyTheme, watchSystemScheme } from '../../theme/theme-runtime.js';
 import { ErrorBoundary } from '../ErrorBoundary.js';
 import { Menu } from 'lucide-react';
@@ -22,6 +23,7 @@ export function AppLayout() {
   const floating = useThemeStore((s) => s.sidebarFloating);
   const setMobileSidebarOpen = useThemeStore((s) => s.setMobileSidebarOpen);
   const sidebarMode = useThemeStore((s) => s.sidebarMode);
+  const fetchServers = useServerStore((s) => s.fetchServers);
 
   // Apply theme whenever mode or preset changes
   useEffect(() => {
@@ -33,6 +35,11 @@ export function AppLayout() {
     if (mode !== 'system') return;
     return watchSystemScheme(() => applyTheme(mode, preset));
   }, [mode, preset]);
+
+  // Fetch servers on mount to ensure consistent server count in TopStatusBar
+  useEffect(() => {
+    fetchServers();
+  }, []);
 
   // Keyboard shortcuts: g+s → /resources, g+m → /monitoring, g+l → /log-center
   const pendingG = useRef(false);

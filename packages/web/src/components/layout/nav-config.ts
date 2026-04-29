@@ -43,6 +43,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { path: '/log-center', label: '日志中心', icon: Search },
       { path: '/diagnostics', label: '诊断', icon: Stethoscope },
       { path: '/jvm-observability', label: 'JVM 可观测', icon: Radar },
+      { path: '/arthas', label: 'Arthas 诊断', icon: Activity },
       { path: '/files', label: '文件中心', icon: FolderOpen },
       { path: '/alerts', label: '告警', icon: Bell },
       { path: '/alert-rules', label: '告警规则', icon: Bell },

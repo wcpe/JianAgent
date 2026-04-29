@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 const API_BASE = 'http://localhost:3400';
-const CREDENTIALS = { username: 'admin', password: 'admin123456' };
+const CREDENTIALS = { username: 'admin', password: 'admin123' };
 
 /**
  * Authenticated test fixture.
@@ -14,7 +14,7 @@ export const test = base.extend<{ authedPage: Page }>({
 
     // Prefer real login flow when backend is available.
     try {
-      const res = await page.request.post(`${API_BASE}/api/auth/login`, {
+      const res = await page.request.post(`${API_BASE}/api/v1/auth/login`, {
         data: CREDENTIALS,
       });
       if (res.ok()) {
@@ -27,7 +27,7 @@ export const test = base.extend<{ authedPage: Page }>({
 
     // Inject token into localStorage before navigating
     await page.goto('/login');
-    await page.evaluate((t) => localStorage.setItem('token', t), token);
+    await page.evaluate((t) => sessionStorage.setItem('token', t), token);
 
     await use(page);
   },

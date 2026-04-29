@@ -37,6 +37,8 @@ interface ResourceWorkspaceState {
   setViewMode: (mode: ResourceWorkspaceViewMode) => void;
   toggleSelected: (id: string) => void;
   clearSelection: () => void;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
 }
 
 const EMPTY_SUMMARY: ResourceWorkspaceSummaryDto = {
@@ -127,5 +129,9 @@ export const useResourceWorkspaceStore = create<ResourceWorkspaceState>(
       })),
 
     clearSelection: () => set({ selectedIds: [] }),
+
+    setPage: (page) => set({ page }),
+
+    setLimit: (limit) => set({ limit, page: 1 }),
   }),
 );

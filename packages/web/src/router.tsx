@@ -53,6 +53,8 @@ const PortListPage = lazy(() => import('./pages/port/PortListPage.js'));
 const JvmListPage = lazy(() => import('./pages/jvm/JvmListPage.js'));
 const JvmMonitoringPage = lazy(() => import('./pages/jvm/JvmMonitoringPage.js').then(m => ({ default: m.JvmMonitoringPage })));
 const FileCenterPage = lazy(() => import('./pages/files/FileCenterPage.js').then(m => ({ default: m.FileCenterPage })));
+const ArthasPage = lazy(() => import('./pages/arthas/index.js').then(m => ({ default: m.ArthasPage })));
+const ArthasTestPage = lazy(() => import('./pages/arthas/test.js').then(m => ({ default: m.ArthasTestPage })));
 
 // ---------------------------------------------------------------------------
 // Suspense helpers
@@ -145,6 +147,8 @@ export function AppRouter() {
           <Route path="/ports" element={<Lazy Component={PortListPage} />} />
           <Route path="/jvm" element={<Lazy Component={JvmListPage} />} />
           <Route path="/jvm/:pid/monitoring" element={<Lazy Component={JvmMonitoringPage} />} />
+          <Route path="/arthas" element={<Lazy Component={ArthasPage} />} />
+          <Route path="/arthas-test" element={<Lazy Component={ArthasTestPage} />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
